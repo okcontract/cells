@@ -1,0 +1,5 @@
+node_modules
+dist
+*.dot
+src/*.dot
+README.html
