@@ -1,11 +1,24 @@
 {
   "name": "@okcontract/cells",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Functional reactive library inspired by spreadsheets",
   "private": false,
   "main": "dist/cells.umd.cjs",
   "module": "dist/cells.js",
   "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/cells.js",
+      "require": "./dist/cells.umd.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/",
+    "assets/",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "@okcontract/graph": "0.1.2"
   },
