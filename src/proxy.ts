@@ -1,7 +1,7 @@
 import { dispatch } from "./promise";
 import { CellErrors, MapCell, ValueCell, Working, type AnyCell } from "./cell";
 import { Sheet } from "./sheet";
-import type { ExtractTypes, UnwrapCell } from "./types";
+import type { AnyCellArray } from "./types";
 
 /**
  * SheetProxy is a proxy that automatically registers locally
@@ -40,7 +40,7 @@ export class SheetProxy {
   }
 
   new<V>(
-    value: V | Promise<V>,
+    value: V | AnyCell<V> | Promise<V | AnyCell<V>>,
     name?: string, // @todo migrate to options
     options?: { name?: string; _storageKey?: string }
   ): ValueCell<V> {
@@ -49,164 +49,25 @@ export class SheetProxy {
     // consolidated value will resolve when value is resolved.
     this.working.addComputation(cell.id, cell.consolidatedValue);
     this._list.push(cell);
-    return cell;
+    return cell as ValueCell<V>;
   }
 
-  // @todo Dirty hack to overload map to fix type inference
-  // for variadic kinds.
-  map<D1 extends AnyCell<any>, V, NF extends boolean>(
-    dependencies: [D1],
-    computeFn: (arg1: UnwrapCell<D1>, prev?: V) => V | Promise<V> | AnyCell<V>,
-    name?: string,
-    noFail?: NF
-  ): MapCell<V, NF>;
-
-  // @todo Dirty hack to overload map to fix type inference
-  // for variadic kinds.
-  map<D1 extends AnyCell<any>, D2 extends AnyCell<any>, V, NF extends boolean>(
-    dependencies: [D1, D2],
-    computeFn: (
-      arg1: UnwrapCell<D1>,
-      arg2: UnwrapCell<D2>,
-      prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
-    name?: string,
-    noFail?: NF
-  ): MapCell<V, NF>;
-
-  // @todo Dirty hack to overload map to fix type inference
-  // for variadic kinds.
-  map<
-    D1 extends AnyCell<any>,
-    D2 extends AnyCell<any>,
-    D3 extends AnyCell<any>,
-    V,
-    NF extends boolean
-  >(
-    dependencies: [D1, D2, D3],
-    computeFn: (
-      arg1: UnwrapCell<D1>,
-      arg2: UnwrapCell<D2>,
-      arg3: UnwrapCell<D3>,
-      prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
-    name?: string,
-    noFail?: NF
-  ): MapCell<V, NF>;
-
-  map<
-    D1 extends AnyCell<any>,
-    D2 extends AnyCell<any>,
-    D3 extends AnyCell<any>,
-    D4 extends AnyCell<any>,
-    V,
-    NF extends boolean
-  >(
-    dependencies: [D1, D2, D3, D4],
-    computeFn: (
-      arg1: UnwrapCell<D1>,
-      arg2: UnwrapCell<D2>,
-      arg3: UnwrapCell<D3>,
-      arg4: UnwrapCell<D4>,
-      prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
-    name?: string,
-    noFail?: NF
-  ): MapCell<V, NF>;
-
-  map<
-    D1 extends AnyCell<any>,
-    D2 extends AnyCell<any>,
-    D3 extends AnyCell<any>,
-    D4 extends AnyCell<any>,
-    D5 extends AnyCell<any>,
-    V,
-    NF extends boolean
-  >(
-    dependencies: [D1, D2, D3, D4, D5],
-    computeFn: (
-      arg1: UnwrapCell<D1>,
-      arg2: UnwrapCell<D2>,
-      arg3: UnwrapCell<D3>,
-      arg4: UnwrapCell<D4>,
-      arg5: UnwrapCell<D5>,
-      prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
-    name?: string,
-    noFail?: NF
-  ): MapCell<V, NF>;
-
-  map<
-    D1 extends AnyCell<any>,
-    D2 extends AnyCell<any>,
-    D3 extends AnyCell<any>,
-    D4 extends AnyCell<any>,
-    D5 extends AnyCell<any>,
-    D6 extends AnyCell<any>,
-    V,
-    NF extends boolean
-  >(
-    dependencies: [D1, D2, D3, D4, D5, D6],
-    computeFn: (
-      arg1: UnwrapCell<D1>,
-      arg2: UnwrapCell<D2>,
-      arg3: UnwrapCell<D3>,
-      arg4: UnwrapCell<D4>,
-      arg5: UnwrapCell<D5>,
-      arg6: UnwrapCell<D6>,
-      prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
-    name?: string,
-    noFail?: NF
-  ): MapCell<V, NF>;
-
-  map<
-    D1 extends AnyCell<any>,
-    D2 extends AnyCell<any>,
-    D3 extends AnyCell<any>,
-    D4 extends AnyCell<any>,
-    D5 extends AnyCell<any>,
-    D6 extends AnyCell<any>,
-    D7 extends AnyCell<any>,
-    V,
-    NF extends boolean
-  >(
-    dependencies: [D1, D2, D3, D4, D5, D6, D7],
-    computeFn: (
-      arg1: UnwrapCell<D1>,
-      arg2: UnwrapCell<D2>,
-      arg3: UnwrapCell<D3>,
-      arg4: UnwrapCell<D4>,
-      arg5: UnwrapCell<D5>,
-      arg6: UnwrapCell<D6>,
-      arg7: UnwrapCell<D7>,
-      prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
-    name?: string,
-    noFail?: NF
-  ): MapCell<V, NF>;
-
   // Implementation
-  map<D extends AnyCell<any>[], V, NF extends boolean>(
-    dependencies: D,
-    computeFn: (...args: ExtractTypes<D>) => V | Promise<V> | AnyCell<V>,
+  map<D extends any[], V, NF extends boolean = false>(
+    dependencies: AnyCellArray<D>,
+    computeFn: (...args: D) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     noFail?: NF
   ): MapCell<V, NF> {
-    // @ts-expect-error @todo dependencies
     const cell = this._sheet.map(dependencies, computeFn, name, this, noFail);
     this._list.push(cell);
-    // if (name) {
-    //   cell.bless(name);
-    //   // console.log(`Cell ${cell.id} name is ${name}`);
-    // }
-    return cell;
+    return cell as MapCell<V, NF>;
   }
 
   // Implementation
-  mapNoPrevious<D extends AnyCell<any>[], V, NF extends boolean>(
-    dependencies: D,
-    computeFn: (...args: ExtractTypes<D>) => V | Promise<V> | AnyCell<V>,
+  mapNoPrevious<D extends any[], V, NF extends boolean = false>(
+    dependencies: AnyCellArray<D>,
+    computeFn: (...args: D) => V | Promise<V> | AnyCell<V>,
     name?: string,
     noFail?: NF
   ): MapCell<V, NF> {
@@ -218,10 +79,6 @@ export class SheetProxy {
       noFail
     );
     this._list.push(cell);
-    // if (name) {
-    //   cell.bless(name);
-    //   // console.log(`Cell ${cell.id} name is ${name}`);
-    // }
     return cell;
   }
 

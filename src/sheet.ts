@@ -4,7 +4,7 @@ import { Graph, ReferencesLeft } from "@okcontract/graph";
 
 import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { SheetProxy } from "./proxy";
-import type { ExtractTypes, UnwrapCell } from "./types";
+import type { AnyCellArray } from "./types";
 import {
   Cell,
   Working,
@@ -241,9 +241,10 @@ export class Sheet {
     if (name !== undefined) this.bless(cell.id, name);
     return cell;
   }
-  mapRaw<D extends AnyCell<any>[], V, NF extends boolean>(
-    dependencies: D,
-    computeFn: (...args: ExtractTypes<D>) => V | Promise<V> | AnyCell<V>,
+
+  mapRaw<D extends any[], V, NF extends boolean = false>(
+    dependencies: AnyCellArray<D>,
+    computeFn: (...args: D) => V | Promise<V> | AnyCell<V>,
     usePreviousValue: boolean,
     name?: string,
     proxy?: SheetProxy | Sheet,
@@ -274,77 +275,9 @@ export class Sheet {
     return mapCell;
   }
 
-  // @todo Dirty hack to overload map to fix type inference
-  // for variadic kinds.
-  map<D1 extends AnyCell<any>, V, NF extends boolean>(
-    dependencies: [D1],
-    computeFn: (arg1: UnwrapCell<D1>, prev?: V) => V | Promise<V> | AnyCell<V>,
-    name?: string,
-    proxy?: SheetProxy | Sheet,
-    noFail?: NF
-  ): MapCell<V, NF>;
-
-  // @todo Dirty hack to overload map to fix type inference
-  // for variadic kinds.
-  map<D1 extends AnyCell<any>, D2 extends AnyCell<any>, V, NF extends boolean>(
-    dependencies: [D1, D2],
-    computeFn: (
-      arg1: UnwrapCell<D1>,
-      arg2: UnwrapCell<D2>,
-      prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
-    name?: string,
-    proxy?: SheetProxy | Sheet,
-    noFail?: NF
-  ): MapCell<V, NF>;
-
-  // @todo Dirty hack to overload map to fix type inference
-  // for variadic kinds.
-  map<
-    D1 extends AnyCell<any>,
-    D2 extends AnyCell<any>,
-    D3 extends AnyCell<any>,
-    V,
-    NF extends boolean
-  >(
-    dependencies: [D1, D2, D3],
-    computeFn: (
-      arg1: UnwrapCell<D1>,
-      arg2: UnwrapCell<D2>,
-      arg3: UnwrapCell<D3>,
-      prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
-    name?: string,
-    proxy?: SheetProxy | Sheet,
-    noFail?: NF
-  ): MapCell<V, NF>;
-
-  // @todo Dirty hack to overload map to fix type inference
-  // for variadic kinds.
-  map<
-    D1 extends AnyCell<any>,
-    D2 extends AnyCell<any>,
-    D3 extends AnyCell<any>,
-    D4 extends AnyCell<any>,
-    V,
-    NF extends boolean
-  >(
-    dependencies: [D1, D2, D3, D4],
-    computeFn: (
-      arg1: UnwrapCell<D1>,
-      arg2: UnwrapCell<D2>,
-      arg3: UnwrapCell<D3>,
-      arg4: UnwrapCell<D4>,
-      prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
-    name?: string,
-    proxy?: SheetProxy | Sheet,
-    noFail?: NF
-  ): MapCell<V, NF>;
-
-  map<D extends AnyCell<any>[], V, NF extends boolean>(
-    dependencies: D,
-    computeFn: (...args: ExtractTypes<D>) => V | Promise<V> | AnyCell<V>,
+  map<D extends any[], V, NF extends boolean = false>(
+    dependencies: AnyCellArray<D>,
+    computeFn: (...args: D) => V | Promise<V> | AnyCell<V>,
     name?: string,
     proxy?: SheetProxy | Sheet,
     noFail?: NF
@@ -352,9 +285,9 @@ export class Sheet {
     return this.mapRaw(dependencies, computeFn, true, name, proxy, noFail);
   }
 
-  mapNoPrevious<D extends AnyCell<any>[], V, NF extends boolean>(
-    dependencies: D,
-    computeFn: (...args: ExtractTypes<D>) => V | Promise<V> | AnyCell<V>,
+  mapNoPrevious<D extends any[], V, NF extends boolean = false>(
+    dependencies: AnyCellArray<D>,
+    computeFn: (...args: D) => V | Promise<V> | AnyCell<V>,
     name?: string,
     proxy?: SheetProxy | Sheet,
     noFail?: NF
