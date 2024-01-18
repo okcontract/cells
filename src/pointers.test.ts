@@ -3,7 +3,7 @@ import { writeFileSync, appendFileSync } from "fs";
 import { expect, test } from "vitest";
 
 import { delayed, sleep } from "./promise";
-import { MapCell, ValueCell } from "./cell";
+import { ValueCell } from "./cell";
 import { Sheet } from "./sheet";
 import { SheetProxy } from "./proxy";
 

@@ -598,7 +598,6 @@ export class Cell<
             undefined,
             noFail
           );
-    // @ts-expect-error unwrap
     return cell;
   };
 

@@ -244,7 +244,7 @@ export class Sheet {
 
   mapRaw<D extends any[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
-    computeFn: (...args: D) => V | Promise<V> | AnyCell<V>,
+    computeFn: (...args: D) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     usePreviousValue: boolean,
     name?: string,
     proxy?: SheetProxy | Sheet,
@@ -277,7 +277,7 @@ export class Sheet {
 
   map<D extends any[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
-    computeFn: (...args: D) => V | Promise<V> | AnyCell<V>,
+    computeFn: (...args: D) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     proxy?: SheetProxy | Sheet,
     noFail?: NF
@@ -287,7 +287,7 @@ export class Sheet {
 
   mapNoPrevious<D extends any[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
-    computeFn: (...args: D) => V | Promise<V> | AnyCell<V>,
+    computeFn: (...args: D) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     proxy?: SheetProxy | Sheet,
     noFail?: NF
