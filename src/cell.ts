@@ -577,7 +577,7 @@ export class Cell<
    * @param noFail is true when the mapped function never returns an error
    * @returns mapped cell
    */
-  map = <T, NF extends boolean>(
+  map = <T, NF extends boolean = false>(
     fn: (v: V) => T | Promise<T> | AnyCell<T>,
     name?: string,
     noFail?: NF
