@@ -4,7 +4,7 @@ const DEBUG_RANK = false;
 import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { CellError } from "./errors";
 import { SheetProxy } from "./proxy";
-import { type Unsubscriber, type UnwrapCell } from "./types";
+import { type Unsubscriber } from "./types";
 import { Sheet } from "./sheet";
 
 let idCounter = 0;
@@ -582,7 +582,7 @@ export class Cell<
     fn: (v: V) => T | Promise<T> | AnyCell<T>,
     name?: string,
     noFail?: NF
-  ): MapCell<UnwrapCell<T>, NF> => {
+  ): MapCell<T, NF> => {
     const cell =
       // @todo try to factor both cases
       this._sheet instanceof SheetProxy
