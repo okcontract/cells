@@ -160,7 +160,7 @@ export class Cell<
   V,
   IsComputed extends boolean,
   NoFail extends boolean,
-  MaybeError extends boolean = OnlyA<IsComputed, NoFail>
+  MaybeError = OnlyA<IsComputed, NoFail>
 > extends SubscribeBench<CellResult<V, MaybeError>> {
   readonly _sheet: Sheet | SheetProxy;
   readonly id: number;
@@ -425,8 +425,7 @@ export class Cell<
         return this.v === undefined || this.v === null
           ? this.v
           : // isPointer ensures we have a cell here
-            (this.v as Cell<V, boolean, MaybeError>)
-              .consolidatedValueWthUndefined;
+            (this.v as Cell<V, boolean, boolean>).consolidatedValueWthUndefined;
       } else {
         //@ts-expect-error !isPointer ensures we have *not* cell here
         return this.v;
@@ -796,7 +795,10 @@ export class ValueCell<V> extends Cell<V, false, false> {
   };
 }
 
-export class MapCell<V, NF extends boolean> extends Cell<V, true, NF, boolean> {
+/**
+ * MapCell represents a Cell resulting from a map operation.
+ */
+export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
   private _computeFn: (...args: V[]) => V | Promise<V> | AnyCell<V>;
   private _usePreviousValue: boolean;
   /**
