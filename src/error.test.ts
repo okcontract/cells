@@ -171,4 +171,5 @@ test("Errors in set", async () => {
     throw new Error("a");
   };
   const a = proxy.new(fails());
+  expect(a.get()).resolves.toBeInstanceOf(Error);
 });

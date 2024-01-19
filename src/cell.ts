@@ -724,16 +724,16 @@ export class ValueCell<V> extends Cell<V, false, false> {
       // );
       // set cell value on promise resolution
       const computation = value.then(
-        (v: CellResultOrPointer<V, false>) => {
+        (v: CellResultOrPointer<V, false>) =>
           // console.log({ setPromisedInCell: this.name, resolvedToValue: v });
-          return this._setValueOnComputationCompletion(
-            v,
+          this._setValueOnComputationCompletion(v, computationRank, true, true),
+        (error) =>
+          this._setValueOnComputationCompletion(
+            error,
             computationRank,
             true,
             true
-          );
-        },
-        (error) => error
+          )
       );
       this.setPendingComputation(computationRank, computation);
       return computation;
@@ -1123,6 +1123,7 @@ export class Working extends SubscribeBench<boolean> {
   public get(): boolean {
     return this.value;
   }
+
   /**
    * Wait for current computations to finish
    * @returns a promise that settles when all there is no more pending computations
