@@ -52,19 +52,138 @@ export class SheetProxy {
     return cell as ValueCell<V>;
   }
 
-  // Implementation
+  // We still need to overload map to fix type inference
+  // for variadic kinds.
+  map<D1, V, NF extends boolean = false>(
+    dependencies: [AnyCell<D1>],
+    computeFn: (arg1: D1, prev?: V) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, V, NF extends boolean = false>(
+    dependencies: [AnyCell<D1>, AnyCell<D2>],
+    computeFn: (arg1: D1, arg2: D2, prev?: V) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, D3, V, NF extends boolean = false>(
+    dependencies: [AnyCell<D1>, AnyCell<D2>, AnyCell<D3>],
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      arg3: D3,
+      prev?: V
+    ) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, D3, D4, V, NF extends boolean = false>(
+    dependencies: [AnyCell<D1>, AnyCell<D2>, AnyCell<D3>, AnyCell<D4>],
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      arg3: D3,
+      arg4: D4,
+      prev?: V
+    ) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, D3, D4, D5, V, NF extends boolean = false>(
+    dependencies: [
+      AnyCell<D1>,
+      AnyCell<D2>,
+      AnyCell<D3>,
+      AnyCell<D4>,
+      AnyCell<D5>
+    ],
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      arg3: D3,
+      arg4: D4,
+      arg5: D5,
+      prev?: V
+    ) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, D3, D4, D5, D6, V, NF extends boolean = false>(
+    dependencies: [
+      AnyCell<D1>,
+      AnyCell<D2>,
+      AnyCell<D3>,
+      AnyCell<D4>,
+      AnyCell<D5>,
+      AnyCell<D6>
+    ],
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      arg3: D3,
+      arg4: D4,
+      arg5: D5,
+      arg6: D6,
+      prev?: V
+    ) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, D3, D4, D5, D6, D7, V, NF extends boolean = false>(
+    dependencies: [
+      AnyCell<D1>,
+      AnyCell<D2>,
+      AnyCell<D3>,
+      AnyCell<D4>,
+      AnyCell<D5>,
+      AnyCell<D6>,
+      AnyCell<D7>
+    ],
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      arg3: D3,
+      arg4: D4,
+      arg5: D5,
+      arg6: D6,
+      arg7: D7,
+      prev?: V
+    ) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    noFail?: NF
+  ): MapCell<V, NF>;
+
+  /**
+   * map a list to cells to a new cells using the compute function.
+   * @param dependencies list of existing cells
+   * @param computeFn function to apply to cells values and an extra argument
+   * that is the previous value of the resulting cell (if any).
+   * @param name optional name
+   * @param noFail if true, then we know `computeFn` can't throw
+   * @returns
+   */
   map<D extends any[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
-    computeFn: (...args: D) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
+    computeFn: (
+      ...args: D | [...D, V]
+    ) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     noFail?: NF
   ): MapCell<V, NF> {
+    // @ts-expect-error conflict with overloaded definitions
     const cell = this._sheet.map(dependencies, computeFn, name, this, noFail);
     this._list.push(cell);
     return cell as MapCell<V, NF>;
   }
 
-  // Implementation
+  /**
+   * mapNoPrevious maps a list to cells to a new cells using the compute function.
+   * @param dependencies list of existing cells
+   * @param computeFn function to apply to cells values, without extra arguments
+   * @param name optional name
+   * @param noFail if true, then we know `computeFn` can't throw
+   * @returns
+   */
   mapNoPrevious<D extends any[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
     computeFn: (...args: D) => V | Promise<V> | AnyCell<V>,
