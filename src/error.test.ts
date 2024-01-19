@@ -162,3 +162,13 @@ test("Error cascade with pointers", async () => {
 
   expect(d.get()).resolves.toBeInstanceOf(Error);
 });
+
+test("Errors in set", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+
+  const fails = async (): Promise<string> => {
+    throw new Error("a");
+  };
+  const a = proxy.new(fails());
+});
