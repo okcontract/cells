@@ -27,5 +27,7 @@ jobs:
         run: npm ci
       - name: Ensure build ok
         run: npm run build
+      - name: Generate definitions
+        run: npm run definitions
       - name: Run all tests
         run: npm test

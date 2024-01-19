@@ -46,7 +46,7 @@ export type PendingArray<V, CanBeError> = Promise<
   MaybeResultOrPointer<V, CanBeError>[]
 >;
 
-/** Array of  (maybe pending) computation results */
+/** Array of (maybe pending) computation results */
 export type MaybePendingDict<V, CanBeError> = (
   | PendingMaybe<V, CanBeError>
   | MaybeResultOrPointer<V, CanBeError>
@@ -922,6 +922,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
       // some parameters are errors
       let res = this.newError(paramsResults[firstError], firstCellWithError);
       this._setValueOnComputationCompletion(
+        // @ts-expect-error we have an error, but NF may be wrongly set to true
         res,
         computationRank,
         false,
@@ -932,6 +933,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
     // Errors have been ruled out, so we can safely convert to V[]
     const params: V[] = paramsResults as V[];
     if (this._usePreviousValue && !(this.value instanceof Error))
+      // @ts-expect-error @todo add previous value to type definitions
       params.push(this.value);
 
     // the computation invalidation can happen during
@@ -962,6 +964,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
         // binding value handling on the promise
         const pendingComputation = newValuePromise.then((v) => {
           this._setValueOnComputationCompletion(
+            // @ts-expect-error @todo Not<NF> differs from MaybeError
             v,
             computationRank,
             false,
@@ -971,8 +974,9 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
         });
         return pendingComputation;
       } else {
-        //setting immediately the value
+        // setting immediately the value
         this._setValueOnComputationCompletion(
+          // @ts-expect-error @todo Not<NF> differs from MaybeError
           newValue,
           computationRank,
           false,
