@@ -1,15 +1,10 @@
-import { MapCell, ValueCell, type AnyCell } from "./cell";
+import { type AnyCell } from "./cell";
 import type { SheetProxy } from "./proxy";
 
-export type ExtractTypes<T> = T extends AnyCell<infer U>[] ? U[] : never;
-
-/** Helper type to unwrap the type in a cell. */
-export type UnwrapCell<T> = T extends
-  | AnyCell<infer U>
-  | MapCell<infer U, infer NF> // if we don't add MapCell and ValueCell cases explicitly, inference on them wont work
-  | ValueCell<infer U>
-  ? U
-  : never;
+// Type transformation: T_k[] => AnyCell<T_k>[]
+export type AnyCellArray<L extends any[]> = {
+  [K in keyof L]: AnyCell<L[K]>;
+};
 
 /** Compute function */
 export type ComputeFn<In extends any[], Out> = (...args: In) => Out;

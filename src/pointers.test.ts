@@ -3,14 +3,14 @@ import { writeFileSync, appendFileSync } from "fs";
 import { expect, test } from "vitest";
 
 import { delayed, sleep } from "./promise";
-import { MapCell, ValueCell } from "./cell";
+import { ValueCell } from "./cell";
 import { Sheet } from "./sheet";
 import { SheetProxy } from "./proxy";
 
 test("cell pointer sync", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const cell1: ValueCell<number> = proxy.new(delayed(1, 100), "init");
+  const cell1 = proxy.new(delayed(1, 100), "init");
   const cellMap = cell1.map((x) => proxy.new(x + 2), "cell1");
   const mixed = proxy.map([cell1, cellMap], (a, b) => a + b, "mixed");
   await expect(cellMap.get()).resolves.toEqual(3);
@@ -24,7 +24,7 @@ test("cell pointer sync", async () => {
 test("cell pointer async", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const cell1: ValueCell<number> = proxy.new(delayed(1, 100), "init");
+  const cell1 = proxy.new(delayed(1, 100), "init");
   const cellMap = cell1.map((x) => proxy.new(x + 2), "cell1");
   const mixed = proxy.map(
     [cell1, cellMap],
@@ -44,7 +44,7 @@ test("cell pointer async", async () => {
 test("cell pointer async initially undefined", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const cell1: ValueCell<number> = proxy.new<number>(undefined as any, "init");
+  const cell1 = proxy.new<number>(undefined as any, "init");
   const cellMap = cell1.map((x) => proxy.new(x + 2), "cell1");
   cell1.set(1);
   expect(cellMap.isPointer).toEqual(true);
@@ -61,7 +61,7 @@ test("cell pointer async initially undefined", async () => {
 test("cell pointer chain", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const cell1: ValueCell<number> = proxy.new(delayed(1, 100), "init");
+  const cell1 = proxy.new(delayed(1, 100), "init");
   const cellMap = cell1.map((x) => proxy.new(x + 2), "cell1");
   const mixed = proxy.map(
     [cell1, cellMap],
@@ -80,18 +80,19 @@ test("cell pointer chain", async () => {
 test("cell pointer longer chain", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const init: ValueCell<number> = proxy.new(delayed(1, 100), "init");
-  const cellMap: MapCell<number, true> = init.map(
+  const init = proxy.new(delayed(1, 100), "init");
+  const cellMap = init.map(
     (x) => proxy.new(x + 2, "cellMap_" + x),
-    "cellMap"
+    "cellMap",
+    true
   );
-  //@ts-expect-error
-  const mixed: MapCell<number, true> = proxy.map(
+  const mixed = proxy.map(
     [init, cellMap],
     async (a, b) => delayed(proxy.new(a + b, "mixed_" + a + "_" + b), 150),
-    "mixed"
+    "mixed",
+    true
   );
-  let successiveValues: (Error | number)[] = [];
+  let successiveValues: number[] = [];
   mixed.subscribe((v) => successiveValues.push(v));
   const double = mixed.map(
     async (v) => proxy.new(v * 2, "double_" + v),
@@ -104,26 +105,26 @@ test("cell pointer longer chain", async () => {
   expect(double.get()).resolves.toEqual(8);
 
   writeFileSync("dependencies.dot", sheet.dotGraphWithTitle("first topology"));
-  await console.log(sheet.dotGraph);
+  console.log(sheet.dotGraph);
 
   init.set(2);
 
-  await proxy.working;
+  await proxy.working.wait();
   await cellMap.working;
   appendFileSync(
     "dependencies.dot",
     sheet.dotGraphWithTitle("second topology")
   );
 
-  await console.log(sheet.dotGraph);
+  // console.log(sheet.dotGraph);
   // // This loop seems to spam so hard that the update never progress to the expected value
   // let cpt = 0;
   // while (!((await mixed.get()) === 6)) {
   //   console.log({ cpt: cpt++ });
   // }
-  await expect(mixed.consolidatedValue).resolves.toEqual(6);
+  expect(mixed.consolidatedValue).toEqual(6);
   await sleep(200);
-  await expect(double.consolidatedValue).toEqual(12);
+  expect(double.consolidatedValue).toEqual(12);
   expect(successiveValues).toEqual([4, 6]);
   appendFileSync("dependencies.dot", sheet.dotGraphWithTitle("last topology"));
 });
@@ -132,7 +133,6 @@ test("cell pointer, incremental computation", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
   const init1: ValueCell<number> = proxy.new(1, "init1");
-  // @ts-expect-error pointer cell inference is missing
   const cellPointer1: ValueCell<number> = proxy.new(init1, "pointer1");
   const depOnPointer = proxy.map([cellPointer1], (a) => a + 1, "depOnPointer");
 
@@ -162,8 +162,7 @@ test("cell pointer, incremental computation", async () => {
 test("cell pointer, update pointed", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const init1: ValueCell<number> = proxy.new(delayed(1, 100), "init1");
-  //@ts-expect-error
+  const init1 = proxy.new(delayed(1, 100), "init1");
   const cellPointer1: ValueCell<number> = proxy.new(
     delayed(init1, 15),
     "pointer1"
@@ -190,7 +189,6 @@ test("cell pointer long chain, update pointed", async () => {
   const cellPointer4 = proxy.new(delayed(cellPointer3, 15), "pointer4");
   const depOnPointer = proxy.map(
     [cellPointer4],
-    //@ts-expect-error
     async (a) => delayed(a + 1, 1),
     "depOnPointer"
   );
@@ -202,13 +200,13 @@ test("cell pointer long chain, update pointed", async () => {
 
   init1.set(2);
   await sleep(200);
-  await expect(depDepPointer.consolidatedValue).toEqual(3);
+  expect(depDepPointer.consolidatedValue).toEqual(3);
 });
 
 test("cell pointer long chain, update pointed with null", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const init1: ValueCell<number | null> = proxy.new(delayed(1, 100), "init1");
+  const init1 = proxy.new(delayed(1 as number | null, 100), "init1");
   const cellPointer1 = proxy.new(delayed(init1, 15), "pointer1");
   const cellPointer2 = proxy.new(delayed(cellPointer1, 15), "pointer2");
   const cellPointer3 = proxy.new(delayed(cellPointer2, 15), "pointer3");
@@ -228,14 +226,15 @@ test("cell pointer long chain, update pointed with null", async () => {
 test("cell pointer long chain, update pointer", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const init1: ValueCell<number> = proxy.new(delayed(1, 100), "init1");
-  const init2: ValueCell<number> = proxy.new(2, "init2");
+  const init1 = proxy.new(delayed(1, 100), "init1");
+  const init2 = proxy.new(2, "init2");
   const cellPointer1 = proxy.new(delayed(init1, 15), "pointer1");
   const cellPointer2 = proxy.new(delayed(cellPointer1, 15), "pointer2");
   const depOnPointer = proxy.map(
-    [cellPointer2], //@ts-expect-error
+    [cellPointer2],
     async (a) => delayed(a + 1, 150),
-    "depOnPointer"
+    "depOnPointer",
+    true
   );
   const valuesOfDepOnPointer: number[] = [];
   depOnPointer.subscribe((v) => {
@@ -249,7 +248,6 @@ test("cell pointer long chain, update pointer", async () => {
     "updated_pointers.dot",
     sheet.dotGraphWithTitle("init topology")
   );
-  //@ts-expect-error
   cellPointer2.set(init2);
   appendFileSync(
     "updated_pointers.dot",
@@ -261,7 +259,6 @@ test("cell pointer long chain, update pointer", async () => {
   //@todo this is just a hack to restart promises computations and trigger subscribers notifications
   await expect(delayed(1, 1)).resolves.toEqual(1);
   expect(valuesOfDepOnPointer).toEqual([2, 3]);
-  //@ts-expect-error
   cellPointer2.set(init1);
   appendFileSync(
     "updated_pointers.dot",

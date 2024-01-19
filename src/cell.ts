@@ -4,7 +4,7 @@ const DEBUG_RANK = false;
 import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { CellError } from "./errors";
 import { SheetProxy } from "./proxy";
-import { type Unsubscriber, type UnwrapCell } from "./types";
+import { type Unsubscriber } from "./types";
 import { Sheet } from "./sheet";
 
 let idCounter = 0;
@@ -160,7 +160,7 @@ export class Cell<
   V,
   IsComputed extends boolean,
   NoFail extends boolean,
-  MaybeError extends boolean = OnlyA<IsComputed, NoFail>
+  MaybeError = OnlyA<IsComputed, NoFail>
 > extends SubscribeBench<CellResult<V, MaybeError>> {
   readonly _sheet: Sheet | SheetProxy;
   readonly id: number;
@@ -425,8 +425,7 @@ export class Cell<
         return this.v === undefined || this.v === null
           ? this.v
           : // isPointer ensures we have a cell here
-            (this.v as Cell<V, boolean, MaybeError>)
-              .consolidatedValueWthUndefined;
+            (this.v as Cell<V, boolean, boolean>).consolidatedValueWthUndefined;
       } else {
         //@ts-expect-error !isPointer ensures we have *not* cell here
         return this.v;
@@ -578,11 +577,11 @@ export class Cell<
    * @param noFail is true when the mapped function never returns an error
    * @returns mapped cell
    */
-  map = <T, NF extends boolean>(
-    fn: (v: V) => T | Promise<T> | AnyCell<T>,
+  map = <T, NF extends boolean = false>(
+    fn: (v: V) => T | Promise<T | AnyCell<T>> | AnyCell<T>,
     name?: string,
     noFail?: NF
-  ): MapCell<UnwrapCell<T>, NF> => {
+  ): MapCell<T, NF> => {
     const cell =
       // @todo try to factor both cases
       this._sheet instanceof SheetProxy
@@ -599,7 +598,6 @@ export class Cell<
             undefined,
             noFail
           );
-    // @ts-expect-error unwrap
     return cell;
   };
 
@@ -796,7 +794,10 @@ export class ValueCell<V> extends Cell<V, false, false> {
   };
 }
 
-export class MapCell<V, NF extends boolean> extends Cell<V, true, NF, boolean> {
+/**
+ * MapCell represents a Cell resulting from a map operation.
+ */
+export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
   private _computeFn: (...args: V[]) => V | Promise<V> | AnyCell<V>;
   private _usePreviousValue: boolean;
   /**
