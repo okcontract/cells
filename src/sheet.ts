@@ -275,9 +275,119 @@ export class Sheet {
     return mapCell;
   }
 
+  // We still need to overload map to fix type inference
+  // for variadic kinds.
+  map<D1, V, NF extends boolean = false>(
+    dependencies: [AnyCell<D1>],
+    computeFn: (arg1: D1, prev?: V) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    proxy?: SheetProxy | Sheet,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, V, NF extends boolean = false>(
+    dependencies: [AnyCell<D1>, AnyCell<D2>],
+    computeFn: (arg1: D1, arg2: D2, prev?: V) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    proxy?: SheetProxy | Sheet,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, D3, V, NF extends boolean = false>(
+    dependencies: [AnyCell<D1>, AnyCell<D2>, AnyCell<D3>],
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      arg3: D3,
+      prev?: V
+    ) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    proxy?: SheetProxy | Sheet,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, D3, D4, V, NF extends boolean = false>(
+    dependencies: [AnyCell<D1>, AnyCell<D2>, AnyCell<D3>, AnyCell<D4>],
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      arg3: D3,
+      arg4: D4,
+      prev?: V
+    ) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    proxy?: SheetProxy | Sheet,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, D3, D4, D5, V, NF extends boolean = false>(
+    dependencies: [
+      AnyCell<D1>,
+      AnyCell<D2>,
+      AnyCell<D3>,
+      AnyCell<D4>,
+      AnyCell<D5>
+    ],
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      arg3: D3,
+      arg4: D4,
+      arg5: D5,
+      prev?: V
+    ) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    proxy?: SheetProxy | Sheet,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, D3, D4, D5, D6, V, NF extends boolean = false>(
+    dependencies: [
+      AnyCell<D1>,
+      AnyCell<D2>,
+      AnyCell<D3>,
+      AnyCell<D4>,
+      AnyCell<D5>,
+      AnyCell<D6>
+    ],
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      arg3: D3,
+      arg4: D4,
+      arg5: D5,
+      arg6: D6,
+      prev?: V
+    ) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    proxy?: SheetProxy | Sheet,
+    noFail?: NF
+  ): MapCell<V, NF>;
+  map<D1, D2, D3, D4, D5, D6, D7, V, NF extends boolean = false>(
+    dependencies: [
+      AnyCell<D1>,
+      AnyCell<D2>,
+      AnyCell<D3>,
+      AnyCell<D4>,
+      AnyCell<D5>,
+      AnyCell<D6>,
+      AnyCell<D7>
+    ],
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      arg3: D3,
+      arg4: D4,
+      arg5: D5,
+      arg6: D6,
+      arg7: D7,
+      prev?: V
+    ) => V | Promise<V> | AnyCell<V>,
+    name?: string,
+    proxy?: SheetProxy | Sheet,
+    noFail?: NF
+  ): MapCell<V, NF>;
+
   map<D extends any[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
-    computeFn: (...args: D) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
+    computeFn: (
+      ...args: D | [...D, V]
+    ) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     proxy?: SheetProxy | Sheet,
     noFail?: NF
