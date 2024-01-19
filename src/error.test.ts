@@ -124,3 +124,41 @@ test("Proxy's (initial) errors are in the error cell", () => {
   expect(proxy.errors.get()).not.toEqual(expectedError);
   expect(sheet.errors.get()).toEqual(expectedError);
 });
+
+test("Error cascade without pointers", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+
+  const fails = async (): Promise<string> => {
+    throw new Error("a");
+  };
+
+  const a = proxy.new(delayed(1, 15));
+  const b = proxy.new(delayed("foo", 10));
+
+  const c = proxy.map([a, b], (a, b) => fails());
+  const d = proxy.map([a, c], (a, c) => a);
+
+  expect(d.get()).resolves.toBeInstanceOf(Error);
+});
+
+test("Error cascade with pointers", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+
+  const fails = async (): Promise<string> => {
+    throw new Error("a");
+  };
+
+  const a = proxy.new(delayed(1, 15));
+  const b = proxy.new(delayed("foo", 10));
+
+  const aa = proxy.new(a);
+  const bb = proxy.new(b);
+
+  const c = proxy.map([aa, bb], (a, b) => fails());
+  const cc = proxy.new(c);
+  const d = proxy.map([aa, cc], (a, c) => a);
+
+  expect(d.get()).resolves.toBeInstanceOf(Error);
+});
