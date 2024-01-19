@@ -581,25 +581,21 @@ export class Cell<
     fn: (v: V) => T | Promise<T | AnyCell<T>> | AnyCell<T>,
     name?: string,
     noFail?: NF
-  ): MapCell<T, NF> => {
-    const cell =
-      // @todo try to factor both cases
-      this._sheet instanceof SheetProxy
-        ? (this._sheet as SheetProxy).map(
-            [this as AnyCell<V>],
-            fn,
-            name,
-            noFail
-          )
-        : (this._sheet as Sheet).map(
-            [this as AnyCell<V>],
-            fn,
-            name,
-            undefined,
-            noFail
-          );
-    return cell;
-  };
+  ): MapCell<T, NF> =>
+    this._sheet instanceof SheetProxy
+      ? ((this._sheet as SheetProxy).map(
+          [this as AnyCell<V>],
+          fn,
+          name,
+          noFail
+        ) as MapCell<T, NF>)
+      : ((this._sheet as Sheet).map(
+          [this as AnyCell<V>],
+          fn,
+          name,
+          undefined,
+          noFail
+        ) as MapCell<T, NF>);
 
   init = <T>(
     fn: (v: V) => T | Promise<T>,
