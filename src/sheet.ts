@@ -124,6 +124,14 @@ export class Sheet {
     return { count: this[count], size: this[size] };
   }
 
+  /**
+   * newProxy creates a new proxy for this sheet.
+   * @returns
+   */
+  newProxy() {
+    return new SheetProxy(this);
+  }
+
   dotGraphWithTitle(title?: string) {
     return this.g.toDot(
       this._cell_types(),
