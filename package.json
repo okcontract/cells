@@ -1,7 +1,7 @@
 {
   "name": "@okcontract/cells",
-  "version": "0.1.4",
-  "description": "Functional reactive library inspired by spreadsheets",
+  "version": "0.1.5",
+  "description": "Functional & Reactive Programming library inspired by spreadsheets",
   "private": false,
   "main": "dist/cells.umd.cjs",
   "module": "dist/cells.js",
