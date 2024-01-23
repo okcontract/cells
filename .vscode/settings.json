@@ -1,6 +1,8 @@
 {
   "cSpell.words": [
     "Binsztok",
+    "cellified",
+    "cellify",
     "deepskyblue",
     "fillcolor",
     "gzipped",
@@ -8,6 +10,7 @@
     "immer",
     "okcontract",
     "orangered",
+    "uncellify",
     "Unsubscriber"
   ]
 }
