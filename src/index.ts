@@ -15,10 +15,6 @@ export { Sheet } from "./sheet";
 export { SheetProxy } from "./proxy";
 export { WrappedCell } from "./wrapped";
 
-// Applications
-
-export { KeyValueStore } from "./keyValue";
-
 // Utilities
 
 export {
@@ -29,3 +25,5 @@ export {
   waitAll,
 } from "./promise";
 export { getCellOrDefaultOnError } from "./cell";
+
+export { mapArray, mapArrayCell, reduce } from "./array";
