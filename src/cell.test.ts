@@ -211,3 +211,24 @@ test("allows derived with different types", async () => {
   b.set(2);
   expect(c.value).toBe("two 2");
 });
+
+/**
+ * We test that a subscriber does not return `undefined` values.
+ *
+ * Svelte does however add a first `undefined` value when using the
+ * syntactic sugar `$`. `$x` is compiled to a new value `let $x;`
+ * that starts as undefined and is then updated every time the
+ * subscriber emits a new value.
+ * cf. https://svelte.dev/repl/aef2b834f8e64e5b9bcddccfc3a82f9c?version=4.2.9
+ */
+test("subscribe doesn't return undefined", async () => {
+  const sheet = new Sheet();
+  const url = sheet.new(undefined);
+  const pat = /breeds\/([a-z\-]+)\//;
+  const breed = url.map((s) => pat.exec(s)?.[1]);
+  const l: (string | Error)[] = [];
+  breed.subscribe((v) => l.push(v));
+  url.set("");
+  url.set("https://images.dog.ceo/breeds/frise-bichon/1.jpg");
+  expect(l).toEqual(["frise-bichon"]); // cspell:disable-line
+});

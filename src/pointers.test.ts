@@ -269,3 +269,14 @@ test("cell pointer long chain, update pointer", async () => {
   await expect(delayed(1, 1)).resolves.toEqual(1);
   expect(valuesOfDepOnPointer).toEqual([2, 3, 2]);
 });
+
+test("get pointer chain", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const init1 = proxy.new(delayed(1, 10), "init1");
+  const p1 = proxy.new(init1);
+  const p2 = proxy.new(p1);
+  const m = proxy.map([p1, p2], async (a, b) => delayed(a + b, 20));
+  const m2 = m.map((v) => delayed(m, 20));
+  await expect(m2.get()).resolves.toBe(2);
+});
