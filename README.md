@@ -15,8 +15,8 @@ sources, such as user interfaces or real-time data feeds.
 - pointers
 
 Although it is a fully independent library, `cells` can be a powerful drop-in
-replacement for Svelte stores. The build artifacts are currently at 17.43 kB
-(5.47 kB gzipped).
+replacement for Svelte stores. The build artifacts are currently at 17.32 kB
+(5.43 kB gzipped).
 
 ## Walkthrough
 
