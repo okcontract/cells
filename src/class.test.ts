@@ -1,7 +1,7 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
-import { Sheet } from "./sheet";
 import { Cell, MapCell, ValueCell } from "./cell";
+import { Sheet } from "./sheet";
 
 const sheet = new Sheet();
 const vCell = sheet.new(1);

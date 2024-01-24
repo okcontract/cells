@@ -1,6 +1,7 @@
 {
   "cSpell.words": [
     "Binsztok",
+    "biomejs",
     "cellified",
     "cellify",
     "deepskyblue",
@@ -13,5 +14,17 @@
     "Uncellified",
     "uncellify",
     "Unsubscriber"
-  ]
+  ],
+  "editor.codeActionsOnSave": {
+    "quickfix.biome": "explicit"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
 }

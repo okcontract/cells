@@ -1,10 +1,10 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
-import { delayed } from "./promise";
 import type { ErrorsList } from "./cell";
-import { Sheet } from "./sheet";
-import { SheetProxy } from "./proxy";
 import { CellError } from "./errors";
+import { delayed } from "./promise";
+import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 
 const oddError = new Error("odd");
 
@@ -73,7 +73,7 @@ test("proxy errors", async () => {
   // expect(await not.get()).toBe(false);
   expect(evenOrDie.consolidatedError).toBeDefined();
   expect(not.consolidatedError).toBeDefined();
-  let expectedError: ErrorsList = new Map();
+  const expectedError: ErrorsList = new Map();
   expectedError.set(evenOrDie.id, oddError);
   expect(store.errors.get()).toEqual(expectedError);
   expect(not.value).toEqual(new CellError(evenOrDie.id, "Error: odd"));
@@ -98,7 +98,7 @@ test("sheet's (initial) errors are in the error cell", () => {
   const errorCell = cell.map((v) => {
     throw error;
   });
-  let expectedError: ErrorsList = new Map();
+  const expectedError: ErrorsList = new Map();
   expectedError.set(errorCell.id, error);
   expect(sheet.errors.get()).toEqual(expectedError);
   const errorInDep = errorCell.map((v) => v + 1);
@@ -117,7 +117,7 @@ test("Proxy's (initial) errors are in the error cell", () => {
   const errorCellNotInProxy = sheet.map([cell], (v) => {
     throw error;
   });
-  let expectedError: ErrorsList = new Map();
+  const expectedError: ErrorsList = new Map();
   expectedError.set(errorCell.id, error);
   expect(proxy.errors.get()).toEqual(expectedError);
   expectedError.set(errorCellNotInProxy.id, error);

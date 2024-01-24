@@ -1,8 +1,8 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
 import { delayed, sleep } from "./promise";
-import { Sheet } from "./sheet";
 import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 
 test("map with undefined", async () => {
   const sheet = new Sheet();
@@ -19,11 +19,10 @@ test("map with undefined", async () => {
     "c",
     true
   );
-  let l: number[] = [];
+  const l: number[] = [];
   c.subscribe((v) => {
     console.log({ v });
     // @todo subscribe should consider noFail
-    // @ts-expect-error no error management
     l.push(v);
   });
 
@@ -102,7 +101,7 @@ test("map with undefined with pointers in the way", async () => {
     "depOnPointerAndUndefined"
   );
   const pointerOnDep = proxy.new(depOnPointerAndUndefined, "pointerOnDep");
-  let depOnDepTrace = [];
+  const depOnDepTrace = [];
   const depOnDep = proxy.map(
     [depOnPointerAndUndefined],
     (v) => {
@@ -116,13 +115,13 @@ test("map with undefined with pointers in the way", async () => {
   // a ------> b -----------> depOnPointerAndUndefined -.-.-> pointerOnDep
   //   \-.-.-> pointerToA--/                          \----> depOnDep
 
-  let notifiedValues = {
+  const notifiedValues = {
     a: [],
     b: [],
     pointerToA: [],
     depOnPointerAndUndefined: [],
     pointerOnDep: [],
-    depOnDep: [],
+    depOnDep: []
   };
   a.subscribe((v) => notifiedValues.a.push(v));
   b.subscribe((v) => notifiedValues.b.push(v));
@@ -158,7 +157,7 @@ test("map with undefined with pointers in the way", async () => {
     pointerToA: [1, 2],
     depOnPointerAndUndefined: [[2, 4]],
     pointerOnDep: [[2, 4]],
-    depOnDep: [[2, 4]],
+    depOnDep: [[2, 4]]
   });
   console.log("=========================================");
   console.log("======== Set 'a' To 1 ===================");
@@ -176,7 +175,7 @@ test("map with undefined with pointers in the way", async () => {
     pointerToA: [1, 2, 1],
     depOnPointerAndUndefined: [[2, 4]],
     pointerOnDep: [[2, 4]],
-    depOnDep: [[2, 4]],
+    depOnDep: [[2, 4]]
   });
   expect(depOnDepTrace).toEqual([[2, 4]]);
 
@@ -201,7 +200,7 @@ test("map with undefined with pointers in the way", async () => {
 
   expect(depOnDepTrace).toEqual([
     [2, 4],
-    [3, 6],
+    [3, 6]
   ]);
 
   expect(notifiedValues).toEqual({
@@ -210,15 +209,15 @@ test("map with undefined with pointers in the way", async () => {
     pointerToA: [1, 2, 1, 3],
     depOnPointerAndUndefined: [
       [2, 4],
-      [3, 6],
+      [3, 6]
     ],
     pointerOnDep: [
       [2, 4],
-      [3, 6],
+      [3, 6]
     ],
     depOnDep: [
       [2, 4],
-      [3, 6],
-    ],
+      [3, 6]
+    ]
   });
 }, 5000); // can increase test duration due to the mass of logs on slow devices

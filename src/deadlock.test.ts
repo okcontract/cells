@@ -1,13 +1,13 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
-import { delayed } from "./promise";
 import { type AnyCell } from "./cell";
+import { delayed } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 
-const unwrappedCell = (
+const unwrappedCell = <T>(
   proxy: SheetProxy,
-  qCell: AnyCell<any>,
+  qCell: AnyCell<T>,
   name?: string
 ) => {
   const cell = proxy.new(undefined, name);
@@ -20,10 +20,10 @@ const unwrappedCell = (
 };
 
 class TestClass {
-  readonly contract: AnyCell<{ data: any }>;
-  readonly mapped: AnyCell<any>;
+  readonly contract: AnyCell<{ data: unknown }>;
+  readonly mapped: AnyCell<unknown>;
 
-  constructor(proxy: SheetProxy, widget: AnyCell<{ data: any }>) {
+  constructor(proxy: SheetProxy, widget: AnyCell<{ data: unknown }>) {
     // map on cell
     const query = widget.map((_cell) => "con:sushi/router_v2_goerli");
     // never notified
@@ -31,7 +31,7 @@ class TestClass {
       console.log({ q, id: query.id });
     });
     // then unwrappedCell
-    this.contract = unwrappedCell(proxy, query) as AnyCell<{ data: any }>;
+    this.contract = unwrappedCell(proxy, query) as AnyCell<{ data: unknown }>;
     console.log({ contract: this.contract.id });
     this.mapped = proxy.map([query, this.contract], (_q, _c) => _c);
   }
@@ -41,7 +41,7 @@ test("unwrappedCell in a class and wait for value", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
   const query = proxy.new("00718e71a9ef7e50fb44");
-  const widget = unwrappedCell(proxy, query) as AnyCell<{ data: any }>;
+  const widget = unwrappedCell(proxy, query) as AnyCell<{ data: unknown }>;
   widget.subscribe((_) =>
     console.log({ widget: widget.id, value: widget.value })
   );

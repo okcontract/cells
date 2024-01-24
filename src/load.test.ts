@@ -1,13 +1,13 @@
 import { expect, test } from "vitest";
 
-import { Cell, ValueCell, type AnyCell } from "./cell";
-import { Sheet } from "./sheet";
+import { type AnyCell, Cell, ValueCell } from "./cell";
 import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 
 function getRandomNumbers(count: number, max: number): number[] {
-  let numbers: number[] = [];
+  const numbers: number[] = [];
   for (let i = 0; i < count; i++) {
-    let randomNum = Math.floor(Math.random() * max);
+    const randomNum = Math.floor(Math.random() * max);
     numbers.push(randomNum);
   }
   return numbers;

@@ -1,5 +1,5 @@
+import { type AnyCell, CellErrors, MapCell, ValueCell, Working } from "./cell";
 import { dispatch } from "./promise";
-import { CellErrors, MapCell, ValueCell, Working, type AnyCell } from "./cell";
 import { Sheet } from "./sheet";
 import type { AnyCellArray } from "./types";
 
@@ -12,7 +12,7 @@ export class SheetProxy {
   // @todo use
   // private _name: string;
   /** locally created cells */
-  private _list: AnyCell<any>[];
+  private _list: AnyCell<unknown>[];
 
   working: Working;
 
@@ -56,13 +56,17 @@ export class SheetProxy {
   // for variadic kinds.
   map<D1, V, NF extends boolean = false>(
     dependencies: [AnyCell<D1>],
-    computeFn: (arg1: D1, prev?: V) => V | Promise<V> | AnyCell<V>,
+    computeFn: (arg1: D1, prev?: V) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     noFail?: NF
   ): MapCell<V, NF>;
   map<D1, D2, V, NF extends boolean = false>(
     dependencies: [AnyCell<D1>, AnyCell<D2>],
-    computeFn: (arg1: D1, arg2: D2, prev?: V) => V | Promise<V> | AnyCell<V>,
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      prev?: V
+    ) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     noFail?: NF
   ): MapCell<V, NF>;
@@ -73,7 +77,7 @@ export class SheetProxy {
       arg2: D2,
       arg3: D3,
       prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
+    ) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     noFail?: NF
   ): MapCell<V, NF>;
@@ -85,7 +89,7 @@ export class SheetProxy {
       arg3: D3,
       arg4: D4,
       prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
+    ) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     noFail?: NF
   ): MapCell<V, NF>;
@@ -104,7 +108,7 @@ export class SheetProxy {
       arg4: D4,
       arg5: D5,
       prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
+    ) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     noFail?: NF
   ): MapCell<V, NF>;
@@ -125,7 +129,7 @@ export class SheetProxy {
       arg5: D5,
       arg6: D6,
       prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
+    ) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     noFail?: NF
   ): MapCell<V, NF>;
@@ -148,7 +152,7 @@ export class SheetProxy {
       arg6: D6,
       arg7: D7,
       prev?: V
-    ) => V | Promise<V> | AnyCell<V>,
+    ) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     noFail?: NF
   ): MapCell<V, NF>;
@@ -162,7 +166,7 @@ export class SheetProxy {
    * @param noFail if true, then we know `computeFn` can't throw
    * @returns
    */
-  map<D extends any[], V, NF extends boolean = false>(
+  map<D extends unknown[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
     computeFn: (
       ...args: D | [...D, V]
@@ -184,9 +188,9 @@ export class SheetProxy {
    * @param noFail if true, then we know `computeFn` can't throw
    * @returns
    */
-  mapNoPrevious<D extends any[], V, NF extends boolean = false>(
+  mapNoPrevious<D extends unknown[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
-    computeFn: (...args: D) => V | Promise<V> | AnyCell<V>,
+    computeFn: (...args: D) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
     noFail?: NF
   ): MapCell<V, NF> {
@@ -212,7 +216,7 @@ export class SheetProxy {
     return computation;
   }
 
-  equals(a: any, b: any) {
+  equals<V>(a: V, b: V) {
     return this._sheet.equals(a, b);
   }
 

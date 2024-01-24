@@ -1,5 +1,5 @@
-import type { SheetProxy } from "./proxy";
 import type { AnyCell, MapCell } from "./cell";
+import type { SheetProxy } from "./proxy";
 
 /**
  * mapArray implements .map() for a cellified array.

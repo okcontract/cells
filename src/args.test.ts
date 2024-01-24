@@ -1,8 +1,11 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
-type ComputeFunction<T extends any[], R> = (...args: T) => R;
+type ComputeFunction<T extends unknown[], R> = (...args: T) => R;
 
-function compute<T extends any[], R>(fn: ComputeFunction<T, R>, ...data: T): R {
+function compute<T extends unknown[], R>(
+  fn: ComputeFunction<T, R>,
+  ...data: T
+): R {
   if (fn.length !== data.length) {
     throw new Error(
       `Number of arguments mismatch. Expected ${fn.length}, received ${data.length}`

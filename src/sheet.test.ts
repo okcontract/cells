@@ -1,7 +1,7 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
-import { delayed, sleep } from "./promise";
 import { MapCell, ValueCell } from "./cell";
+import { delayed, sleep } from "./promise";
 import { Sheet } from "./sheet";
 
 test("basic sheet", () => {
@@ -45,7 +45,7 @@ test("can't update compute cell", () => {
   const a1 = sheet.new(3);
   const b1 = sheet.new(5);
   const a2 = sheet.map([a1, b1], (a1, b1) => a1 + b1);
-  expect((a2 as any).set).toBeUndefined();
+  expect((a2 as unknown as ValueCell<unknown>).set).toBeUndefined();
 });
 
 test("direct updates", () => {
@@ -75,7 +75,7 @@ test("Cell subscription", async () => {
   const sheet = new Sheet();
   const cell = sheet.new(5);
 
-  let cellValue: number = 0;
+  let cellValue = 0;
   const unsubscribe = cell.subscribe((value) => {
     cellValue = value;
   });
@@ -98,12 +98,12 @@ test("Cell multiple subscriptions before value is available", async () => {
   const cell = sheet.new(5);
   const delayedCell = cell.map((v) => delayed(v, 50));
 
-  let cellValue: number = 0;
+  let cellValue = 0;
   const unsubscribe = delayedCell.subscribe((value) => {
     if (!(value instanceof Error)) cellValue = value;
   });
 
-  let cellValue2: number = 0;
+  let cellValue2 = 0;
   const unsubscribe2 = delayedCell.subscribe((value) => {
     if (!(value instanceof Error)) cellValue2 = value;
   });
@@ -140,8 +140,8 @@ test("Cell multiple get before value is available", async () => {
   const cell = sheet.new(5);
   const delayedCell = cell.map((v) => delayed(v, 50));
 
-  let cellValue = delayedCell.get();
-  let cellValue2 = delayedCell.get();
+  const cellValue = delayedCell.get();
+  const cellValue2 = delayedCell.get();
 
   expect(await cellValue).toBe(5);
   expect(await cellValue2).toBe(5);

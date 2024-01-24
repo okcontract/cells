@@ -1,7 +1,7 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
-import { Sheet } from "./sheet";
 import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 import { WrappedCell } from "./wrapped";
 
 test("wrapped mapped", async () => {
