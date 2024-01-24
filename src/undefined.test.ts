@@ -23,7 +23,6 @@ test("map with undefined", async () => {
   c.subscribe((v) => {
     console.log({ v });
     // @todo subscribe should consider noFail
-    // @ts-expect-error no error management
     l.push(v);
   });
 

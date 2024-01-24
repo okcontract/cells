@@ -26,13 +26,12 @@ export const delayed = async <T>(value: T, ms = 1000): Promise<T> =>
 export function dispatch<T1, T2>(
   v: T1 | Promise<T1>,
   f: (v: T1) => T2 | Promise<T2>,
-  onRejection = (error: any) => Promise.reject(error)
+  onRejection = (error: unknown) => Promise.reject(error)
 ): T2 | Promise<T2> {
   if (v instanceof Promise) {
     return v.catch(onRejection).then(f);
-  } else {
-    return f(v);
   }
+  return f(v);
 }
 
 /**
@@ -48,7 +47,7 @@ export function dispatch<T1, T2>(
 export function dispatchPromiseOrValueArray<T1, T2>(
   a: (T1 | Promise<T1>)[],
   f: (v: T1[]) => T2 | Promise<T2>,
-  onRejection = (error: any) => Promise.reject(error)
+  onRejection = (error: unknown) => Promise.reject(error)
 ): T2 | Promise<T2> {
   const indexPromise = a.findIndex((v) => v instanceof Promise);
   if (indexPromise !== -1) {
@@ -57,17 +56,16 @@ export function dispatchPromiseOrValueArray<T1, T2>(
       a.map((v) => (v instanceof Promise ? v : Promise.resolve(v)))
     );
     return all.catch(onRejection).then(f);
-  } else {
-    // no value is a promise, but the type system can't figure this out
-    // alternatively, to please the typechecker we could map and return error on promise,
-    // but it has a cost at runtime.
-    // @ts-expect-error
-    const all: T1[] = a;
-    return f(all);
   }
+  // no value is a promise, but the type system can't figure this out
+  // alternatively, to please the typechecker we could map and return error on promise,
+  // but it has a cost at runtime.
+  // @ts-expect-error
+  const all: T1[] = a;
+  return f(all);
 }
 
-export function waitAll(array: any[]): Promise<void> | void {
+export function waitAll(array: unknown[]): Promise<void> | void {
   let res: Promise<void> | void;
   for (const iterator of array) {
     res = dispatch(res, () => dispatch(iterator, (_) => {}));

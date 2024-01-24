@@ -45,7 +45,7 @@ test("can't update compute cell", () => {
   const a1 = sheet.new(3);
   const b1 = sheet.new(5);
   const a2 = sheet.map([a1, b1], (a1, b1) => a1 + b1);
-  expect((a2 as any).set).toBeUndefined();
+  expect((a2 as unknown as ValueCell<unknown>).set).toBeUndefined();
 });
 
 test("direct updates", () => {

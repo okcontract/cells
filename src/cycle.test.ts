@@ -43,7 +43,7 @@ test("should notify subscribers when cell value is changed", async () => {
   const sheet = new Sheet();
   const cell1 = sheet.new(1);
 
-  let notifiedValue;
+  let notifiedValue: number;
   cell1.subscribe((value) => {
     notifiedValue = value;
   });
@@ -106,7 +106,7 @@ test("should correctly update cells when their dependencies change", async () =>
   const cell2 = sheet.new(2);
   const cell3 = sheet.map([cell1, cell2], (a, b) => a + b);
 
-  let notifiedValue;
+  let notifiedValue: number | Error;
   cell3.subscribe((value) => {
     notifiedValue = value;
   });
@@ -143,7 +143,7 @@ test("should correctly handle asynchronous updates", async () => {
   });
   cell3.bless("cell3");
 
-  let notifiedValue;
+  let notifiedValue: number | Error;
   cell3.subscribe((value) => {
     notifiedValue = value;
   });

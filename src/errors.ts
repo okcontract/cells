@@ -10,11 +10,11 @@
  *       but we should make sure of it, as it could impact performances.
  *
  */
-export class CellError extends Error {
+export class CellError<R> extends Error {
   readonly source: number;
   readonly sourceName: string;
-  readonly reason: any;
-  constructor(source: number, reason: any, sourceName = source.toString()) {
+  readonly reason: R;
+  constructor(source: number, reason: R, sourceName = source.toString()) {
     super(`Cell ${sourceName} has an error: ${reason}`);
     this.source = source;
     this.sourceName = sourceName;

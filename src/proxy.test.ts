@@ -12,7 +12,7 @@ test("native proxy", () => {
   let trigger = false;
 
   const proxy = new Proxy(obj, {
-    deleteProperty(target: any, property) {
+    deleteProperty(target: { [key: string | symbol]: unknown }, property) {
       trigger = true;
       delete target[property];
       return true;
@@ -23,7 +23,8 @@ test("native proxy", () => {
   expect(proxy.value).toBe(10);
   expect(trigger).toBeFalsy();
 
-  delete (proxy as any).value; // Output: "Property has been deleted: value"
+  // biome-ignore lint/performance/noDelete: deletion *is* required
+  delete (proxy as { value: unknown }).value; // Output: "Property has been deleted: value"
   expect(proxy.value).toBeUndefined(); // Output: undefined
   expect(trigger).toBeTruthy();
 });

@@ -23,7 +23,7 @@ export const jsonStringify = <T>(obj: T) => {
       return;
     }
     switch (typeof v) {
-      case "object":
+      case "object": {
         out += "{";
         let first = true;
         // sort objects alphabetically
@@ -39,6 +39,7 @@ export const jsonStringify = <T>(obj: T) => {
         }
         out += "}";
         break;
+      }
       case "function":
       case "symbol":
         break;

@@ -9,7 +9,7 @@ import { WrappedCell } from "./wrapped";
 
 const unwrappedCell = (
   proxy: SheetProxy,
-  qCell: AnyCell<any>,
+  qCell: AnyCell<unknown>,
   name?: string
 ) => {
   const cell = proxy.new(undefined, name);
@@ -35,10 +35,10 @@ const unwrappedCell = (
 };
 
 class TestClass {
-  readonly contract: AnyCell<{ data: any }>;
-  readonly mapped: AnyCell<any>;
+  readonly contract: AnyCell<{ data: unknown }>;
+  readonly mapped: AnyCell<unknown>;
 
-  constructor(proxy: SheetProxy, cell: AnyCell<any>) {
+  constructor(proxy: SheetProxy, cell: AnyCell<unknown>) {
     // map on cell
     const query = cell.map((_cell) => "con:sushi/router_v2_goerli");
     // then unwrappedCell

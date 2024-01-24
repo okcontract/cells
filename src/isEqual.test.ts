@@ -6,7 +6,7 @@ import { expect, test } from "vitest";
  * @param b
  * @returns
  */
-export function isEqual(a: any, b: any): boolean {
+export function isEqual<T>(a: T, b: T): boolean {
   // Same instance or primitive values are equal
   if (a === b) return true;
 

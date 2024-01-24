@@ -44,7 +44,7 @@ test("cell pointer async", async () => {
 test("cell pointer async initially undefined", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const cell1 = proxy.new<number>(undefined as any, "init");
+  const cell1 = proxy.new<number>(undefined, "init");
   const cellMap = cell1.map((x) => proxy.new(x + 2), "cell1");
   cell1.set(1);
   expect(cellMap.isPointer).toEqual(true);
@@ -82,20 +82,20 @@ test("cell pointer longer chain", async () => {
   const proxy = new SheetProxy(sheet);
   const init = proxy.new(delayed(1, 100), "init");
   const cellMap = init.map(
-    (x) => proxy.new(x + 2, "cellMap_" + x),
+    (x) => proxy.new(x + 2, `cellMap_${x}`),
     "cellMap",
     true
   );
   const mixed = proxy.map(
     [init, cellMap],
-    async (a, b) => delayed(proxy.new(a + b, "mixed_" + a + "_" + b), 150),
+    async (a, b) => delayed(proxy.new(a + b, `mixed_${a}_${b}`), 150),
     "mixed",
     true
   );
   const successiveValues: number[] = [];
   mixed.subscribe((v) => successiveValues.push(v));
   const double = mixed.map(
-    async (v) => proxy.new(v * 2, "double_" + v),
+    async (v) => proxy.new(v * 2, `double_${v}`),
     "double"
   );
 
@@ -142,16 +142,16 @@ test("cell pointer, incremental computation", async () => {
     "depWTF.dot",
     sheet.dotGraphWithTitle("topology before updatable selection")
   );
+
+  const select = (set: Set<number>, fn: (id: unknown) => boolean) =>
+    //@ts-expect-error accessing private method
+    sheet.selectUpdatableCells(set, fn);
   const {
     updatable,
     pointersToBeUpdated,
     grey,
     mightChange: toBeUpdated
-  } = sheet.selectUpdatableCells(
-    //@ts-expect-error accessing private method
-    new Set([init1.id]),
-    (id: number) => sheet.get(id).isPointer
-  );
+  } = select(new Set([init1.id]), (id: number) => sheet.get(id).isPointer);
 
   expect({ updatable, pointersToBeUpdated, grey, toBeUpdated }).toEqual({
     updatable: [cellPointer1.id],

@@ -28,8 +28,10 @@ export class WrappedCell<V> {
   }
 
   public get = () => this._cell.get();
-  public set = (value: V | Promise<V>): void | Promise<void | Error> =>
+
+  public set = (value: V | Promise<V>): void | Promise<void> =>
     this._cell.set(value);
+
   public map = <T, NF extends boolean>(
     fn: (v: V) => T | Promise<T>,
     name?: string,

@@ -51,7 +51,7 @@ const size = Symbol();
  */
 
 export class Sheet {
-  private _cells: { [key: number]: AnyCell<any> };
+  private _cells: { [key: number]: AnyCell<unknown> };
 
   /** g is a dependency graph
    *  an arrow from a to b means that
@@ -70,7 +70,7 @@ export class Sheet {
   private _pointers: Graph<number>;
   /** equality function */
   public equals: <V>(prev: V, next: V) => boolean;
-  readonly _marshaller: (a: any) => string;
+  readonly _marshaller: <V>(a: V) => string;
   /**
    * list of ongoing computations
    * @todo compact _computations when there are many updates and long computations
@@ -85,8 +85,8 @@ export class Sheet {
    * @param equality function comparing a new value with previous value for updates
    */
   constructor(
-    equality = (a: any, b: any) => a === b,
-    marshaller = (a: any): string => JSON.stringify(a)
+    equality = <T>(a: T, b: T) => a === b,
+    marshaller = <T>(a: T): string => JSON.stringify(a)
   ) {
     DEV && console.log({ new: "sheet" });
     this.g = new Graph();
@@ -113,7 +113,7 @@ export class Sheet {
   /**
    * Promise that keeps pending until all computations that were running at call-time are settled.
    */
-  async wait(): Promise<any> {
+  async wait(): Promise<void> {
     return this.working.wait();
   }
 
@@ -242,7 +242,7 @@ export class Sheet {
     return cell;
   }
 
-  mapRaw<D extends any[], V, NF extends boolean = false>(
+  mapRaw<D extends unknown[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
     computeFn: (...args: D) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     usePreviousValue: boolean,
@@ -272,7 +272,7 @@ export class Sheet {
     if (name) mapCell.bless(name);
     // console.log("Sheet.map:", `registered cell[${id}]`)
     for (const cell of dependencies) this.g.addEdge(cell.id, mapCell.id);
-    return mapCell;
+    return mapCell as MapCell<V, NF>;
   }
 
   // We still need to overload map to fix type inference
@@ -383,7 +383,7 @@ export class Sheet {
     noFail?: NF
   ): MapCell<V, NF>;
 
-  map<D extends any[], V, NF extends boolean = false>(
+  map<D extends unknown[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
     computeFn: (
       ...args: D | [...D, V]
@@ -395,7 +395,7 @@ export class Sheet {
     return this.mapRaw(dependencies, computeFn, true, name, proxy, noFail);
   }
 
-  mapNoPrevious<D extends any[], V, NF extends boolean = false>(
+  mapNoPrevious<D extends unknown[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
     computeFn: (...args: D) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
@@ -422,7 +422,7 @@ export class Sheet {
     const excludedKeys = ["computationRank"];
     if (!DEV) return obj;
     const nameOne = (id) => this.name(id);
-    const nameComp = (comp: any[]) => {
+    const nameComp = (comp: unknown[]) => {
       const newComp = comp
         .map((val, id) => [this.name(id), val])
         .filter((v) => v !== undefined);
@@ -430,18 +430,21 @@ export class Sheet {
     };
     if (Array.isArray(obj)) {
       return obj.map(nameOne);
-    } else if (obj instanceof Set) {
+    }
+    if (obj instanceof Set) {
       return new Set([...obj].map(nameOne));
-    } else if (typeof obj == "number") {
+    }
+    if (typeof obj === "number") {
       return nameOne(obj);
-    } else if (obj !== undefined) {
+    }
+    if (obj !== undefined) {
       try {
         const entries = Object.entries(obj).map(([k, v]) => [
           k,
           !excludedKeys.includes(k)
             ? k !== "computations"
               ? this.naming(v)
-              : nameComp(v as any[])
+              : nameComp(v as unknown[])
             : v
         ]);
         return Object.fromEntries(entries);
@@ -489,29 +492,27 @@ export class Sheet {
         );
       if (roots.size === 0) {
         return { roots, computations, done, canceled };
-      } else {
-        return dispatch(
-          this.updateIteration(roots, done, canceled, computations),
-          (result) =>
-            updateRec({
-              roots: result.updated,
-              computations: result.computations,
-              done: result.done,
-              canceled: result.canceled
-            })
-        );
       }
+      return dispatch(
+        this.updateIteration(roots, done, canceled, computations),
+        (result) =>
+          updateRec({
+            roots: result.updated,
+            computations: result.computations,
+            done: result.done,
+            canceled: result.canceled
+          })
+      );
     };
 
     const computations: Computations<V> = [];
     const release = this.working.startNewComputation();
-    roots.forEach(
-      (id) =>
-        (computations[id] = dispatch(
-          this.get(id).consolidatedValueWthUndefined,
-          (v) => (v === undefined ? cancelComputation : v)
-        ))
-    );
+    for (const id of roots) {
+      computations[id] = dispatch(
+        this.get(id).consolidatedValueWthUndefined,
+        (v) => (v === undefined ? cancelComputation : v)
+      );
+    }
     return dispatch(
       // first we compute all possible updates
       updateRec({
@@ -535,13 +536,13 @@ export class Sheet {
     canceled: Set<number>
   ): void {
     const maybeDone: Set<number> = new Set();
-    updatable.forEach((id) => {
+    for (const id of updatable) {
       if (computations[id] instanceof Canceled) {
         canceled.add(id);
       } else {
         maybeDone.add(id);
       }
-    });
+    }
 
     const pointersToCanceled = this._pointers.strictlyReachableProperty(
       maybeDone,
@@ -552,13 +553,13 @@ export class Sheet {
     );
 
     //@todo shall we do something not quadratic
-    maybeDone.forEach((id) => {
+    for (const id of maybeDone) {
       if (pointersToCanceled.has(id)) {
         canceled.add(id);
       } else {
         done.add(id);
       }
-    });
+    }
   }
 
   private updateIteration<V>(
@@ -588,7 +589,7 @@ export class Sheet {
         })
       );
     //@todo Isn't this check too costly
-    toBeRecomputed.forEach((id) => {
+    for (const id of toBeRecomputed) {
       if (done.has(id) || canceled.has(id)) {
         console.error(
           "Error - recomputing an already computed cell !:",
@@ -600,7 +601,7 @@ export class Sheet {
           })
         );
       }
-    });
+    }
     // Form now on, we need updatable pointers to be up-to-date to continue
     const newComputations = this.computeUpdatable(toBeRecomputed, computations);
     const borderComputation = dispatchPromiseOrValueArray(
@@ -674,7 +675,7 @@ export class Sheet {
     updated: number[],
     pointersToBeUpdated: number[],
     grey: number[],
-    isPointer: (id: any) => boolean
+    isPointer: (id: unknown) => boolean
   ): {
     toBeRecomputedBorder: number[];
     safeBorder: number[];
@@ -752,7 +753,7 @@ export class Sheet {
    */
   private selectUpdatableCells(
     ids: Set<number>,
-    isPointer: (id: any) => boolean
+    isPointer: (id: unknown) => boolean
   ): {
     toBeRecomputed: number[];
     updatable: number[];
@@ -813,8 +814,10 @@ export class Sheet {
     const order = toBeRecomputed.slice(); // slice copies the array
     let currentCellId: number | undefined;
     const newComputations = [];
+
+    // biome-ignore lint/suspicious/noAssignInExpressions: shorter, still explicit
     while ((currentCellId = order.pop()) !== undefined) {
-      const cell: AnyCell<any> = this._cells[currentCellId];
+      const cell: AnyCell<unknown> = this._cells[currentCellId];
       if (cell !== undefined) {
         DEV &&
           console.log(
@@ -824,7 +827,7 @@ export class Sheet {
               computations
             })
           );
-        const pending: Pending<V, any> | CellResult<V, any> =
+        const pending: Pending<V, unknown> | CellResult<V, unknown> =
           cell instanceof MapCell
             ? cell._computeValue(computations, false)
             : cell.consolidatedValueWthUndefined;
@@ -854,25 +857,22 @@ export class Sheet {
   private canDelete(ids: number[]): boolean {
     const deps: Set<number> = new Set();
 
-    ids.forEach((id) =>
-      this.g.partialTopologicalSort(id)?.forEach((id) => {
-        deps.add(id);
-      })
-    );
-    ids.forEach((id) => deps.delete(id));
+    for (const id of ids)
+      for (const dep of this.g.partialTopologicalSort(id)) deps.add(dep);
+    for (const id of ids) deps.delete(id);
     return deps.size === 0;
   }
 
-  delete(...input: (number | AnyCell<any>)[]) {
+  delete(...input: (number | AnyCell<unknown>)[]) {
     const ids = input.map((v) => (typeof v === "number" ? v : v.id));
     if (!this.canDelete(ids)) {
       throw ReferencesLeft;
     }
-    ids.forEach((id) => {
+    for (const id of ids) {
       this.g.delete(id);
       delete this._cells[id];
       this[size]--;
-    });
+    }
   }
 
   _cell_types() {
