@@ -28,6 +28,27 @@ export const mapArray = <T, U>(
   );
 
 /**
+ * implementation of sort for a cellified array.
+ * @description this implementation relies on pointers but reuses the original cells.
+ * @param proxy
+ * @param arr
+ * @param compare comparison function
+ */
+export const sort = <T>(
+  proxy: SheetProxy,
+  arr: AnyCell<AnyCell<T>[]>,
+  compare: (a: T, b: T) => number = (a, b) => (a > b ? 1 : a < b ? -1 : 0)
+): AnyCell<AnyCell<T>[]> =>
+  proxy.map([arr], (cells) =>
+    proxy.mapNoPrevious(cells, (..._cells) =>
+      _cells
+        .map((_, index) => index)
+        .sort((indexA, indexB) => compare(_cells[indexA], _cells[indexB]))
+        .map((index) => cells[index])
+    )
+  );
+
+/**
  * mapArrayCell is a variant of `mapArray` with a function taking
  * element cells as arguments.
  * @param proxy

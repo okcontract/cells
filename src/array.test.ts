@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { mapArray, reduce } from "./array";
+import { mapArray, reduce, sort } from "./array";
 import { _uncellify } from "./cellify";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
@@ -56,4 +56,26 @@ test("reduce array", async () => {
   l.update((arr) => [...arr, proxy.new(5)]);
   await expect(v.get()).resolves.toBe(14);
   expect(sheet.stats.count).toBe(8); // +1 cell +1 pointer
+});
+
+test("sort array", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+
+  const l = proxy.new([1, 5, 3].map((v) => proxy.new(v)));
+  const s = sort(proxy, l);
+
+  await expect(_uncellify(s)).resolves.toEqual([1, 3, 5]);
+  expect(sheet.stats.count).toBe(6); // 3+1 array +1 sorted +1 pointer
+
+  // update one cell
+  (await l.get())[0].set(4);
+  await expect(_uncellify(s)).resolves.toEqual([3, 4, 5]);
+  expect(sheet.stats.count).toBe(6); // @unchanged
+
+  // add one cell
+  l.update((arr) => [...arr, proxy.new(1)]);
+  await expect(_uncellify(l)).resolves.toEqual([4, 5, 3, 1]);
+  await expect(_uncellify(s)).resolves.toEqual([1, 3, 4, 5]);
+  expect(sheet.stats.count).toBe(8); // +1 original cell +1 sorted pointer
 });
