@@ -1163,21 +1163,3 @@ export type AnyCell<
   C extends boolean = boolean,
   N extends boolean = boolean
 > = Cell<T, C, N> | ValueCell<T> | MapCell<T, N>;
-
-/**
- * getCellError retrieves a cell value, or returns a default value
- * if an error happens.
- * @param cell
- * @param def default value
- * @returns
- */
-export const getCellOrDefaultOnError = async <T, D>(
-  cell: AnyCell<T>,
-  def: D | null = null
-): Promise<T | D | null> => {
-  const v = await cell.get();
-  if (v instanceof Error) {
-    return def;
-  }
-  return v;
-};

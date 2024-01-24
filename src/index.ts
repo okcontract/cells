@@ -1,3 +1,13 @@
+// Promise
+
+export {
+  sleep,
+  delayed,
+  dispatch,
+  dispatchPromiseOrValueArray,
+  waitAll
+} from "./promise";
+
 // Core
 
 export type { ComputeFn, Unsubscriber } from "./types";
@@ -16,14 +26,5 @@ export { SheetProxy } from "./proxy";
 export { WrappedCell } from "./wrapped";
 
 // Utilities
-
-export {
-  sleep,
-  delayed,
-  dispatch,
-  dispatchPromiseOrValueArray,
-  waitAll
-} from "./promise";
-export { getCellOrDefaultOnError } from "./cell";
 
 export { mapArray, mapArrayCell, reduce } from "./array";
