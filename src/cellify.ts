@@ -1,4 +1,5 @@
 import { AnyCell, Cell, ValueCell } from "./cell";
+import { SheetProxy } from "./proxy";
 
 // Cellified computes a cellified type.
 export type Cellified<T> = T extends object
@@ -21,6 +22,31 @@ export type Uncellified<T> = T extends AnyCell<infer U>
   : T;
 
 /**
+ * cellify converts any value to a Cellified value where each array or record
+ * becomes a Cell in canonical form.
+ * @param proxy
+ * @param v
+ * @returns
+ * @todo cell reuses
+ */
+export const _cellify = <T>(proxy: SheetProxy, v: T): Cellified<T> =>
+  proxy.new(
+    Array.isArray(v)
+      ? v.map((vv) => _cellify(proxy, vv), "cellify.[]")
+      : typeof v === "object" &&
+        v !== null &&
+        v?.constructor?.prototype !== Object.prototype // exclude classes
+      ? Object.fromEntries(
+          Object.entries(v).map(
+            ([k, vv]) => [k, _cellify(proxy, vv)],
+            "cellify.{}"
+          )
+        )
+      : v,
+    "cellify"
+  ) as Cellified<T>;
+
+/**
  * _uncellify is used in tests to flatten a value tree that contains multiple cells.
  * @param v any value
  * @returns value without cells
@@ -34,7 +60,11 @@ export const _uncellify = async <T>(
     return Promise.all(
       value.map(async (_element) => await _uncellify(_element))
     ) as Promise<Uncellified<T>>;
-  else if (typeof value === "object" && value !== null)
+  else if (
+    typeof value === "object" &&
+    value !== null &&
+    v?.constructor?.prototype === Object.prototype
+  )
     return Object.fromEntries(
       await Promise.all(
         Object.entries(value).map(async ([k, vv]) => [k, await _uncellify(vv)])
