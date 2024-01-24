@@ -9,7 +9,7 @@ export {
   type ValueCell,
   Cell,
   type MapCell,
-  type Working,
+  type Working
 } from "./cell";
 export { Sheet } from "./sheet";
 export { SheetProxy } from "./proxy";
@@ -22,7 +22,7 @@ export {
   delayed,
   dispatch,
   dispatchPromiseOrValueArray,
-  waitAll,
+  waitAll
 } from "./promise";
 export { getCellOrDefaultOnError } from "./cell";
 

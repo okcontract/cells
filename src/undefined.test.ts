@@ -122,7 +122,7 @@ test("map with undefined with pointers in the way", async () => {
     pointerToA: [],
     depOnPointerAndUndefined: [],
     pointerOnDep: [],
-    depOnDep: [],
+    depOnDep: []
   };
   a.subscribe((v) => notifiedValues.a.push(v));
   b.subscribe((v) => notifiedValues.b.push(v));
@@ -158,7 +158,7 @@ test("map with undefined with pointers in the way", async () => {
     pointerToA: [1, 2],
     depOnPointerAndUndefined: [[2, 4]],
     pointerOnDep: [[2, 4]],
-    depOnDep: [[2, 4]],
+    depOnDep: [[2, 4]]
   });
   console.log("=========================================");
   console.log("======== Set 'a' To 1 ===================");
@@ -176,7 +176,7 @@ test("map with undefined with pointers in the way", async () => {
     pointerToA: [1, 2, 1],
     depOnPointerAndUndefined: [[2, 4]],
     pointerOnDep: [[2, 4]],
-    depOnDep: [[2, 4]],
+    depOnDep: [[2, 4]]
   });
   expect(depOnDepTrace).toEqual([[2, 4]]);
 
@@ -201,7 +201,7 @@ test("map with undefined with pointers in the way", async () => {
 
   expect(depOnDepTrace).toEqual([
     [2, 4],
-    [3, 6],
+    [3, 6]
   ]);
 
   expect(notifiedValues).toEqual({
@@ -210,15 +210,15 @@ test("map with undefined with pointers in the way", async () => {
     pointerToA: [1, 2, 1, 3],
     depOnPointerAndUndefined: [
       [2, 4],
-      [3, 6],
+      [3, 6]
     ],
     pointerOnDep: [
       [2, 4],
-      [3, 6],
+      [3, 6]
     ],
     depOnDep: [
       [2, 4],
-      [3, 6],
-    ],
+      [3, 6]
+    ]
   });
 }, 5000); // can increase test duration due to the mass of logs on slow devices

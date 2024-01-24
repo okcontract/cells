@@ -86,7 +86,7 @@ abstract class SubscribeBench<V> {
         console.log({
           RunSubscriberOfCell: this.name,
           subscriber: id,
-          value: v,
+          value: v
         });
       runRaw(v);
     };
@@ -191,7 +191,7 @@ export class Cell<
     id: number,
     dependencies: number[] | undefined = undefined,
     options: { noFail: boolean } = {
-      noFail: false,
+      noFail: false
     }
   ) {
     super();
@@ -223,7 +223,7 @@ export class Cell<
       console.log("setPointed:", {
         cell: this.name,
         newPointed,
-        currentlyPointed: this._pointed,
+        currentlyPointed: this._pointed
       });
     if (newPointed !== this._pointed) {
       this.sheet._updatePointer(
@@ -245,7 +245,7 @@ export class Cell<
     DEV &&
       console.log("unsetPointed:", {
         cell: this.name,
-        currentlyPointed: this._pointed,
+        currentlyPointed: this._pointed
       });
     this.sheet._updatePointer(this.id, this.pointed, undefined);
     this._isPointer = false;
@@ -295,7 +295,7 @@ export class Cell<
         rank,
         pendingRank: this._pendingRank,
         currentComputationRank: this._currentComputationRank,
-        valueRank: this._valueRank,
+        valueRank: this._valueRank
       });
     if (this._pendingRank === null || this._pending_ === undefined) {
       this._pending_ = new Promise<V | Canceled>((resolver, _rejecter) => {
@@ -316,7 +316,7 @@ export class Cell<
             rank,
             pendingRank: this._pendingRank,
             currentComputationRank: this._currentComputationRank,
-            valueRank: this._valueRank,
+            valueRank: this._valueRank
           });
         if (rank === this._pendingRank) {
           this._pendingRank = null;
@@ -330,7 +330,7 @@ export class Cell<
             rank,
             pendingRank: this._pendingRank,
             currentComputationRank: this._currentComputationRank,
-            valueRank: this._valueRank,
+            valueRank: this._valueRank
           });
         if (rank === this._pendingRank) {
           this._pendingRank = null;
@@ -374,16 +374,16 @@ export class Cell<
       console.log(`consolidatedValue Call: `, {
         cell: this.name,
         valueRank: this._valueRank,
-        currentComputationRank: this._currentComputationRank,
+        currentComputationRank: this._currentComputationRank
       });
     if (this._valueRank === this._currentComputationRank) {
       if (this.isPointer) {
         return this.v === undefined
           ? this.get()
           : this.v === null
-          ? null
-          : //@ts-expect-error isPointer ensures we have a cell here
-            this.v.consolidatedValue;
+            ? null
+            : //@ts-expect-error isPointer ensures we have a cell here
+              this.v.consolidatedValue;
       } else {
         //@ts-expect-error !isPointer ensures we have *not* cell here
         return this.v === undefined ? this.get() : this.v;
@@ -395,11 +395,11 @@ export class Cell<
         v instanceof Canceled
           ? this.consolidatedValue // pending computation aborted, retry to get a value
           : this.isPointer
-          ? this.v === null
-            ? null
-            : //@ts-expect-error isPointer ensures we have a cell here
-              this.v.consolidatedValue //getting pointed consolidated
-          : v
+            ? this.v === null
+              ? null
+              : //@ts-expect-error isPointer ensures we have a cell here
+                this.v.consolidatedValue //getting pointed consolidated
+            : v
       );
     }
   }
@@ -417,7 +417,7 @@ export class Cell<
       console.log(`consolidatedValueWthUndefined Call: `, {
         cell: this.name,
         valueRank: this._valueRank,
-        currentComputationRank: this._currentComputationRank,
+        currentComputationRank: this._currentComputationRank
       });
     if (this._valueRank === this._currentComputationRank) {
       if (this.isPointer) {
@@ -439,7 +439,7 @@ export class Cell<
           this.sheet.naming({
             cell: this.id,
             valueRank: this._valueRank,
-            compRank: this._currentComputationRank,
+            compRank: this._currentComputationRank
           })
         );
         return undefined;
@@ -520,7 +520,7 @@ export class Cell<
         } catch (_) {
           DEV &&
             console.log("ValueCell: LocalStorage not available", {
-              key: this._storageKey,
+              key: this._storageKey
             });
         }
       }
@@ -558,7 +558,7 @@ export class Cell<
           `setting to ${newValue} has been invalidated`,
           {
             currentRank: this._currentComputationRank,
-            newValueRank: computationRank,
+            newValueRank: computationRank
           }
         );
     }
@@ -1044,7 +1044,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
         DEV &&
           console.log(`_computeValue in cell ${this.name}: `, {
             computed,
-            pendingComputation,
+            pendingComputation
           });
         this.setPendingComputation(computationRank, pendingComputation);
         return computed;

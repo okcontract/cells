@@ -6,7 +6,7 @@ import { SheetProxy } from "./proxy";
 
 test("native proxy", () => {
   const obj = {
-    value: 0,
+    value: 0
   };
 
   let trigger = false;
@@ -16,7 +16,7 @@ test("native proxy", () => {
       trigger = true;
       delete target[property];
       return true;
-    },
+    }
   });
 
   proxy.value = 10; // Output: (nothing is logged)

@@ -142,18 +142,22 @@ test("cell pointer, incremental computation", async () => {
     "depWTF.dot",
     sheet.dotGraphWithTitle("topology before updatable selection")
   );
-  const { updatable, pointersToBeUpdated, grey, mightChange: toBeUpdated } =
+  const {
+    updatable,
+    pointersToBeUpdated,
+    grey,
+    mightChange: toBeUpdated
+  } = sheet.selectUpdatableCells(
     //@ts-expect-error accessing private method
-    sheet.selectUpdatableCells(
-      new Set([init1.id]),
-      (id: number) => sheet.get(id).isPointer
-    );
+    new Set([init1.id]),
+    (id: number) => sheet.get(id).isPointer
+  );
 
   expect({ updatable, pointersToBeUpdated, grey, toBeUpdated }).toEqual({
     updatable: [cellPointer1.id],
     pointersToBeUpdated: [cellPointer1.id],
     grey: [depOnPointer.id],
-    toBeUpdated: [depOnPointer.id, cellPointer1.id],
+    toBeUpdated: [depOnPointer.id, cellPointer1.id]
   });
   init1.set(2);
   expect(depOnPointer.consolidatedValue).toEqual(3);

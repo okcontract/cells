@@ -15,7 +15,7 @@ import {
   type AnyCell,
   type Pending,
   Canceled,
-  cancelComputation,
+  cancelComputation
 } from "./cell";
 
 type Computations<V> = (
@@ -137,7 +137,7 @@ export class Sheet {
         bigint: "style=filled,fillcolor=goldenrod1",
         symbol: "style=filled,fillcolor=green",
         function: "style=filled,fillcolor=orangered",
-        null: "style=filled,fillcolor=red",
+        null: "style=filled,fillcolor=red"
       },
       this._pointers
     );
@@ -220,7 +220,7 @@ export class Sheet {
       console.log({
         newInSheet: cell.id,
         name,
-        value,
+        value
       });
     if (value instanceof Promise) {
       this.working.addComputation(
@@ -442,7 +442,7 @@ export class Sheet {
             ? k !== "computations"
               ? this.naming(v)
               : nameComp(v as any[])
-            : v,
+            : v
         ]);
         return Object.fromEntries(entries);
       } catch (_) {
@@ -481,7 +481,7 @@ export class Sheet {
       roots,
       computations,
       done,
-      canceled,
+      canceled
     }) => {
       DEV &&
         console.log(
@@ -497,7 +497,7 @@ export class Sheet {
               roots: result.updated,
               computations: result.computations,
               done: result.done,
-              canceled: result.canceled,
+              canceled: result.canceled
             })
         );
       }
@@ -518,7 +518,7 @@ export class Sheet {
         roots: new Set(roots),
         computations,
         done: finished,
-        canceled: new Set(),
+        canceled: new Set()
       }),
       // then we notify all modified cells
       (_result) => {
@@ -547,7 +547,7 @@ export class Sheet {
       maybeDone,
       (id) => canceled.has(id),
       {
-        next: (id) => this._pointers.predecessors(id),
+        next: (id) => this._pointers.predecessors(id)
       }
     );
 
@@ -576,7 +576,7 @@ export class Sheet {
       updatable,
       pointersToBeUpdated,
       grey,
-      mightChange,
+      mightChange
     } = selection;
     DEV &&
       console.log(
@@ -584,7 +584,7 @@ export class Sheet {
         this.naming({
           ...selection,
           done,
-          canceled,
+          canceled
         })
       );
     //@todo Isn't this check too costly
@@ -596,7 +596,7 @@ export class Sheet {
             cell: id,
             ...selection,
             done,
-            canceled,
+            canceled
           })
         );
       }
@@ -626,7 +626,7 @@ export class Sheet {
             nextIteration.toBeRecomputedBorder,
             computations
           ),
-          nextIteration,
+          nextIteration
         };
       }
     );
@@ -649,12 +649,12 @@ export class Sheet {
               computations,
               updated: new Set([
                 ...updatable,
-                ...nextIteration.toBeRecomputedBorder,
+                ...nextIteration.toBeRecomputedBorder
               ]),
               done,
               canceled,
               greyUpdatedPointers: nextIteration.greyUpdatedPointers,
-              greenPointers: nextIteration.greenPointers,
+              greenPointers: nextIteration.greenPointers
             };
             DEV &&
               console.log(
@@ -711,9 +711,9 @@ export class Sheet {
           Array.from(
             new Set([
               ...(this.g.predecessors(id) || []),
-              ...(this._pointers.predecessors(id) || []),
+              ...(this._pointers.predecessors(id) || [])
             ])
-          ),
+          )
       }
     );
     /** retaining only safe candidates */
@@ -729,7 +729,7 @@ export class Sheet {
       toBeRecomputedBorder,
       safeBorder,
       greyUpdatedPointers,
-      greenPointers,
+      greenPointers
     };
     DEV && console.log("Prepared Border: ", this.naming(res));
     return res;
@@ -765,7 +765,7 @@ export class Sheet {
     const mightChange =
       this.g.partialTopologicalSortRootsSet(Array.from(ids), {
         includeRoots: false,
-        next,
+        next
       }) || [];
     /** List of nodes that will be updated that currently are pointers  */
     const pointersToBeUpdated = mightChange.filter(isPointer);
@@ -775,7 +775,7 @@ export class Sheet {
     const grey =
       this.g.partialTopologicalSortRootsSet(pointersToBeUpdated, {
         next,
-        includeRoots: false,
+        includeRoots: false
       }) || [];
 
     /** List of nodes that can safely be immediately updated, in evaluation order */
@@ -794,7 +794,7 @@ export class Sheet {
       updatable,
       pointersToBeUpdated,
       grey,
-      mightChange: mightChange,
+      mightChange: mightChange
     };
   }
 
@@ -821,7 +821,7 @@ export class Sheet {
             "Sheet.computeUpdatable, running computation of:",
             this.naming({
               cell: cell.id,
-              computations,
+              computations
             })
           );
         let pending: Pending<V, any> | CellResult<V, any> =
@@ -895,7 +895,7 @@ export class Sheet {
       bigint: [],
       symbol: [],
       function: [],
-      null: [],
+      null: []
     };
     for (let [id, cell] of Object.entries(this._cells)) {
       const v = cell.value;
@@ -914,7 +914,7 @@ export class Sheet {
     }
     console.log({
       at: Date.now(),
-      sort: this.g.topologicalSort()?.filter((id) => ids.includes(id)),
+      sort: this.g.topologicalSort()?.filter((id) => ids.includes(id))
     });
   }
 }
