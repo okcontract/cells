@@ -1,10 +1,10 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
 import { isEqual } from "./isEqual.test";
 
-import { Sheet } from "./sheet";
-import { SheetProxy } from "./proxy";
 import { sleep } from "./promise";
+import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 
 test("count calls", async () => {
   const sheet = new Sheet(isEqual);

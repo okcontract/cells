@@ -29,12 +29,12 @@ export function isEqual(a: any, b: any): boolean {
   }
 
   // Compare objects
-  let keysA = Object.keys(a);
-  let keysB = Object.keys(b);
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
 
   if (keysA.length !== keysB.length) return false;
 
-  for (let key of keysA) {
+  for (const key of keysA) {
     if (!keysB.includes(key)) return false; // Different shape
     if (!isEqual(a[key], b[key])) return false; // Different value
   }

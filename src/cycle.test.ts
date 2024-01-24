@@ -1,7 +1,7 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
-import { Sheet } from "./sheet";
 import { sleep } from "./promise";
+import { Sheet } from "./sheet";
 
 test("should update cells without infinite loop", async () => {
   const sheet = new Sheet();

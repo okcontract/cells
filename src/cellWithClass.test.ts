@@ -1,11 +1,11 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
-import { delayed } from "./promise";
-import { WrappedCell } from "./wrapped";
 import { type AnyCell } from "./cell";
+import { delayed } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 import { type Unsubscriber } from "./types";
+import { WrappedCell } from "./wrapped";
 
 const unwrappedCell = (
   proxy: SheetProxy,

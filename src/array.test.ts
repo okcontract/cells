@@ -1,9 +1,9 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
-import { Sheet } from "./sheet";
-import { SheetProxy } from "./proxy";
 import { mapArray, reduce } from "./array";
 import { _uncellify } from "./cellify";
+import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 
 test("mapArray", async () => {
   const sheet = new Sheet();

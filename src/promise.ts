@@ -53,7 +53,7 @@ export function dispatchPromiseOrValueArray<T1, T2>(
   const indexPromise = a.findIndex((v) => v instanceof Promise);
   if (indexPromise !== -1) {
     // if one deps is a promise, make a promise of them all
-    let all: Promise<T1[]> = Promise.all(
+    const all: Promise<T1[]> = Promise.all(
       a.map((v) => (v instanceof Promise ? v : Promise.resolve(v)))
     );
     return all.catch(onRejection).then(f);
@@ -62,7 +62,7 @@ export function dispatchPromiseOrValueArray<T1, T2>(
     // alternatively, to please the typechecker we could map and return error on promise,
     // but it has a cost at runtime.
     // @ts-expect-error
-    let all: T1[] = a;
+    const all: T1[] = a;
     return f(all);
   }
 }

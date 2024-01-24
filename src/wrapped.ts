@@ -1,4 +1,4 @@
-import { ValueCell, type CellResult, MapCell } from "./cell";
+import { type CellResult, MapCell, ValueCell } from "./cell";
 import type { SheetProxy } from "./proxy";
 
 /**

@@ -1,11 +1,11 @@
 const DEV = false;
 const DEBUG_RANK = false;
 
-import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { CellError } from "./errors";
+import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { SheetProxy } from "./proxy";
-import { type Unsubscriber } from "./types";
 import { Sheet } from "./sheet";
+import { type Unsubscriber } from "./types";
 
 let idCounter = 0;
 
@@ -171,8 +171,8 @@ export class Cell<
 
   /** if [_valueRank] is lower than [_currentComputationRank],
       it means that [v] will be invalidated by an ongoing computation */
-  protected _valueRank: number = 0;
-  protected _currentComputationRank: number = 0;
+  protected _valueRank = 0;
+  protected _currentComputationRank = 0;
 
   protected _pending_: PendingMaybe<V, MaybeError> | undefined;
   private _pendingRank: number = null;
@@ -508,7 +508,7 @@ export class Cell<
       return;
     }
     if (this._currentComputationRank === computationRank) {
-      let needUpdate = !this._sheet.equals(this.v, newValue);
+      const needUpdate = !this._sheet.equals(this.v, newValue);
       this.v = newValue;
       this._valueRank = computationRank;
       // Update localStorage if set.
@@ -712,7 +712,7 @@ export class ValueCell<V> extends Cell<V, false, false> {
   ): void | Promise<void | Error> {
     DEV && console.log("Setting cell value", { cell: this.name, value });
     this._currentComputationRank += 1;
-    let computationRank = this._currentComputationRank;
+    const computationRank = this._currentComputationRank;
     if (value instanceof Promise) {
       // console.log(
       //   `Cell ${this.name}: `,
@@ -834,14 +834,14 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
   private _gatherDependencies(provided: {
     [key: number]: PendingMaybe<V, boolean> | MaybeResultOrPointer<V, boolean>;
   }): PendingArray<V, boolean> | MaybeResultOrPointer<V, boolean>[] {
-    let deps: (PendingMaybe<V, boolean> | V)[] = [];
+    const deps: (PendingMaybe<V, boolean> | V)[] = [];
     // getting all deps
     // console.log(
     //   `Cell ${this.id}: gathering deps values from ${this.dependencies}, first looking into ${provided}`
     // );
     for (const id of this.dependencies) {
-      let p = provided[id];
-      let depP: PendingMaybe<V, boolean> | V =
+      const p = provided[id];
+      const depP: PendingMaybe<V, boolean> | V =
         p !== undefined
           ? p
           : // id's value was not provided, request it
@@ -853,13 +853,13 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
     }
     if (deps.find((v) => v instanceof Promise) !== undefined) {
       // if one deps is a promise, make a promise of them all
-      let all = dispatchPromiseOrValueArray(deps, (v) => v);
+      const all = dispatchPromiseOrValueArray(deps, (v) => v);
       return all;
     } else {
       // no value is a promise, but the type system can't figure this out
       // alternatively to bypass the typechecker we could map and return error on promise,
       // but it has a cost at runtime.
-      let all = deps as V[];
+      const all = deps as V[];
       // console.log(`Cell ${this.id}: gathering deps values, found ${all}`);
       return all;
     }
@@ -883,7 +883,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
     forceNotification: boolean
   ): PendingMaybe<V, Not<NF>> | MaybeResultOrPointer<V, Not<NF>> | Canceled {
     // cancel when on dependency is canceled
-    let firstCanceled = paramsResults.findIndex(
+    const firstCanceled = paramsResults.findIndex(
       (v) => v instanceof Canceled || v === undefined
     );
     if (firstCanceled >= 0) {
@@ -905,9 +905,9 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
       return cancelComputation;
     }
     // set to CellError when depending on an Error
-    let firstError = paramsResults.findIndex((v) => v instanceof Error);
+    const firstError = paramsResults.findIndex((v) => v instanceof Error);
     if (firstError >= 0) {
-      let firstCellWithError = this.dependencies[firstError];
+      const firstCellWithError = this.dependencies[firstError];
       // console.log(
       //   `Cell ${
       //     this.name
@@ -916,7 +916,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
       //   )}) ${this.sheet.get(firstCellWithError).v}`
       // );
       // some parameters are errors
-      let res = this.newError(paramsResults[firstError], firstCellWithError);
+      const res = this.newError(paramsResults[firstError], firstCellWithError);
       this._setValueOnComputationCompletion(
         // @ts-expect-error we have an error, but NF may be wrongly set to true
         res,
@@ -948,7 +948,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
       // creating a promise that resolve on any value or error
       // @todo do we still check for errors in NoFail?
       // @ts-expect-error
-      let newValuePromise: Pending<V, Not<NF>> = newValue instanceof Promise
+      const newValuePromise: Pending<V, Not<NF>> = newValue instanceof Promise
         ? // transforming rejected promise into resolved error
           newValue.catch((error) => Promise.resolve(this.newError(error)))
         : Promise.resolve(newValue);
@@ -1005,7 +1005,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
         // console.log({ computeForCell: this.name });
         // update computation rank to invalidate potential ongoing computation
         this._currentComputationRank += 1;
-        let computationRank = this._currentComputationRank;
+        const computationRank = this._currentComputationRank;
         // console.log(`Cell ${this.name}: `, `starting computation #${computationRank} on cell ${this.id}`)
         // get missing dependencies values or a promise to get them
         const params:
@@ -1063,7 +1063,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
 }
 
 export class Working extends SubscribeBench<boolean> {
-  protected value: boolean = false;
+  protected value = false;
   private pending: Promise<void> = Promise.resolve();
   private _onGoingComputation: Promise<void> = Promise.resolve();
   private _onGoingComputationCount = 0;
@@ -1172,7 +1172,7 @@ export type AnyCell<
  * @param def default value
  * @returns
  */
-export const getCellOrDefaultOnError = async <T extends any, D extends any>(
+export const getCellOrDefaultOnError = async <T, D>(
   cell: AnyCell<T>,
   def: D | null = null
 ): Promise<T | D | null> => {

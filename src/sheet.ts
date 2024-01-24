@@ -2,21 +2,21 @@ const DEV = false;
 
 import { Graph, ReferencesLeft } from "@okcontract/graph";
 
+import {
+  type AnyCell,
+  Canceled,
+  Cell,
+  CellErrors,
+  type CellResult,
+  MapCell,
+  type Pending,
+  ValueCell,
+  Working,
+  cancelComputation
+} from "./cell";
 import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { SheetProxy } from "./proxy";
 import type { AnyCellArray } from "./types";
-import {
-  Cell,
-  Working,
-  CellErrors,
-  type CellResult,
-  ValueCell,
-  MapCell,
-  type AnyCell,
-  type Pending,
-  Canceled,
-  cancelComputation
-} from "./cell";
 
 type Computations<V> = (
   | Pending<V | Canceled, true>
@@ -468,7 +468,7 @@ export class Sheet {
    */
   _update<V>(ids: number | number[]) {
     DEV && console.log(this.naming({ _update: ids }));
-    let roots: number[] = Array.isArray(ids) ? ids : [ids];
+    const roots: number[] = Array.isArray(ids) ? ids : [ids];
     const finished = new Set<number>(roots);
     // @todo add lock mechanism to prevent concurrent updates
     /* @todo Add assertion on expected properties:
@@ -810,9 +810,9 @@ export class Sheet {
     toBeRecomputed: number[],
     computations: Computations<V>
   ): Computations<V> {
-    let order = toBeRecomputed.slice(); // slice copies the array
+    const order = toBeRecomputed.slice(); // slice copies the array
     let currentCellId: number | undefined;
-    let newComputations = [];
+    const newComputations = [];
     while ((currentCellId = order.pop()) !== undefined) {
       const cell: AnyCell<any> = this._cells[currentCellId];
       if (cell !== undefined) {
@@ -824,7 +824,7 @@ export class Sheet {
               computations
             })
           );
-        let pending: Pending<V, any> | CellResult<V, any> =
+        const pending: Pending<V, any> | CellResult<V, any> =
           cell instanceof MapCell
             ? cell._computeValue(computations, false)
             : cell.consolidatedValueWthUndefined;
@@ -897,7 +897,7 @@ export class Sheet {
       function: [],
       null: []
     };
-    for (let [id, cell] of Object.entries(this._cells)) {
+    for (const [id, cell] of Object.entries(this._cells)) {
       const v = cell.value;
       ty[v === null ? "null" : typeof v].push(+id);
     }
@@ -906,7 +906,7 @@ export class Sheet {
 
   _log_undefined() {
     const ids: number[] = [];
-    for (let [id, cell] of Object.entries(this._cells)) {
+    for (const [id, cell] of Object.entries(this._cells)) {
       if (cell.value === undefined) {
         ids.push(+id);
         console.log({ id, name: this.g.name(+id), cell, undefined: true });

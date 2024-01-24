@@ -1,4 +1,4 @@
-import { test, expect, describe, it } from "vitest";
+import { describe, expect, it, test } from "vitest";
 
 import { isEqual } from "./isEqual.test";
 
@@ -55,7 +55,7 @@ describe("writable", () => {
   it("only calls subscriber once initially, including on re-subscriptions", () => {
     let num = 0;
     const sheet = new Sheet();
-    const store = sheet.new((set: any) => set((num += 1)));
+    const store = sheet.new((set: (unknown) => void) => set((num += 1)));
 
     let count1 = 0;
     let count2 = 0;

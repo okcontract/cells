@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
 
 import { delayed } from "./promise";
-import { Sheet } from "./sheet";
 import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 
 test("native proxy", () => {
   const obj = {
@@ -48,7 +48,7 @@ test("Sheet multiple async updates", async () => {
     delayed(value + double + 1, 30)
   );
   // console.log("value", value.id, "double", double.id, "add", add.id);
-  let val = await add.get(); // get returns the last computed value, wait if undefined
+  const val = await add.get(); // get returns the last computed value, wait if undefined
   expect(val).toBe(7);
   value.set(3);
   expect(await add.consolidatedValue).toBe(10);

@@ -1,8 +1,8 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
 import { delayed, sleep } from "./promise";
-import { Sheet } from "./sheet";
 import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 
 test("map with undefined", async () => {
   const sheet = new Sheet();
@@ -19,7 +19,7 @@ test("map with undefined", async () => {
     "c",
     true
   );
-  let l: number[] = [];
+  const l: number[] = [];
   c.subscribe((v) => {
     console.log({ v });
     // @todo subscribe should consider noFail
@@ -102,7 +102,7 @@ test("map with undefined with pointers in the way", async () => {
     "depOnPointerAndUndefined"
   );
   const pointerOnDep = proxy.new(depOnPointerAndUndefined, "pointerOnDep");
-  let depOnDepTrace = [];
+  const depOnDepTrace = [];
   const depOnDep = proxy.map(
     [depOnPointerAndUndefined],
     (v) => {
@@ -116,7 +116,7 @@ test("map with undefined with pointers in the way", async () => {
   // a ------> b -----------> depOnPointerAndUndefined -.-.-> pointerOnDep
   //   \-.-.-> pointerToA--/                          \----> depOnDep
 
-  let notifiedValues = {
+  const notifiedValues = {
     a: [],
     b: [],
     pointerToA: [],

@@ -1,11 +1,11 @@
-import { writeFileSync, appendFileSync } from "fs";
+import { appendFileSync, writeFileSync } from "fs";
 
 import { expect, test } from "vitest";
 
-import { delayed, sleep } from "./promise";
 import { ValueCell } from "./cell";
-import { Sheet } from "./sheet";
+import { delayed, sleep } from "./promise";
 import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 
 test("cell pointer sync", async () => {
   const sheet = new Sheet();
@@ -92,7 +92,7 @@ test("cell pointer longer chain", async () => {
     "mixed",
     true
   );
-  let successiveValues: number[] = [];
+  const successiveValues: number[] = [];
   mixed.subscribe((v) => successiveValues.push(v));
   const double = mixed.map(
     async (v) => proxy.new(v * 2, "double_" + v),
