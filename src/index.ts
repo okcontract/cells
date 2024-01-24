@@ -1,30 +1,31 @@
-// Promise
+// Promise and low-level utilities
 
 export {
-  sleep,
   delayed,
   dispatch,
   dispatchPromiseOrValueArray,
+  sleep,
   waitAll
 } from "./promise";
+export { filterAsync } from "./filter-async";
 
 // Core
 
-export type { ComputeFn, Unsubscriber } from "./types";
 export {
+  Cell,
   type AnyCell,
-  type CellResult,
   type CellErrors,
+  type CellResult,
+  type MapCell,
   type Pending,
   type ValueCell,
-  Cell,
-  type MapCell,
   type Working
 } from "./cell";
-export { Sheet } from "./sheet";
 export { SheetProxy } from "./proxy";
+export { Sheet } from "./sheet";
+export type { ComputeFn, Unsubscriber } from "./types";
 export { WrappedCell } from "./wrapped";
 
 // Utilities
 
-export { mapArray, mapArrayCell, reduce } from "./array";
+export { filter, mapArray, mapArrayCell, reduce, sort } from "./array";
