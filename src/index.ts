@@ -1,4 +1,4 @@
-// Promise
+// Promise and low-level utilities
 
 export {
   delayed,
@@ -7,6 +7,7 @@ export {
   sleep,
   waitAll
 } from "./promise";
+export { filterAsync } from "./filter-async";
 
 // Core
 
@@ -27,4 +28,4 @@ export { WrappedCell } from "./wrapped";
 
 // Utilities
 
-export { mapArray, mapArrayCell, reduce, sort } from "./array";
+export { filter, mapArray, mapArrayCell, reduce, sort } from "./array";

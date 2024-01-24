@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { mapArray, reduce, sort } from "./array";
+import { filter, mapArray, reduce, sort } from "./array";
 import { _uncellify } from "./cellify";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
@@ -78,4 +78,20 @@ test("sort array", async () => {
   await expect(_uncellify(l)).resolves.toEqual([4, 5, 3, 1]);
   await expect(_uncellify(s)).resolves.toEqual([1, 3, 4, 5]);
   expect(sheet.stats.count).toBe(8); // +1 original cell +1 sorted pointer
+});
+
+test("filter array", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+
+  const l = proxy.new([1, 5, 3].map((v) => proxy.new(v)));
+  expect(sheet.stats.count).toBe(4); // 3+1 array
+
+  filter(l, (v) => v > 2); // no await
+
+  // but we wait before expecting
+  await proxy.working.wait();
+  await expect(_uncellify(l)).resolves.toEqual([5, 3]);
+  // the removed cell is not deleted ("garbage collected" at proxy level)
+  expect(sheet.stats.count).toBe(4); // unchanged
 });

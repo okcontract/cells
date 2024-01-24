@@ -1,4 +1,5 @@
-import type { AnyCell, MapCell } from "./cell";
+import type { AnyCell, MapCell, ValueCell } from "./cell";
+import { filterAsync } from "./filter-async";
 import type { SheetProxy } from "./proxy";
 
 /**
@@ -88,4 +89,23 @@ export const reduce = <T, R>(
   proxy.map([arr], (cells) =>
     // this creates a pointer cell
     proxy.mapNoPrevious(cells, (..._cells) => _cells.reduce(fn, init))
+  );
+
+/**
+ * filter updates a cellified array in a `ValueCell` using a predicate function as filter.
+ * @param arr
+ * @param predicate function that returns `true` for kept values.
+ * @returns nothing
+ * @description filtered out cells are _not_ deleted
+ */
+export const filter = <T>(
+  arr: ValueCell<AnyCell<T>[]>,
+  predicate: (elt: T) => boolean
+) =>
+  arr.update(async (items) =>
+    filterAsync(items, async (item) => {
+      const v = await item.get();
+      // we keep errors
+      return v instanceof Error || predicate(v);
+    })
   );
