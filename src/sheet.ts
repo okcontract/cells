@@ -917,4 +917,53 @@ export class Sheet {
       sort: this.g.topologicalSort()?.filter((id) => ids.includes(id))
     });
   }
+
+  /**
+   * print all cells whose name matches substring.
+   * @param substring
+   */
+  search(substring: string) {
+    const res = [];
+    const low = substring.toLowerCase();
+    for (const k of Object.keys(this._cells)) {
+      const v = this._cells[k];
+      if (v.name.toLowerCase().includes(low)) {
+        res.push({ cell: v.id, name: v.name, value: v.value });
+      }
+    }
+    return res;
+  }
+
+  /**
+   * print all deps of a given cell.
+   * @param cell number
+   */
+  deps(cell: number) {
+    if (!this._cells[cell]) {
+      console.log("not found");
+      return;
+    }
+    const pred = this.g.predecessors(cell);
+    const succ = this.g.get(cell);
+    console.log(`[${pred.join(",")}] ==> {${cell}} ==> [${succ.join(",")}]`);
+    for (const id of pred)
+      console.log({
+        "<==": id,
+        name: this._cells[id].name,
+        value: this._cells[id].value
+      });
+    console.log("=====");
+    console.log({
+      cell: cell,
+      name: this._cells[cell].name,
+      value: this._cells[cell].value
+    });
+    console.log("=====");
+    for (const id of succ)
+      console.log({
+        "==>": id,
+        name: this._cells[id].name,
+        value: this._cells[id].value
+      });
+  }
 }
