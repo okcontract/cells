@@ -27,7 +27,7 @@ export class Debugger {
   get h() {
     console.log("h         -- this help");
     console.log("w(id...)  -- watch cells");
-    console.log("aw(name)  -- auto-swatch cells with matching name");
+    console.log("aw(name)  -- auto-watch cells with matching name");
     console.log("uw(id...) -- unwatch cells");
     console.log("p(id)     -- print a cell and its deps");
     console.log('s("...")  -- search cell names');
