@@ -12,8 +12,8 @@ test("Debugger", () => {
   const d = c.map((_) => {
     throw new Error("no");
   });
-  expect(debug.d(1)).toBe("[] ==> {1} ==> [2]");
-  const errs = debug.e();
+  expect(debug.p(1)).toBe("[] ==> {1} ==> [2]");
+  const errs = debug.e;
   expect(errs.length).toBe(1);
   expect(errs[0].cell).toBe(3);
   expect(debug.dot()).toBe(
