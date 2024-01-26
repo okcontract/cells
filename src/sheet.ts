@@ -54,7 +54,8 @@ export class Sheet {
    * for debugging
    */
   private _debug = false;
-  private _logList = [];
+  private _logList: number[] = [];
+  private _autoWatch: string[] = [];
 
   private _cells: { [key: number]: AnyCell<unknown> };
 
@@ -226,6 +227,14 @@ export class Sheet {
       );
     }
     if (name !== undefined) this.bless(cell.id, name);
+    // add to debug watch list
+    if (this._debug && name) {
+      for (const pat of this._autoWatch)
+        if (name.toLowerCase().includes(pat)) {
+          this._logList.push(cell.id);
+          break; // for
+        }
+    }
     return cell;
   }
 

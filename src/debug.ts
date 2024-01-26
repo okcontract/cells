@@ -27,11 +27,13 @@ export class Debugger {
   get h() {
     console.log("h         -- this help");
     console.log("w(id...)  -- watch cells");
+    console.log("aw(name)  -- auto-swatch cells with matching name");
     console.log("uw(id...) -- unwatch cells");
     console.log("p(id)     -- print a cell and its deps");
     console.log('s("...")  -- search cell names');
     console.log("e         -- show all cell errors");
     console.log("u         -- show all undefined cells");
+    console.log("dot       -- generate graphviz dot graph");
     return undefined;
   }
 
@@ -43,6 +45,13 @@ export class Debugger {
     this.sheet._debug = true;
     // @ts-expect-error private
     this.sheet._logList.push(...cells);
+  }
+
+  aw(pat: string) {
+    // @ts-expect-error private
+    this.sheet._debug = true;
+    // @ts-expect-error private
+    this.sheet._autoWatch.push(pat);
   }
 
   /**
