@@ -1,5 +1,3 @@
-const DEV = false;
-
 import { Graph, ReferencesLeft } from "@okcontract/graph";
 
 import {
@@ -17,6 +15,7 @@ import {
 import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { SheetProxy } from "./proxy";
 import type { AnyCellArray } from "./types";
+import { intersection } from "./utils";
 
 type Computations<V> = (
   | Pending<V | Canceled, true>
@@ -51,6 +50,13 @@ const size = Symbol();
  */
 
 export class Sheet {
+  /**
+   * for debugging
+   */
+  private _debug = false;
+  private _logList: number[] = [];
+  private _autoWatch: string[] = [];
+
   private _cells: { [key: number]: AnyCell<unknown> };
 
   /** g is a dependency graph
@@ -88,7 +94,6 @@ export class Sheet {
     equality = <T>(a: T, b: T) => a === b,
     marshaller = <T>(a: T): string => JSON.stringify(a)
   ) {
-    DEV && console.log({ new: "sheet" });
     this.g = new Graph();
     this._cells = {};
     this._pointers = new Graph();
@@ -124,28 +129,6 @@ export class Sheet {
     return { count: this[count], size: this[size] };
   }
 
-  dotGraphWithTitle(title?: string) {
-    return this.g.toDot(
-      this._cell_types(),
-      {
-        ...(title && { title }),
-        string: "style=filled,fillcolor=aquamarine",
-        number: "style=filled,fillcolor=gold",
-        object: "style=filled,fillcolor=hotpink",
-        undefined: "style=filled,fillcolor=gray",
-        boolean: "style=filled,fillcolor=deepskyblue",
-        bigint: "style=filled,fillcolor=goldenrod1",
-        symbol: "style=filled,fillcolor=green",
-        function: "style=filled,fillcolor=orangered",
-        null: "style=filled,fillcolor=red"
-      },
-      this._pointers
-    );
-  }
-
-  get dotGraph() {
-    return this.dotGraphWithTitle();
-  }
   /**
    * get a cell.
    * @param id cell
@@ -167,12 +150,17 @@ export class Sheet {
       this._pointers.removeEdge(pointed, node);
     }
   }
+
   _updatePointer(
     from: number,
     oldPointer: number | undefined,
     to: number | undefined
   ) {
-    DEV && console.log("update pointer", this.naming({ from, oldPointer, to }));
+    this._debug &&
+      (this._logList.includes(from) ||
+        this._logList.includes(oldPointer) ||
+        this._logList.includes(to)) &&
+      console.log("update pointer", this.naming({ from, oldPointer, to }));
     if (oldPointer !== undefined) this.unsetPointerDep(from, oldPointer);
     if (to !== undefined) this._pointers.addEdge(to, from);
   }
@@ -216,7 +204,7 @@ export class Sheet {
           options
         )
     );
-    DEV &&
+    this._debug &&
       console.log({
         newInSheet: cell.id,
         name,
@@ -239,6 +227,14 @@ export class Sheet {
       );
     }
     if (name !== undefined) this.bless(cell.id, name);
+    // add to debug watch list
+    if (this._debug && name) {
+      for (const pat of this._autoWatch)
+        if (name.toLowerCase().includes(pat)) {
+          this._logList.push(cell.id);
+          break; // for
+        }
+    }
     return cell;
   }
 
@@ -420,7 +416,7 @@ export class Sheet {
 
   naming(obj) {
     const excludedKeys = ["computationRank"];
-    if (!DEV) return obj;
+    if (!this._debug) return obj;
     const nameOne = (id) => this.name(id);
     const nameComp = (comp: unknown[]) => {
       const newComp = comp
@@ -470,8 +466,12 @@ export class Sheet {
    * @returns a promise settled when all cells recomputation are over
    */
   _update<V>(ids: number | number[]) {
-    DEV && console.log(this.naming({ _update: ids }));
     const roots: number[] = Array.isArray(ids) ? ids : [ids];
+    if (this._debug) {
+      // @todo _watchAll
+      const inter = intersection(roots, this._logList);
+      console.log(this.naming({ _update: inter }));
+    }
     const finished = new Set<number>(roots);
     // @todo add lock mechanism to prevent concurrent updates
     /* @todo Add assertion on expected properties:
@@ -486,10 +486,14 @@ export class Sheet {
       done,
       canceled
     }) => {
-      DEV &&
-        console.log(
-          this.naming({ updateRec: roots, done, computations, canceled })
-        );
+      if (this._debug) {
+        // @todo _watchAll
+        const inter = this._logList.filter((v) => roots.has(v));
+        inter.length &&
+          console.log(
+            this.naming({ updateRec: roots, done, computations, canceled })
+          );
+      }
       if (roots.size === 0) {
         return { roots, computations, done, canceled };
       }
@@ -523,7 +527,12 @@ export class Sheet {
       }),
       // then we notify all modified cells
       (_result) => {
-        DEV && console.log("Update Finished", this.naming({ _result }));
+        if (this._debug) {
+          // @todo _watchAll
+          const inter = intersection(roots, this._logList);
+          inter.length &&
+            console.log("Update Finished", this.naming({ _result }));
+        }
         this._internalNotify(_result.done);
         release();
       }
@@ -568,7 +577,11 @@ export class Sheet {
     canceled: Set<number>,
     computations: Computations<V>
   ): IterationResult<V> | Promise<IterationResult<V>> {
-    DEV && console.log(this.naming({ updateIterationOn: ids, done, canceled }));
+    if (this._debug) {
+      const inter = this._logList.filter((v) => ids.has(v));
+      inter.length &&
+        console.log(this.naming({ updateIterationOn: ids, done, canceled }));
+    }
     const isPointer = (id: number) => this.get(id).isPointer;
     /** List of nodes that will be updated  */
     const selection = this.selectUpdatableCells(ids, isPointer);
@@ -579,15 +592,18 @@ export class Sheet {
       grey,
       mightChange
     } = selection;
-    DEV &&
-      console.log(
-        "selectUpdatableCells result",
-        this.naming({
-          ...selection,
-          done,
-          canceled
-        })
-      );
+    if (this._debug) {
+      const inter = this._logList.filter((v) => ids.has(v));
+      inter.length &&
+        console.log(
+          "selectUpdatableCells result",
+          this.naming({
+            ...selection,
+            done,
+            canceled
+          })
+        );
+    }
     //@todo Isn't this check too costly
     for (const id of toBeRecomputed) {
       if (done.has(id) || canceled.has(id)) {
@@ -657,11 +673,15 @@ export class Sheet {
               greyUpdatedPointers: nextIteration.greyUpdatedPointers,
               greenPointers: nextIteration.greenPointers
             };
-            DEV &&
-              console.log(
-                "Border recomputed, end of iteration:",
-                this.naming(iterationResult)
-              );
+            if (this._debug) {
+              // @todo consider more cells (or optionally all)
+              const inter = this._logList.filter((v) => ids.has(v));
+              inter.length &&
+                console.log(
+                  "Border recomputed, end of iteration:",
+                  this.naming(iterationResult)
+                );
+            }
             return iterationResult;
           }
         );
@@ -732,7 +752,12 @@ export class Sheet {
       greyUpdatedPointers,
       greenPointers
     };
-    DEV && console.log("Prepared Border: ", this.naming(res));
+    if (this._debug) {
+      const inter = this._logList.filter(
+        (v) => roots.has(v) || updated.includes(v)
+      );
+      inter.length && console.log("Prepared Border: ", this.naming(res));
+    }
     return res;
   }
 
@@ -819,7 +844,7 @@ export class Sheet {
     while ((currentCellId = order.pop()) !== undefined) {
       const cell: AnyCell<unknown> = this._cells[currentCellId];
       if (cell !== undefined) {
-        DEV &&
+        if (this._debug && this._logList.includes(currentCellId)) {
           console.log(
             "Sheet.computeUpdatable, running computation of:",
             this.naming({
@@ -827,6 +852,7 @@ export class Sheet {
               computations
             })
           );
+        }
         const pending: Pending<V, unknown> | CellResult<V, unknown> =
           cell instanceof MapCell
             ? cell._computeValue(computations, false)
@@ -873,48 +899,5 @@ export class Sheet {
       delete this._cells[id];
       this[size]--;
     }
-  }
-
-  _cell_types() {
-    const ty: {
-      string: number[];
-      number: number[];
-      object: number[];
-      undefined: number[];
-      boolean: number[];
-      bigint: number[];
-      symbol: number[];
-      function: number[];
-      null: number[];
-    } = {
-      string: [],
-      number: [],
-      object: [],
-      undefined: [],
-      boolean: [],
-      bigint: [],
-      symbol: [],
-      function: [],
-      null: []
-    };
-    for (const [id, cell] of Object.entries(this._cells)) {
-      const v = cell.value;
-      ty[v === null ? "null" : typeof v].push(+id);
-    }
-    return ty;
-  }
-
-  _log_undefined() {
-    const ids: number[] = [];
-    for (const [id, cell] of Object.entries(this._cells)) {
-      if (cell.value === undefined) {
-        ids.push(+id);
-        console.log({ id, name: this.g.name(+id), cell, undefined: true });
-      }
-    }
-    console.log({
-      at: Date.now(),
-      sort: this.g.topologicalSort()?.filter((id) => ids.includes(id))
-    });
   }
 }

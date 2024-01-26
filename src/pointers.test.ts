@@ -104,17 +104,17 @@ test("cell pointer longer chain", async () => {
   await expect(mixed.get()).resolves.toEqual(4);
   expect(double.get()).resolves.toEqual(8);
 
-  writeFileSync("dependencies.dot", sheet.dotGraphWithTitle("first topology"));
-  console.log(sheet.dotGraph);
+  // writeFileSync("dependencies.dot", sheet.dotGraphWithTitle("first topology"));
+  // console.log(sheet.dotGraph);
 
   init.set(2);
 
   await proxy.working.wait();
   await cellMap.working;
-  appendFileSync(
-    "dependencies.dot",
-    sheet.dotGraphWithTitle("second topology")
-  );
+  // appendFileSync(
+  //   "dependencies.dot",
+  //   sheet.dotGraphWithTitle("second topology")
+  // );
 
   // console.log(sheet.dotGraph);
   // // This loop seems to spam so hard that the update never progress to the expected value
@@ -126,7 +126,7 @@ test("cell pointer longer chain", async () => {
   await sleep(200);
   expect(double.consolidatedValue).toEqual(12);
   expect(successiveValues).toEqual([4, 6]);
-  appendFileSync("dependencies.dot", sheet.dotGraphWithTitle("last topology"));
+  // appendFileSync("dependencies.dot", sheet.dotGraphWithTitle("last topology"));
 });
 
 test("cell pointer, incremental computation", async () => {
@@ -138,10 +138,10 @@ test("cell pointer, incremental computation", async () => {
 
   await expect(depOnPointer.get()).resolves.toEqual(2);
 
-  writeFileSync(
-    "depWTF.dot",
-    sheet.dotGraphWithTitle("topology before updatable selection")
-  );
+  // writeFileSync(
+  //   "depWTF.dot",
+  //   sheet.dotGraphWithTitle("topology before updatable selection")
+  // );
 
   const select = (set: Set<number>, fn: (id: unknown) => boolean) =>
     //@ts-expect-error accessing private method
@@ -248,15 +248,15 @@ test("cell pointer long chain, update pointer", async () => {
   await expect(depOnPointer.get()).resolves.toEqual(2);
   expect(valuesOfDepOnPointer).toEqual([2]);
 
-  writeFileSync(
-    "updated_pointers.dot",
-    sheet.dotGraphWithTitle("init topology")
-  );
+  // writeFileSync(
+  //   "updated_pointers.dot",
+  //   sheet.dotGraphWithTitle("init topology")
+  // );
   cellPointer2.set(init2);
-  appendFileSync(
-    "updated_pointers.dot",
-    sheet.dotGraphWithTitle("updated topology")
-  );
+  // appendFileSync(
+  //   "updated_pointers.dot",
+  //   sheet.dotGraphWithTitle("updated topology")
+  // );
   await expect(cellPointer2.get()).resolves.toEqual(2);
   await expect(depOnPointer.consolidatedValue).resolves.toEqual(3);
 
@@ -264,10 +264,10 @@ test("cell pointer long chain, update pointer", async () => {
   await expect(delayed(1, 1)).resolves.toEqual(1);
   expect(valuesOfDepOnPointer).toEqual([2, 3]);
   cellPointer2.set(init1);
-  appendFileSync(
-    "updated_pointers.dot",
-    sheet.dotGraphWithTitle("last topology")
-  );
+  // appendFileSync(
+  //   "updated_pointers.dot",
+  //   sheet.dotGraphWithTitle("last topology")
+  // );
   await expect(cellPointer2.get()).resolves.toEqual(1);
   await expect(depOnPointer.consolidatedValue).resolves.toEqual(2);
   await expect(delayed(1, 1)).resolves.toEqual(1);
