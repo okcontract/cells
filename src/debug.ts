@@ -22,6 +22,20 @@ export class Debugger {
   }
 
   /**
+   * help
+   */
+  get h() {
+    console.log("h         -- this help");
+    console.log("w(id...)  -- watch cells");
+    console.log("uw(id...) -- unwatch cells");
+    console.log("p(id)     -- print a cell and its deps");
+    console.log('s("...")  -- search cell names');
+    console.log("e         -- show all cell errors");
+    console.log("u         -- show all undefined cells");
+    return undefined;
+  }
+
+  /**
    * watch cells
    */
   w(...cells: number[]) {
@@ -56,10 +70,10 @@ export class Debugger {
   }
 
   /**
-   * deps: print all dependencies of a given cell.
+   * print: a cell and all its dependencies.
    * @param cell number
    */
-  d(cell: number) {
+  p(cell: number) {
     if (!this.cells[cell]) {
       console.log("not found");
       return;
@@ -92,7 +106,7 @@ export class Debugger {
    * e: print all cells containing errors.
    * @returns
    */
-  e() {
+  get e() {
     const res = [];
     for (const k of Object.keys(this.cells)) {
       const v = this.cells[k];
@@ -106,7 +120,7 @@ export class Debugger {
   /**
    * u: print all undefined cells.
    */
-  u() {
+  get u() {
     const ids: number[] = [];
     for (const [id, cell] of Object.entries(this.cells)) {
       if (cell.value === undefined) {
@@ -114,10 +128,7 @@ export class Debugger {
         console.log({ id, name: this.g.name(+id), cell, undefined: true });
       }
     }
-    console.log({
-      at: Date.now(),
-      sort: this.g.topologicalSort()?.filter((id) => ids.includes(id))
-    });
+    return this.g.topologicalSort()?.filter((id) => ids.includes(id));
   }
 
   _cell_types() {
