@@ -2,9 +2,9 @@ import { expect, test } from "vitest";
 
 import { filter, mapArray, reduce, sort } from "./array";
 import { _uncellify } from "./cellify";
+import { delayed } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
-import { delayed } from ".";
 
 test("mapArray", async () => {
   const sheet = new Sheet();
