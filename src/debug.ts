@@ -22,6 +22,24 @@ export class Debugger {
   }
 
   /**
+   * watch cells
+   */
+  w(...cells: number[]) {
+    // @ts-expect-error private
+    this.sheet._debug = true;
+    // @ts-expect-error private
+    this.sheet._logList.push(...cells);
+  }
+
+  /**
+   * unwatch cells
+   */
+  uw(...cells: number[]) {
+    // @ts-expect-error private
+    this.sheet._logList = this.sheet._logList.filter((c) => !cells.includes(c));
+  }
+
+  /**
    * search: print all cells whose name matches substring.
    * @param substring
    */
