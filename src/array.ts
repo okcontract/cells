@@ -16,7 +16,7 @@ import type { SheetProxy } from "./proxy";
 export const mapArray = <T, U>(
   proxy: SheetProxy,
   arr: AnyCell<AnyCell<T>[]>,
-  fn: (v: T) => U
+  fn: (v: T) => U | Promise<U>
 ): MapCell<MapCell<U, false>[], false> =>
   proxy.map([arr], (cells, prev) =>
     cells.map(
@@ -60,7 +60,7 @@ export const sort = <T>(
 export const mapArrayCell = <T, U>(
   proxy: SheetProxy,
   arr: AnyCell<AnyCell<T>[]>,
-  fn: (v: AnyCell<T>) => U
+  fn: (v: AnyCell<T>) => U | Promise<U>
 ): MapCell<MapCell<U, false>[], false> =>
   proxy.map([arr], (cells, prev) =>
     cells.map(
