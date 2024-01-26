@@ -48,7 +48,6 @@ export class Debugger {
     }
     const pred = this.g.predecessors(cell);
     const succ = this.g.get(cell);
-    console.log(`[${pred.join(",")}] ==> {${cell}} ==> [${succ.join(",")}]`);
     for (const id of pred)
       console.log({
         "<==": id,
@@ -68,6 +67,7 @@ export class Debugger {
         name: this.cells[id].name,
         value: this.cells[id].value
       });
+    return `[${pred.join(",")}] ==> {${cell}} ==> [${succ.join(",")}]`;
   }
 
   /**
