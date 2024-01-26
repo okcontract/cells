@@ -1,7 +1,7 @@
-import { Graph } from "@okcontract/graph";
+import type { Graph } from "@okcontract/graph";
 
-import { Cell } from "./cell";
-import { Sheet } from "./sheet";
+import type { Cell } from "./cell";
+import type { Sheet } from "./sheet";
 
 /**
  * Debugger for a Sheet.

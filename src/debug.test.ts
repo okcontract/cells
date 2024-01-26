@@ -1,7 +1,7 @@
-import { test, expect } from "vitest";
+import { expect, test } from "vitest";
 
-import { Sheet } from "./sheet";
 import { Debugger } from "./debug";
+import { Sheet } from "./sheet";
 
 test("Debugger", () => {
   const sheet = new Sheet();
