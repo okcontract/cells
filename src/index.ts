@@ -28,4 +28,6 @@ export { WrappedCell } from "./wrapped";
 
 // Utilities
 
+export { Debugger } from "./debug";
+
 export { filter, mapArray, mapArrayCell, reduce, sort } from "./array";
