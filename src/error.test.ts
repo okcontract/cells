@@ -125,22 +125,26 @@ test("Proxy's (initial) errors are in the error cell", () => {
   expect(sheet.errors.get()).toEqual(expectedError);
 });
 
-test("Error cascade without pointers", async () => {
-  const sheet = new Sheet();
-  const proxy = new SheetProxy(sheet);
+test(
+  "Error cascade without pointers",
+  async () => {
+    const sheet = new Sheet();
+    const proxy = new SheetProxy(sheet);
 
-  const fails = async (): Promise<string> => {
-    throw new Error("a");
-  };
+    const fails = async (): Promise<string> => {
+      throw new Error("a");
+    };
 
-  const a = proxy.new(delayed(1, 15));
-  const b = proxy.new(delayed("foo", 10));
+    const a = proxy.new(delayed(1, 15));
+    const b = proxy.new(delayed("foo", 10));
 
-  const c = proxy.map([a, b], (a, b) => fails());
-  const d = proxy.map([a, c], (a, c) => a);
+    const c = proxy.map([a, b], (a, b) => fails());
+    const d = proxy.map([a, c], (a, c) => a);
 
-  expect(d.get()).resolves.toBeInstanceOf(Error);
-});
+    await expect(d.get()).resolves.toBeInstanceOf(Error);
+  },
+  { timeout: 1000 }
+);
 
 test("Error cascade with pointers", async () => {
   const sheet = new Sheet();
