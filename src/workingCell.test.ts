@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
 
 import { delayed } from "./promise";
-import { Sheet } from "./sheet";
 import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 
 test("working in a sheet", async () => {
   const sheet = new Sheet();

@@ -1,29 +1,30 @@
 import { expect, test } from "vitest";
 
 import { delayed } from "./promise";
-import { Sheet } from "./sheet";
 import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 
 test("native proxy", () => {
   const obj = {
-    value: 0,
+    value: 0
   };
 
   let trigger = false;
 
   const proxy = new Proxy(obj, {
-    deleteProperty(target: any, property) {
+    deleteProperty(target: { [key: string | symbol]: unknown }, property) {
       trigger = true;
       delete target[property];
       return true;
-    },
+    }
   });
 
   proxy.value = 10; // Output: (nothing is logged)
   expect(proxy.value).toBe(10);
   expect(trigger).toBeFalsy();
 
-  delete (proxy as any).value; // Output: "Property has been deleted: value"
+  // biome-ignore lint/performance/noDelete: deletion *is* required
+  delete (proxy as { value: unknown }).value; // Output: "Property has been deleted: value"
   expect(proxy.value).toBeUndefined(); // Output: undefined
   expect(trigger).toBeTruthy();
 });
@@ -48,7 +49,7 @@ test("Sheet multiple async updates", async () => {
     delayed(value + double + 1, 30)
   );
   // console.log("value", value.id, "double", double.id, "add", add.id);
-  let val = await add.get(); // get returns the last computed value, wait if undefined
+  const val = await add.get(); // get returns the last computed value, wait if undefined
   expect(val).toBe(7);
   value.set(3);
   expect(await add.consolidatedValue).toBe(10);

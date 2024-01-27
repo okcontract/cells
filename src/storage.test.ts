@@ -1,7 +1,7 @@
-import { test, expect, vi, afterEach } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 
-import { Sheet } from "./sheet";
 import { SheetProxy } from "./proxy";
+import { Sheet } from "./sheet";
 
 const getItemSpy = vi.spyOn(Storage.prototype, "getItem");
 const setItemSpy = vi.spyOn(Storage.prototype, "setItem");

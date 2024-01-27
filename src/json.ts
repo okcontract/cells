@@ -7,14 +7,14 @@ const errorCell = new Error("cell");
  * @param obj
  * @returns
  */
-export const jsonStringify = (obj: any) => {
+export const jsonStringify = <T>(obj: T) => {
   if (obj instanceof Cell) throw errorCell;
   let out = "";
-  const aux = (v: any) => {
+  const aux = <T>(v: T) => {
     if (Array.isArray(v)) {
       out += "[";
       let first = true;
-      for (let elt of v) {
+      for (const elt of v) {
         if (!first) out += ",";
         aux(elt);
         first = false;
@@ -23,11 +23,11 @@ export const jsonStringify = (obj: any) => {
       return;
     }
     switch (typeof v) {
-      case "object":
+      case "object": {
         out += "{";
         let first = true;
         // sort objects alphabetically
-        for (let [k, elt] of Object.entries(v).sort(([k1, _v1], [k2, _v2]) =>
+        for (const [k, elt] of Object.entries(v).sort(([k1, _v1], [k2, _v2]) =>
           k1 < k2 ? -1 : k1 > k2 ? 1 : 0
         )) {
           if (elt === undefined || elt === null) continue;
@@ -39,6 +39,7 @@ export const jsonStringify = (obj: any) => {
         }
         out += "}";
         break;
+      }
       case "function":
       case "symbol":
         break;

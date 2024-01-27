@@ -2,12 +2,12 @@ import { type AnyCell } from "./cell";
 import type { SheetProxy } from "./proxy";
 
 // Type transformation: T_k[] => AnyCell<T_k>[]
-export type AnyCellArray<L extends any[]> = {
+export type AnyCellArray<L extends unknown[]> = {
   [K in keyof L]: AnyCell<L[K]>;
 };
 
 /** Compute function */
-export type ComputeFn<In extends any[], Out> = (...args: In) => Out;
+export type ComputeFn<In extends unknown[], Out> = (...args: In) => Out;
 
 // Interfaces extending definitions from Svelte
 

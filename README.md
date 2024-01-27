@@ -1,6 +1,9 @@
-# Cells: A Functional Reactive Programming library
+# Cells: A Functional & Reactive Programming library
 
-`cells` is a Functional Reactive Programming (FRP) library inspired by spreadsheets. FRP is a programming paradigm that simplifies handling complex, dynamic data flows. It is particularly useful in scenarios with asynchronous data sources, such as user interfaces or real-time data feeds.
+`cells` is a Functional & Reactive Programming (FRP) library inspired by
+spreadsheets. This programming paradigm simplifies handling complex, dynamic
+data flows. It is particularly useful in scenarios with asynchronous data
+sources, such as user interfaces or real-time data feeds.
 
 ![cells are either values or functions](./assets/cells.svg)
 
@@ -11,7 +14,9 @@
 - errors
 - pointers
 
-Although it is a fully independent library, `cells` can be a powerful drop-in replacement for Svelte stores. The build artifacts are currently at 18.7 kB (5.85 kB gzipped).
+Although it is a fully independent library, `cells` can be a powerful drop-in
+replacement for Svelte stores. The build artifacts are currently at 19.5 kB
+(6 kB gzipped).
 
 ## Walkthrough
 
@@ -52,8 +57,12 @@ const ok = someCell.map(async (v) => {
 
 Note that:
 
-- `.get()` never returns `undefined` and `cells` semantics waits until cell values are defined. If you need to immediately return a value, use `null` instead.
-- At any time, the actual cell value is accessible through `cell.value` (possibly undefined) but it's advisable to avoid relying on a value that could be updated at any moment.
+- `.get()` never returns `undefined` and `cells` semantics waits until cell
+  values are defined. If you need to immediately return a value, use `null`
+  instead.
+- At any time, the actual cell value is accessible through `cell.value`
+  (possibly undefined) but it's advisable to avoid relying on a value that could
+  be updated at any moment.
 
 ## Subscriptions
 
@@ -71,13 +80,19 @@ const unsubscribe = cellA.subscribe((v) => {
 unsubscribe();
 ```
 
-When using `cells` in Svelte files, you can use normally the `$cell` sugar to subscribe to a cell value for display.
+When using `cells` in Svelte files, you can use the `$cell` sugar to subscribe
+to a cell value for display. Note that there is a initial `undefined` value when
+using that sugar as the reactive subscription are initially output by the Svelte
+compiler as `let $cell;`.
 
-Note that unlike Svelte, subscriptions are called in transactional batches, i.e. `cells` wait until all updates are propagated in the `Sheet` to dispatch notifications _once_ to subscribers. This prevents stuttering.
+Unlike Svelte, subscriptions are called in transactional batches, i.e. `cells`
+wait until all updates are propagated in the `Sheet` to dispatch notifications
+_once_ to subscribers. This prevents stuttering.
 
 ## Memory management and proxies
 
-Cells are not garbage collected automatically, since the best practice is to keep long-running `Sheets` for each application.
+Cells are not garbage collected automatically, since the best practice is to
+keep a long-running `Sheet` for each application.
 
 To delete a cell, use:
 
@@ -85,7 +100,8 @@ To delete a cell, use:
 sheet.delete(cell);
 ```
 
-To simplify these operations, you can define a sub-graph of cells in a `Proxy` that can be deleted at once.
+To simplify these operations, you can define a sub-graph of cells in a `Proxy`
+that can be deleted at once.
 
 ```ts
 import { SheetProxy } from "@okcontract/cells";
@@ -102,15 +118,17 @@ const mappedCell = proxy.map([...cells], (...args)=>{...})
 proxy.destroy();
 ```
 
-There are added benefits of proxies, including a single call to wait for all cells in a `Proxy` to be computed.
+There are added benefits of proxies, including a single call to wait for all
+cells in a `Proxy` to be computed.
 
 ```ts
-await proxy.wait();
+await proxy.working.wait();
 ```
 
 ## Pointers
 
-Sometimes, you will need to return cells inside `.map` compute functions. `cells` manages this automatically with pointers.
+Sometimes, you will need to return cells inside `.map` compute functions.
+`cells` manages this automatically with pointers.
 
 ```ts
 const cellA = proxy.new(...);
@@ -136,7 +154,8 @@ const counter = proxy.new(0);
 counter.update((prev) => prev + 1);
 ```
 
-Note that `update` functions should return new arrays and objects, for instance using spread operators `[...prev, new]` and `{...prev, field: new}`.
+Note that `update` functions should return new arrays and objects, for instance
+using spread operators `[...prev, new]` and `{...prev, field: new}`.
 
 If you need more complex imperative updates, we suggest you to use `immer`:
 
@@ -149,14 +168,26 @@ const patch = (prev) => {
 cell.update((prev) => produce(prev, patch));
 ```
 
+# Design & Philosophy
+
+The design and philosophy of cells are influenced by frameworks like `RxJS`,
+`MobX`, and `Recoil`, with increased automation. Our focus is to streamline the
+developer experience, reduce the boilerplate and complexity often encountered in
+state management and reactive programming.
+
 # About
 
-`cells` is built at [OKcontract](https://okcontract.com) and is released under the MIT license.
+`cells` is built at [OKcontract](https://okcontract.com) and is released under
+the MIT license.
 
 We aim for ease of use and correction. Chasing down any bug is our top priority.
 
-A non-goal for now is high-performance: `cells` is slower than any direct implementation and should not be used for computationally intensive tasks.
+A non-goal for now is high-performance: `cells` is slower than any direct
+implementation and should not be used for computationally intensive tasks.
 
-Contributors are welcome, feel free to submit PRs directly for small changes. You can also reach out in our [Discord](https://discord.gg/Cun5aF7k) or contact us on [Twitter](https://x.com/okcontract) in advance for larger contributions.
+Contributors are welcome, feel free to submit PRs directly for small changes.
+You can also reach out in our [Discord](https://discord.gg/Cun5aF7k) or contact
+us on [Twitter](https://x.com/okcontract) in advance for larger contributions.
 
-This work is supported in part by a RFG grant from [Optimism](https://optimism.io).
+This work is supported in part by a RFG grant from
+[Optimism](https://optimism.io).

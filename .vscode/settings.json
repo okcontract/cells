@@ -1,13 +1,32 @@
 {
   "cSpell.words": [
     "Binsztok",
+    "biomejs",
+    "cellified",
+    "cellify",
     "deepskyblue",
     "fillcolor",
+    "graphviz",
     "gzipped",
     "hotpink",
     "immer",
     "okcontract",
     "orangered",
+    "succ",
+    "Uncellified",
+    "uncellify",
     "Unsubscriber"
-  ]
+  ],
+  "editor.codeActionsOnSave": {
+    "quickfix.biome": "explicit"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
 }

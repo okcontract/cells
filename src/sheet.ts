@@ -1,22 +1,21 @@
-const DEV = false;
-
 import { Graph, ReferencesLeft } from "@okcontract/graph";
 
+import {
+  type AnyCell,
+  Canceled,
+  Cell,
+  CellErrors,
+  type CellResult,
+  MapCell,
+  type Pending,
+  ValueCell,
+  Working,
+  cancelComputation
+} from "./cell";
 import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { SheetProxy } from "./proxy";
 import type { AnyCellArray } from "./types";
-import {
-  Cell,
-  Working,
-  CellErrors,
-  type CellResult,
-  ValueCell,
-  MapCell,
-  type AnyCell,
-  type Pending,
-  Canceled,
-  cancelComputation,
-} from "./cell";
+import { intersection } from "./utils";
 
 type Computations<V> = (
   | Pending<V | Canceled, true>
@@ -51,7 +50,14 @@ const size = Symbol();
  */
 
 export class Sheet {
-  private _cells: { [key: number]: AnyCell<any> };
+  /**
+   * for debugging
+   */
+  private _debug = false;
+  private _logList: number[] = [];
+  private _autoWatch: string[] = [];
+
+  private _cells: { [key: number]: AnyCell<unknown> };
 
   /** g is a dependency graph
    *  an arrow from a to b means that
@@ -70,7 +76,7 @@ export class Sheet {
   private _pointers: Graph<number>;
   /** equality function */
   public equals: <V>(prev: V, next: V) => boolean;
-  readonly _marshaller: (a: any) => string;
+  readonly _marshaller: <V>(a: V) => string;
   /**
    * list of ongoing computations
    * @todo compact _computations when there are many updates and long computations
@@ -85,10 +91,9 @@ export class Sheet {
    * @param equality function comparing a new value with previous value for updates
    */
   constructor(
-    equality = (a: any, b: any) => a === b,
-    marshaller = (a: any): string => JSON.stringify(a)
+    equality = <T>(a: T, b: T) => a === b,
+    marshaller = <T>(a: T): string => JSON.stringify(a)
   ) {
-    DEV && console.log({ new: "sheet" });
     this.g = new Graph();
     this._cells = {};
     this._pointers = new Graph();
@@ -113,7 +118,7 @@ export class Sheet {
   /**
    * Promise that keeps pending until all computations that were running at call-time are settled.
    */
-  async wait(): Promise<any> {
+  async wait(): Promise<void> {
     return this.working.wait();
   }
 
@@ -124,36 +129,6 @@ export class Sheet {
     return { count: this[count], size: this[size] };
   }
 
-  /**
-   * newProxy creates a new proxy for this sheet.
-   * @returns
-   */
-  newProxy() {
-    return new SheetProxy(this);
-  }
-
-  dotGraphWithTitle(title?: string) {
-    return this.g.toDot(
-      this._cell_types(),
-      {
-        ...(title && { title }),
-        string: "style=filled,fillcolor=aquamarine",
-        number: "style=filled,fillcolor=gold",
-        object: "style=filled,fillcolor=hotpink",
-        undefined: "style=filled,fillcolor=gray",
-        boolean: "style=filled,fillcolor=deepskyblue",
-        bigint: "style=filled,fillcolor=goldenrod1",
-        symbol: "style=filled,fillcolor=green",
-        function: "style=filled,fillcolor=orangered",
-        null: "style=filled,fillcolor=red",
-      },
-      this._pointers
-    );
-  }
-
-  get dotGraph() {
-    return this.dotGraphWithTitle();
-  }
   /**
    * get a cell.
    * @param id cell
@@ -175,12 +150,17 @@ export class Sheet {
       this._pointers.removeEdge(pointed, node);
     }
   }
+
   _updatePointer(
     from: number,
     oldPointer: number | undefined,
     to: number | undefined
   ) {
-    DEV && console.log("update pointer", this.naming({ from, oldPointer, to }));
+    this._debug &&
+      (this._logList.includes(from) ||
+        this._logList.includes(oldPointer) ||
+        this._logList.includes(to)) &&
+      console.log("update pointer", this.naming({ from, oldPointer, to }));
     if (oldPointer !== undefined) this.unsetPointerDep(from, oldPointer);
     if (to !== undefined) this._pointers.addEdge(to, from);
   }
@@ -224,11 +204,11 @@ export class Sheet {
           options
         )
     );
-    DEV &&
+    this._debug &&
       console.log({
         newInSheet: cell.id,
         name,
-        value,
+        value
       });
     if (value instanceof Promise) {
       this.working.addComputation(
@@ -247,10 +227,18 @@ export class Sheet {
       );
     }
     if (name !== undefined) this.bless(cell.id, name);
+    // add to debug watch list
+    if (this._debug && name) {
+      for (const pat of this._autoWatch)
+        if (name.toLowerCase().includes(pat)) {
+          this._logList.push(cell.id);
+          break; // for
+        }
+    }
     return cell;
   }
 
-  mapRaw<D extends any[], V, NF extends boolean = false>(
+  mapRaw<D extends unknown[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
     computeFn: (...args: D) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     usePreviousValue: boolean,
@@ -280,7 +268,7 @@ export class Sheet {
     if (name) mapCell.bless(name);
     // console.log("Sheet.map:", `registered cell[${id}]`)
     for (const cell of dependencies) this.g.addEdge(cell.id, mapCell.id);
-    return mapCell;
+    return mapCell as MapCell<V, NF>;
   }
 
   // We still need to overload map to fix type inference
@@ -391,7 +379,7 @@ export class Sheet {
     noFail?: NF
   ): MapCell<V, NF>;
 
-  map<D extends any[], V, NF extends boolean = false>(
+  map<D extends unknown[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
     computeFn: (
       ...args: D | [...D, V]
@@ -403,7 +391,7 @@ export class Sheet {
     return this.mapRaw(dependencies, computeFn, true, name, proxy, noFail);
   }
 
-  mapNoPrevious<D extends any[], V, NF extends boolean = false>(
+  mapNoPrevious<D extends unknown[], V, NF extends boolean = false>(
     dependencies: AnyCellArray<D>,
     computeFn: (...args: D) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
     name?: string,
@@ -428,9 +416,9 @@ export class Sheet {
 
   naming(obj) {
     const excludedKeys = ["computationRank"];
-    if (!DEV) return obj;
+    if (!this._debug) return obj;
     const nameOne = (id) => this.name(id);
-    const nameComp = (comp: any[]) => {
+    const nameComp = (comp: unknown[]) => {
       const newComp = comp
         .map((val, id) => [this.name(id), val])
         .filter((v) => v !== undefined);
@@ -438,19 +426,22 @@ export class Sheet {
     };
     if (Array.isArray(obj)) {
       return obj.map(nameOne);
-    } else if (obj instanceof Set) {
+    }
+    if (obj instanceof Set) {
       return new Set([...obj].map(nameOne));
-    } else if (typeof obj == "number") {
+    }
+    if (typeof obj === "number") {
       return nameOne(obj);
-    } else if (obj !== undefined) {
+    }
+    if (obj !== undefined) {
       try {
         const entries = Object.entries(obj).map(([k, v]) => [
           k,
           !excludedKeys.includes(k)
             ? k !== "computations"
               ? this.naming(v)
-              : nameComp(v as any[])
-            : v,
+              : nameComp(v as unknown[])
+            : v
         ]);
         return Object.fromEntries(entries);
       } catch (_) {
@@ -475,8 +466,12 @@ export class Sheet {
    * @returns a promise settled when all cells recomputation are over
    */
   _update<V>(ids: number | number[]) {
-    DEV && console.log(this.naming({ _update: ids }));
-    let roots: number[] = Array.isArray(ids) ? ids : [ids];
+    const roots: number[] = Array.isArray(ids) ? ids : [ids];
+    if (this._debug) {
+      // @todo _watchAll
+      const inter = intersection(roots, this._logList);
+      console.log(this.naming({ _update: inter }));
+    }
     const finished = new Set<number>(roots);
     // @todo add lock mechanism to prevent concurrent updates
     /* @todo Add assertion on expected properties:
@@ -489,48 +484,55 @@ export class Sheet {
       roots,
       computations,
       done,
-      canceled,
+      canceled
     }) => {
-      DEV &&
-        console.log(
-          this.naming({ updateRec: roots, done, computations, canceled })
-        );
+      if (this._debug) {
+        // @todo _watchAll
+        const inter = this._logList.filter((v) => roots.has(v));
+        inter.length &&
+          console.log(
+            this.naming({ updateRec: roots, done, computations, canceled })
+          );
+      }
       if (roots.size === 0) {
         return { roots, computations, done, canceled };
-      } else {
-        return dispatch(
-          this.updateIteration(roots, done, canceled, computations),
-          (result) =>
-            updateRec({
-              roots: result.updated,
-              computations: result.computations,
-              done: result.done,
-              canceled: result.canceled,
-            })
-        );
       }
+      return dispatch(
+        this.updateIteration(roots, done, canceled, computations),
+        (result) =>
+          updateRec({
+            roots: result.updated,
+            computations: result.computations,
+            done: result.done,
+            canceled: result.canceled
+          })
+      );
     };
 
     const computations: Computations<V> = [];
     const release = this.working.startNewComputation();
-    roots.forEach(
-      (id) =>
-        (computations[id] = dispatch(
-          this.get(id).consolidatedValueWthUndefined,
-          (v) => (v === undefined ? cancelComputation : v)
-        ))
-    );
+    for (const id of roots) {
+      computations[id] = dispatch(
+        this.get(id).consolidatedValueWthUndefined,
+        (v) => (v === undefined ? cancelComputation : v)
+      );
+    }
     return dispatch(
       // first we compute all possible updates
       updateRec({
         roots: new Set(roots),
         computations,
         done: finished,
-        canceled: new Set(),
+        canceled: new Set()
       }),
       // then we notify all modified cells
       (_result) => {
-        DEV && console.log("Update Finished", this.naming({ _result }));
+        if (this._debug) {
+          // @todo _watchAll
+          const inter = intersection(roots, this._logList);
+          inter.length &&
+            console.log("Update Finished", this.naming({ _result }));
+        }
         this._internalNotify(_result.done);
         release();
       }
@@ -543,30 +545,30 @@ export class Sheet {
     canceled: Set<number>
   ): void {
     const maybeDone: Set<number> = new Set();
-    updatable.forEach((id) => {
+    for (const id of updatable) {
       if (computations[id] instanceof Canceled) {
         canceled.add(id);
       } else {
         maybeDone.add(id);
       }
-    });
+    }
 
     const pointersToCanceled = this._pointers.strictlyReachableProperty(
       maybeDone,
       (id) => canceled.has(id),
       {
-        next: (id) => this._pointers.predecessors(id),
+        next: (id) => this._pointers.predecessors(id)
       }
     );
 
     //@todo shall we do something not quadratic
-    maybeDone.forEach((id) => {
+    for (const id of maybeDone) {
       if (pointersToCanceled.has(id)) {
         canceled.add(id);
       } else {
         done.add(id);
       }
-    });
+    }
   }
 
   private updateIteration<V>(
@@ -575,7 +577,11 @@ export class Sheet {
     canceled: Set<number>,
     computations: Computations<V>
   ): IterationResult<V> | Promise<IterationResult<V>> {
-    DEV && console.log(this.naming({ updateIterationOn: ids, done, canceled }));
+    if (this._debug) {
+      const inter = this._logList.filter((v) => ids.has(v));
+      inter.length &&
+        console.log(this.naming({ updateIterationOn: ids, done, canceled }));
+    }
     const isPointer = (id: number) => this.get(id).isPointer;
     /** List of nodes that will be updated  */
     const selection = this.selectUpdatableCells(ids, isPointer);
@@ -584,19 +590,22 @@ export class Sheet {
       updatable,
       pointersToBeUpdated,
       grey,
-      mightChange,
+      mightChange
     } = selection;
-    DEV &&
-      console.log(
-        "selectUpdatableCells result",
-        this.naming({
-          ...selection,
-          done,
-          canceled,
-        })
-      );
+    if (this._debug) {
+      const inter = this._logList.filter((v) => ids.has(v));
+      inter.length &&
+        console.log(
+          "selectUpdatableCells result",
+          this.naming({
+            ...selection,
+            done,
+            canceled
+          })
+        );
+    }
     //@todo Isn't this check too costly
-    toBeRecomputed.forEach((id) => {
+    for (const id of toBeRecomputed) {
       if (done.has(id) || canceled.has(id)) {
         console.error(
           "Error - recomputing an already computed cell !:",
@@ -604,11 +613,11 @@ export class Sheet {
             cell: id,
             ...selection,
             done,
-            canceled,
+            canceled
           })
         );
       }
-    });
+    }
     // Form now on, we need updatable pointers to be up-to-date to continue
     const newComputations = this.computeUpdatable(toBeRecomputed, computations);
     const borderComputation = dispatchPromiseOrValueArray(
@@ -634,7 +643,7 @@ export class Sheet {
             nextIteration.toBeRecomputedBorder,
             computations
           ),
-          nextIteration,
+          nextIteration
         };
       }
     );
@@ -657,18 +666,22 @@ export class Sheet {
               computations,
               updated: new Set([
                 ...updatable,
-                ...nextIteration.toBeRecomputedBorder,
+                ...nextIteration.toBeRecomputedBorder
               ]),
               done,
               canceled,
               greyUpdatedPointers: nextIteration.greyUpdatedPointers,
-              greenPointers: nextIteration.greenPointers,
+              greenPointers: nextIteration.greenPointers
             };
-            DEV &&
-              console.log(
-                "Border recomputed, end of iteration:",
-                this.naming(iterationResult)
-              );
+            if (this._debug) {
+              // @todo consider more cells (or optionally all)
+              const inter = this._logList.filter((v) => ids.has(v));
+              inter.length &&
+                console.log(
+                  "Border recomputed, end of iteration:",
+                  this.naming(iterationResult)
+                );
+            }
             return iterationResult;
           }
         );
@@ -682,7 +695,7 @@ export class Sheet {
     updated: number[],
     pointersToBeUpdated: number[],
     grey: number[],
-    isPointer: (id: any) => boolean
+    isPointer: (id: unknown) => boolean
   ): {
     toBeRecomputedBorder: number[];
     safeBorder: number[];
@@ -719,9 +732,9 @@ export class Sheet {
           Array.from(
             new Set([
               ...(this.g.predecessors(id) || []),
-              ...(this._pointers.predecessors(id) || []),
+              ...(this._pointers.predecessors(id) || [])
             ])
-          ),
+          )
       }
     );
     /** retaining only safe candidates */
@@ -737,9 +750,14 @@ export class Sheet {
       toBeRecomputedBorder,
       safeBorder,
       greyUpdatedPointers,
-      greenPointers,
+      greenPointers
     };
-    DEV && console.log("Prepared Border: ", this.naming(res));
+    if (this._debug) {
+      const inter = this._logList.filter(
+        (v) => roots.has(v) || updated.includes(v)
+      );
+      inter.length && console.log("Prepared Border: ", this.naming(res));
+    }
     return res;
   }
 
@@ -760,7 +778,7 @@ export class Sheet {
    */
   private selectUpdatableCells(
     ids: Set<number>,
-    isPointer: (id: any) => boolean
+    isPointer: (id: unknown) => boolean
   ): {
     toBeRecomputed: number[];
     updatable: number[];
@@ -773,7 +791,7 @@ export class Sheet {
     const mightChange =
       this.g.partialTopologicalSortRootsSet(Array.from(ids), {
         includeRoots: false,
-        next,
+        next
       }) || [];
     /** List of nodes that will be updated that currently are pointers  */
     const pointersToBeUpdated = mightChange.filter(isPointer);
@@ -783,7 +801,7 @@ export class Sheet {
     const grey =
       this.g.partialTopologicalSortRootsSet(pointersToBeUpdated, {
         next,
-        includeRoots: false,
+        includeRoots: false
       }) || [];
 
     /** List of nodes that can safely be immediately updated, in evaluation order */
@@ -802,7 +820,7 @@ export class Sheet {
       updatable,
       pointersToBeUpdated,
       grey,
-      mightChange: mightChange,
+      mightChange: mightChange
     };
   }
 
@@ -818,21 +836,24 @@ export class Sheet {
     toBeRecomputed: number[],
     computations: Computations<V>
   ): Computations<V> {
-    let order = toBeRecomputed.slice(); // slice copies the array
+    const order = toBeRecomputed.slice(); // slice copies the array
     let currentCellId: number | undefined;
-    let newComputations = [];
+    const newComputations = [];
+
+    // biome-ignore lint/suspicious/noAssignInExpressions: shorter, still explicit
     while ((currentCellId = order.pop()) !== undefined) {
-      const cell: AnyCell<any> = this._cells[currentCellId];
+      const cell: AnyCell<unknown> = this._cells[currentCellId];
       if (cell !== undefined) {
-        DEV &&
+        if (this._debug && this._logList.includes(currentCellId)) {
           console.log(
             "Sheet.computeUpdatable, running computation of:",
             this.naming({
               cell: cell.id,
-              computations,
+              computations
             })
           );
-        let pending: Pending<V, any> | CellResult<V, any> =
+        }
+        const pending: Pending<V, unknown> | CellResult<V, unknown> =
           cell instanceof MapCell
             ? cell._computeValue(computations, false)
             : cell.consolidatedValueWthUndefined;
@@ -862,67 +883,21 @@ export class Sheet {
   private canDelete(ids: number[]): boolean {
     const deps: Set<number> = new Set();
 
-    ids.forEach((id) =>
-      this.g.partialTopologicalSort(id)?.forEach((id) => {
-        deps.add(id);
-      })
-    );
-    ids.forEach((id) => deps.delete(id));
+    for (const id of ids)
+      for (const dep of this.g.partialTopologicalSort(id)) deps.add(dep);
+    for (const id of ids) deps.delete(id);
     return deps.size === 0;
   }
 
-  delete(...input: (number | AnyCell<any>)[]) {
+  delete(...input: (number | AnyCell<unknown>)[]) {
     const ids = input.map((v) => (typeof v === "number" ? v : v.id));
     if (!this.canDelete(ids)) {
       throw ReferencesLeft;
     }
-    ids.forEach((id) => {
+    for (const id of ids) {
       this.g.delete(id);
       delete this._cells[id];
       this[size]--;
-    });
-  }
-
-  _cell_types() {
-    const ty: {
-      string: number[];
-      number: number[];
-      object: number[];
-      undefined: number[];
-      boolean: number[];
-      bigint: number[];
-      symbol: number[];
-      function: number[];
-      null: number[];
-    } = {
-      string: [],
-      number: [],
-      object: [],
-      undefined: [],
-      boolean: [],
-      bigint: [],
-      symbol: [],
-      function: [],
-      null: [],
-    };
-    for (let [id, cell] of Object.entries(this._cells)) {
-      const v = cell.value;
-      ty[v === null ? "null" : typeof v].push(+id);
     }
-    return ty;
-  }
-
-  _log_undefined() {
-    const ids: number[] = [];
-    for (let [id, cell] of Object.entries(this._cells)) {
-      if (cell.value === undefined) {
-        ids.push(+id);
-        console.log({ id, name: this.g.name(+id), cell, undefined: true });
-      }
-    }
-    console.log({
-      at: Date.now(),
-      sort: this.g.topologicalSort()?.filter((id) => ids.includes(id)),
-    });
   }
 }

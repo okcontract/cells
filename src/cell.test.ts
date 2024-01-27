@@ -1,4 +1,4 @@
-import { test, expect, describe, it } from "vitest";
+import { describe, expect, it, test } from "vitest";
 
 import { isEqual } from "./isEqual.test";
 
@@ -55,15 +55,24 @@ describe("writable", () => {
   it("only calls subscriber once initially, including on re-subscriptions", () => {
     let num = 0;
     const sheet = new Sheet();
-    const store = sheet.new((set: any) => set((num += 1)));
+    const incrementNum = () => {
+      num += 1;
+      return num;
+    };
+    const store = sheet.new((set: (unknown) => void) => set(incrementNum()));
 
     let count1 = 0;
     let count2 = 0;
-
-    store.subscribe(() => (count1 += 1))();
+    const incrementCount1 = () => {
+      count1 += 1;
+    };
+    store.subscribe(incrementCount1)();
     expect(count1).toBe(1);
 
-    const unsubscribe = store.subscribe(() => (count2 += 1));
+    const incrementCount2 = () => {
+      count2 += 1;
+    };
+    const unsubscribe = store.subscribe(incrementCount2);
     expect(count1).toBe(1);
     expect(count2).toBe(1);
 
@@ -163,8 +172,8 @@ test("prevents diamond dependency problem", () => {
   const count = store.new(0);
   const values: string[] = [];
 
-  const a = count.map((x) => "a" + x);
-  const b = count.map((x) => "b" + x);
+  const a = count.map((x) => `a${x}`);
+  const b = count.map((x) => `b${x}`);
   const combined = store.map([a, b], (a, b) => a + b);
 
   const unsubscribe = combined.subscribe((v) => {
@@ -184,8 +193,8 @@ test("derived dependency does not update and shared ancestor updates", () => {
   const root = store.new({ a: 0, b: 0 });
   const values: string[] = [];
 
-  const a = root.map((x) => "a" + x.a);
-  const b = store.map([a, root], (a, root) => "b" + root.b + a);
+  const a = root.map((x) => `a${x.a}`);
+  const b = store.map([a, root], (a, root) => `b${root.b}${a}`);
 
   const unsubscribe = b.subscribe((v) => {
     if (!(v instanceof Error)) values.push(v);
@@ -210,4 +219,25 @@ test("allows derived with different types", async () => {
   a.set("two");
   b.set(2);
   expect(c.value).toBe("two 2");
+});
+
+/**
+ * We test that a subscriber does not return `undefined` values.
+ *
+ * Svelte does however add a first `undefined` value when using the
+ * syntactic sugar `$`. `$x` is compiled to a new value `let $x;`
+ * that starts as undefined and is then updated every time the
+ * subscriber emits a new value.
+ * cf. https://svelte.dev/repl/aef2b834f8e64e5b9bcddccfc3a82f9c?version=4.2.9
+ */
+test("subscribe doesn't return undefined", async () => {
+  const sheet = new Sheet();
+  const url = sheet.new(undefined);
+  const pat = /breeds\/([a-z\-]+)\//;
+  const breed = url.map((s) => pat.exec(s)?.[1]);
+  const l: (string | Error)[] = [];
+  breed.subscribe((v) => l.push(v));
+  url.set("");
+  url.set("https://images.dog.ceo/breeds/frise-bichon/1.jpg");
+  expect(l).toEqual(["frise-bichon"]); // cspell:disable-line
 });
