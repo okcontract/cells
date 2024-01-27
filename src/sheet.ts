@@ -130,6 +130,14 @@ export class Sheet {
   }
 
   /**
+   * newProxy creates a new proxy for this sheet.
+   * @returns
+   */
+  newProxy() {
+    return new SheetProxy(this);
+  }
+
+  /**
    * get a cell.
    * @param id cell
    */
