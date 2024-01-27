@@ -275,23 +275,32 @@ test("cell pointer long chain, update pointer", async () => {
 test("map with pointers should be called once", async () => {
   const proxy = new Sheet().newProxy();
   // if a is sync, the test passes
-  const a = proxy.new(delayed(1, 10));
-  const b = proxy.new(2);
+  const a = proxy.new(delayed(0, 10), "a");
+  const b = proxy.new(2, "b");
   let countM = 0;
-  const m = proxy.map([a, b], (a, b) => {
-    countM++;
-    return a + b;
-  });
+  const m = proxy.map(
+    [a, b],
+    (a, b) => {
+      countM++;
+      return a + b;
+    },
+    "m"
+  );
   let countP = 0;
   const p = m.map((v) => {
     countP++;
     return v < 2 ? a : b;
-  });
+  }, "p");
   let countMP = 0;
   const mp = p.map((v) => {
     countMP++;
     return v;
-  });
+  }, "mp");
+  /*
+   a <-- m <-.-. p <-- mp
+        /
+   b <--
+  */
   await proxy.working.wait();
   expect(await mp.get()).toBe(2);
   expect(countM).toBe(1);
