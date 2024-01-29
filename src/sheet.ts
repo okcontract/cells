@@ -550,7 +550,10 @@ export class Sheet {
         // Collect garbage
         if (this._gc.size) {
           const l = Array.from(this._gc);
-          console.log({ deleting: l });
+          if (this._debug) {
+            // const inter = intersection(l, this._logList);
+            console.log({ deleting: l });
+          }
           this._gc = new Set();
           this.delete(...l);
         }
