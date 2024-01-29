@@ -87,6 +87,9 @@ export class Sheet {
   /** Cell holding all the current "initial" errors of the sheet */
   public errors: CellErrors;
 
+  /** Cells that can be garbage collected */
+  private _gc: Set<number>;
+
   /**
    * @param equality function comparing a new value with previous value for updates
    */
@@ -106,6 +109,7 @@ export class Sheet {
     this.working = new Working();
 
     this.errors = new CellErrors();
+    this._gc = new Set();
   }
 
   bless(id: number, name: string) {
@@ -543,6 +547,13 @@ export class Sheet {
         }
         this._internalNotify(_result.done);
         release();
+        // Collect garbage
+        if (this._gc.size) {
+          const l = Array.from(this._gc);
+          console.log({ deleting: l });
+          this._gc = new Set();
+          this.delete(...l);
+        }
       }
     );
   }
@@ -907,5 +918,13 @@ export class Sheet {
       delete this._cells[id];
       this[size]--;
     }
+  }
+
+  /**
+   * collect marks cells for deletion by the garbage collector.
+   */
+  collect(...input: (number | AnyCell<unknown>)[]) {
+    const ids = input.map((v) => (typeof v === "number" ? v : v.id));
+    for (const id of ids) this._gc.add(id);
   }
 }
