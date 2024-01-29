@@ -111,10 +111,10 @@ test("Proxy's (initial) errors are in the error cell", () => {
   const proxy = new SheetProxy(sheet);
   const cell = proxy.new(2);
   const error = new Error("ouch");
-  const errorCell = cell.map((v) => {
+  const errorCell = cell.map((_v) => {
     throw error;
   });
-  const errorCellNotInProxy = sheet.map([cell], (v) => {
+  const errorCellNotInProxy = sheet.map([cell], (_v) => {
     throw error;
   });
   const expectedError: ErrorsList = new Map();
@@ -138,9 +138,13 @@ test(
     const a = proxy.new(delayed(1, 15));
     const b = proxy.new(delayed("foo", 10));
 
-    const c = proxy.map([a, b], (a, b) => fails());
-    const d = proxy.map([a, c], (a, c) => a);
+    const c = proxy.map([a, b], (_a, _b) => fails());
+    const d = proxy.map([a, c], (a, _c) => a);
 
+    //       * (throws)
+    //      ↑
+    // a ─┬─ c ── d
+    // b ─┴
     await expect(d.get()).resolves.toBeInstanceOf(Error);
   },
   { timeout: 1000 }
@@ -160,11 +164,11 @@ test("Error cascade with pointers", async () => {
   const aa = proxy.new(a);
   const bb = proxy.new(b);
 
-  const c = proxy.map([aa, bb], (a, b) => fails());
+  const c = proxy.map([aa, bb], (_a, _b) => fails());
   const cc = proxy.new(c);
-  const d = proxy.map([aa, cc], (a, c) => a);
+  const d = proxy.map([aa, cc], (a, _c) => a);
 
-  expect(d.get()).resolves.toBeInstanceOf(Error);
+  await expect(d.get()).resolves.toBeInstanceOf(Error);
 });
 
 test("Errors in set", async () => {
@@ -175,5 +179,5 @@ test("Errors in set", async () => {
     throw new Error("a");
   };
   const a = proxy.new(fails());
-  expect(a.get()).resolves.toBeInstanceOf(Error);
+  await expect(a.get()).resolves.toBeInstanceOf(Error);
 });
