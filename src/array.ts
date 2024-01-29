@@ -18,14 +18,17 @@ export const mapArray = <T, U>(
   arr: AnyCell<AnyCell<T>[]>,
   fn: (v: T) => U | Promise<U>
 ): MapCell<MapCell<U, false>[], false> =>
-  proxy.map([arr], (cells, prev) =>
-    cells.map(
-      (cell) =>
-        // reuse previously mapped cell
-        prev?.find((_c) => _c.dependencies?.[0] === cell.id) ||
-        // create new map
-        proxy.map([cell], fn)
-    )
+  proxy.map(
+    [arr],
+    (cells, prev) =>
+      cells.map(
+        (cell) =>
+          // reuse previously mapped cell
+          prev?.find((_c) => _c.dependencies?.[0] === cell.id) ||
+          // create new map
+          proxy.map([cell], fn)
+      ),
+    "map"
   );
 
 /**
@@ -39,15 +42,27 @@ export const sort = <T>(
   proxy: SheetProxy,
   arr: AnyCell<AnyCell<T>[]>,
   compare: (a: T, b: T) => number = (a, b) => (a > b ? 1 : a < b ? -1 : 0)
-): AnyCell<AnyCell<T>[]> =>
-  proxy.map([arr], (cells) =>
-    proxy.mapNoPrevious(cells, (..._cells) =>
-      _cells
-        .map((_, index) => index)
-        .sort((indexA, indexB) => compare(_cells[indexA], _cells[indexB]))
-        .map((index) => cells[index])
-    )
+): AnyCell<AnyCell<T>[]> => {
+  let prev: AnyCell<AnyCell<T>[]>;
+  return proxy.map(
+    [arr],
+    (cells) => {
+      // mark the previous value for deletion
+      if (prev) proxy._sheet.collect(prev);
+      prev = proxy.mapNoPrevious(
+        cells,
+        (..._cells) =>
+          _cells
+            .map((_, index) => index)
+            .sort((indexA, indexB) => compare(_cells[indexA], _cells[indexB]))
+            .map((index) => cells[index]),
+        "_sort"
+      );
+      return prev;
+    },
+    "sort"
   );
+};
 
 /**
  * mapArrayCell is a variant of `mapArray` with a function taking
@@ -85,11 +100,23 @@ export const reduce = <T, R>(
   arr: AnyCell<AnyCell<T>[]>,
   fn: (acc: R, elt: T) => R,
   init: R
-): MapCell<R, false> =>
-  proxy.map([arr], (cells) =>
-    // this creates a pointer cell
-    proxy.mapNoPrevious(cells, (..._cells) => _cells.reduce(fn, init))
+): MapCell<R, false> => {
+  let prev: MapCell<R, false>;
+  return proxy.map(
+    [arr],
+    (cells) => {
+      // mark the previous value for deletion
+      if (prev) proxy._sheet.collect(prev);
+      prev = proxy.mapNoPrevious(
+        cells,
+        (..._cells) => _cells.reduce(fn, init),
+        "_reduce"
+      );
+      return prev;
+    },
+    "reduce"
   );
+};
 
 /**
  * filter updates a cellified array in a `ValueCell` using a predicate function as filter.
