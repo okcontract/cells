@@ -131,3 +131,14 @@ test("filter array", async () => {
   // the removed cell is not deleted ("garbage collected" at proxy level)
   expect(sheet.stats.count).toBe(4); // unchanged
 });
+
+test("sorted array pointer", async () => {
+  const proxy = new Sheet().newProxy();
+  const l = proxy.new([1, 5, 3].map((v) => proxy.new(v)));
+  const s = sort(proxy, l);
+  const count = s.map((l) => l.length);
+  l.update((arr) => [...arr, proxy.new(5)]);
+  // not required
+  // await proxy.working.wait();
+  await expect(count.get()).resolves.toBe(4);
+});
