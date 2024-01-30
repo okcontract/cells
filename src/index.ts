@@ -30,4 +30,12 @@ export { WrappedCell } from "./wrapped";
 
 export { Debugger } from "./debug";
 
-export { filter, mapArray, mapArrayCell, reduce, sort } from "./array";
+export {
+  type CellArray,
+  filter,
+  mapArray,
+  mapArrayCell,
+  reduce,
+  sort,
+  collector
+} from "./array";

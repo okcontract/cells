@@ -2,6 +2,8 @@ import type { AnyCell, MapCell, ValueCell } from "./cell";
 import { filterAsync } from "./filter-async";
 import type { SheetProxy } from "./proxy";
 
+export type CellArray<T> = AnyCell<AnyCell<T>[]>;
+
 /**
  * mapArray implements .map() for a cellified array.
  *
@@ -15,18 +17,18 @@ import type { SheetProxy } from "./proxy";
  */
 export const mapArray = <T, U>(
   proxy: SheetProxy,
-  arr: AnyCell<AnyCell<T>[]>,
-  fn: (v: T) => U | Promise<U>
+  arr: CellArray<T>,
+  fn: (v: T, index?: number) => U | Promise<U>
 ): MapCell<MapCell<U, false>[], false> =>
   proxy.map(
     [arr],
     (cells, prev) =>
       cells.map(
-        (cell) =>
+        (cell, index) =>
           // reuse previously mapped cell
           prev?.find((_c) => _c.dependencies?.[0] === cell.id) ||
           // create new map
-          proxy.map([cell], fn)
+          proxy.map([cell], (_cell) => fn(_cell, index))
       ),
     "map"
   );
@@ -40,26 +42,24 @@ export const mapArray = <T, U>(
  */
 export const sort = <T>(
   proxy: SheetProxy,
-  arr: AnyCell<AnyCell<T>[]>,
+  arr: CellArray<T>,
   compare: (a: T, b: T) => number = (a, b) => (a > b ? 1 : a < b ? -1 : 0)
-): AnyCell<AnyCell<T>[]> => {
-  let prev: AnyCell<AnyCell<T>[]>;
+): CellArray<T> => {
+  const coll = collector<CellArray<T>>(proxy);
   return proxy.map(
     [arr],
-    (cells) => {
-      // mark the previous value for deletion
-      if (prev) proxy._sheet.collect(prev);
-      prev = proxy.mapNoPrevious(
-        cells,
-        (..._cells) =>
-          _cells
-            .map((_, index) => index)
-            .sort((indexA, indexB) => compare(_cells[indexA], _cells[indexB]))
-            .map((index) => cells[index]),
-        "_sort"
-      );
-      return prev;
-    },
+    (cells) =>
+      coll(
+        proxy.mapNoPrevious(
+          cells,
+          (..._cells) =>
+            _cells
+              .map((_, index) => index)
+              .sort((indexA, indexB) => compare(_cells[indexA], _cells[indexB]))
+              .map((index) => cells[index]),
+          "_sort"
+        )
+      ),
     "sort"
   );
 };
@@ -74,7 +74,7 @@ export const sort = <T>(
  */
 export const mapArrayCell = <T, U>(
   proxy: SheetProxy,
-  arr: AnyCell<AnyCell<T>[]>,
+  arr: CellArray<T>,
   fn: (v: AnyCell<T>) => U | Promise<U>
 ): MapCell<MapCell<U, false>[], false> =>
   proxy.map([arr], (cells, prev) =>
@@ -88,6 +88,20 @@ export const mapArrayCell = <T, U>(
   );
 
 /**
+ * collector returns a function that automatically collects a cell
+ * each time it is re-created.
+ */
+export const collector = <C extends AnyCell<unknown>>(proxy: SheetProxy) => {
+  let prev: C;
+  return (v: C) => {
+    // mark the previous value for deletion
+    if (prev) proxy._sheet.collect(prev);
+    prev = v;
+    return prev;
+  };
+};
+
+/**
  * reduce a cellified array.
  * @param proxy
  * @param arr
@@ -95,26 +109,28 @@ export const mapArrayCell = <T, U>(
  * @param init
  * @returns reduced cell
  */
-export const reduce = <T, R>(
+export const reduce = <T, R, NF extends boolean = false>(
   proxy: SheetProxy,
-  arr: AnyCell<AnyCell<T>[]>,
-  fn: (acc: R, elt: T) => R,
-  init: R
+  arr: CellArray<T>,
+  fn: (acc: R, elt: T, index?: number) => R,
+  init: R,
+  name = "reduce",
+  nf?: NF
 ): MapCell<R, false> => {
-  let prev: MapCell<R, false>;
+  const coll = collector<MapCell<R, NF>>(proxy);
+  // @ts-expect-error: introduce NF in collector
   return proxy.map(
     [arr],
-    (cells) => {
-      // mark the previous value for deletion
-      if (prev) proxy._sheet.collect(prev);
-      prev = proxy.mapNoPrevious(
-        cells,
-        (..._cells) => _cells.reduce(fn, init),
-        "_reduce"
-      );
-      return prev;
-    },
-    "reduce"
+    (cells) =>
+      coll(
+        proxy.mapNoPrevious(
+          cells,
+          (..._cells) => _cells.reduce(fn, init),
+          "_reduce"
+        )
+      ),
+    name,
+    nf
   );
 };
 
@@ -124,6 +140,7 @@ export const reduce = <T, R>(
  * @param predicate function that returns `true` for kept values.
  * @returns nothing
  * @description filtered out cells are _not_ deleted
+ * @todo not consistent
  */
 export const filter = <T>(
   arr: ValueCell<AnyCell<T>[]>,
