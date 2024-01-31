@@ -219,12 +219,12 @@ export class Cell<
    * @param newPointed
    */
   setPointed(newPointed: number | null): void {
-    // DEV &&
-    console.log("setPointed:", {
-      cell: this.name,
-      newPointed,
-      currentlyPointed: this._pointed
-    });
+    DEV &&
+      console.log("setPointed:", {
+        cell: this.name,
+        newPointed,
+        currentlyPointed: this._pointed
+      });
     if (newPointed !== this._pointed) {
       this.sheet._updatePointer(
         this.id,
@@ -506,15 +506,15 @@ export class Cell<
     }
 
     if (this._currentComputationRank !== computationRank) {
-      // DEV &&
-      console.log(
-        `Cell ${this.name}: `,
-        `setting to ${newValue} has been invalidated`,
-        {
-          currentRank: this._currentComputationRank,
-          newValueRank: computationRank
-        }
-      );
+      DEV &&
+        console.log(
+          `Cell ${this.name}: `,
+          `setting to ${newValue} has been invalidated`,
+          {
+            currentRank: this._currentComputationRank,
+            newValueRank: computationRank
+          }
+        );
       return;
     }
 

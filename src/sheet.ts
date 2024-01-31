@@ -484,7 +484,7 @@ export class Sheet {
     if (this._debug) {
       // @todo _watchAll
       const inter = intersection(roots, this._logList);
-      console.log(this.naming({ _update: inter }));
+      if (inter.length) console.log(this.naming({ _update: inter }));
     }
     const finished = new Set<number>(roots);
     // @todo add lock mechanism to prevent concurrent updates
