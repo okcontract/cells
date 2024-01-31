@@ -127,7 +127,9 @@ export class Sheet {
   }
 
   /**
-   * count is the size of the sheet in cells.
+   * stats returns statistics about the sheet.
+   * @description count is the total cells ever created
+   * @size is the current number of cells in the sheet
    */
   get stats() {
     return { count: this[count], size: this[size] };
@@ -811,10 +813,12 @@ export class Sheet {
     const next = (id) => this.dependentCells(id);
 
     const mightChange =
-      this.g.partialTopologicalSortRootsSet(Array.from(ids), {
-        includeRoots: false,
-        next
-      }) || [];
+      this.g
+        .partialTopologicalSortRootsSet(Array.from(ids), {
+          includeRoots: false,
+          next
+        }) // we remove ids as they should have been computed/modified in the right order.
+        .filter((id) => !ids.has(id)) || [];
     /** List of nodes that will be updated that currently are pointers  */
     const pointersToBeUpdated = mightChange.filter(isPointer);
 

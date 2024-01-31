@@ -219,12 +219,12 @@ export class Cell<
    * @param newPointed
    */
   setPointed(newPointed: number | null): void {
-    DEV &&
-      console.log("setPointed:", {
-        cell: this.name,
-        newPointed,
-        currentlyPointed: this._pointed
-      });
+    // DEV &&
+    console.log("setPointed:", {
+      cell: this.name,
+      newPointed,
+      currentlyPointed: this._pointed
+    });
     if (newPointed !== this._pointed) {
       this.sheet._updatePointer(
         this.id,
@@ -502,63 +502,68 @@ export class Cell<
       if (this._currentComputationRank === computationRank) {
         this._valueRank = computationRank;
       }
-
       return;
     }
-    if (this._currentComputationRank === computationRank) {
-      const needUpdate = !this._sheet.equals(this.v, newValue);
-      this.v = newValue;
-      this._valueRank = computationRank;
-      // Update localStorage if set.
-      if (this._storageKey) {
-        try {
-          const j = this.sheet._marshaller(newValue);
-          localStorage.setItem(this._storageKey, j);
-          DEV && console.log("ValueCell", { set: j, key: this._storageKey });
-        } catch (_) {
-          DEV &&
-            console.log("ValueCell: LocalStorage not available", {
-              key: this._storageKey
-            });
+
+    if (this._currentComputationRank !== computationRank) {
+      // DEV &&
+      console.log(
+        `Cell ${this.name}: `,
+        `setting to ${newValue} has been invalidated`,
+        {
+          currentRank: this._currentComputationRank,
+          newValueRank: computationRank
         }
+      );
+      return;
+    }
+
+    const needUpdate = !this._sheet.equals(this.v, newValue);
+    this.v = newValue;
+    this._valueRank = computationRank;
+
+    // Update localStorage if set.
+    if (this._storageKey) {
+      try {
+        const j = this.sheet._marshaller(newValue);
+        localStorage.setItem(this._storageKey, j);
+        DEV && console.log("ValueCell", { set: j, key: this._storageKey });
+      } catch (_) {
+        DEV &&
+          console.log("ValueCell: LocalStorage not available", {
+            key: this._storageKey
+          });
       }
-      if (this.v instanceof Error && !(this.v instanceof CellError)) {
-        this._sheet.errors._setCellError(this.id, this.v);
-        this._lastStateIsError = true;
-      } else {
-        if (this._lastStateIsError) this._sheet.errors._unsetCellError(this.id);
-      }
-      if (newValue instanceof Cell) {
-        this.setPointed(newValue.id);
-      } else {
-        if (this._isPointer)
-          if (newValue === null) {
-            this.setPointed(null);
-          } else {
-            DEBUG_RANK &&
-              console.log("unsetting pointer", { cell: this.name, newValue });
-            this.unsetPointed();
-          }
-      }
-      if (needUpdate) {
-        if (!skipSubscribers) {
-          this._notifySubscribers();
-        }
-        if (update) {
-          // console.log(`Cell ${this.name}: `, `updating as value changed`);
-          this._sheet._update(this.id);
-        }
-      }
+    }
+
+    if (this.v instanceof Error && !(this.v instanceof CellError)) {
+      this._sheet.errors._setCellError(this.id, this.v);
+      this._lastStateIsError = true;
     } else {
-      DEV &&
-        console.log(
-          `Cell ${this.name}: `,
-          `setting to ${newValue} has been invalidated`,
-          {
-            currentRank: this._currentComputationRank,
-            newValueRank: computationRank
-          }
-        );
+      if (this._lastStateIsError) this._sheet.errors._unsetCellError(this.id);
+    }
+
+    if (newValue instanceof Cell) {
+      this.setPointed(newValue.id);
+    } else {
+      if (this._isPointer)
+        if (newValue === null) {
+          this.setPointed(null);
+        } else {
+          DEBUG_RANK &&
+            console.log("unsetting pointer", { cell: this.name, newValue });
+          this.unsetPointed();
+        }
+    }
+
+    if (needUpdate) {
+      if (!skipSubscribers) {
+        this._notifySubscribers();
+      }
+      if (update) {
+        // console.log(`Cell ${this.name}: `, `updating as value changed`);
+        this._sheet._update(this.id);
+      }
     }
   }
 

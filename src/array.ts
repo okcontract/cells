@@ -118,14 +118,17 @@ export const reduce = <T, R, NF extends boolean = false>(
   nf?: NF
 ): MapCell<R, false> => {
   const coll = collector<MapCell<R, NF>>(proxy);
-  // @ts-expect-error: introduce NF in collector
+
   return proxy.map(
     [arr],
     (cells) =>
       coll(
         proxy.mapNoPrevious(
           cells,
-          (..._cells) => _cells.reduce(fn, init),
+          (..._cells) => {
+            console.log({ reduce: arr.id, _cells });
+            return _cells.reduce(fn, init);
+          },
           "_reduce"
         )
       ),
