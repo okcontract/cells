@@ -149,22 +149,28 @@ test("sort array remapped", async () => {
 
   const l = proxy.new([1, 5, 3].map((v) => proxy.new(v)));
   const s = sort(proxy, l);
-  const sum = reduce(proxy, s, (acc, v) => acc + v, 0);
+  const sp = proxy.new(s);
+  const sum = reduce(
+    proxy,
+    sp,
+    async (acc, v) => (await acc) + v,
+    Promise.resolve(0)
+  );
 
   await expect(_uncellify(s)).resolves.toEqual([1, 3, 5]);
-  expect(sheet.stats).toEqual({ size: 8, count: 8 }); // 3+1 array +1 sorted +1 pointer +1 sum +1 pointer
+  expect(sheet.stats).toEqual({ size: 9, count: 9 }); // 3+1 array +1 sorted +1 pointer +1 sum +1 pointer
   await expect(sum.get()).resolves.toBe(9);
 
   // update one cell
   (await l.get())[0].set(4);
   await expect(_uncellify(s)).resolves.toEqual([3, 4, 5]);
   await expect(sum.get()).resolves.toBe(12);
-  expect(sheet.stats).toEqual({ size: 8, count: 9 }); // replace sorted pointer + sum pointer
+  expect(sheet.stats).toEqual({ size: 9, count: 10 }); // replace sorted pointer + sum pointer
 
   // add one cell
   l.update((arr) => [...arr, proxy.new(1)]);
   await expect(_uncellify(l)).resolves.toEqual([4, 5, 3, 1]);
   await expect(_uncellify(s)).resolves.toEqual([1, 3, 4, 5]);
   await expect(sum.get()).resolves.toBe(13);
-  expect(sheet.stats).toEqual({ size: 9, count: 12 }); // +1 original cell, replace sorted pointer + sum pointer
+  expect(sheet.stats).toEqual({ size: 10, count: 13 }); // +1 original cell, replace sorted pointer + sum pointer
 });
