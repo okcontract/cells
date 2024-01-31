@@ -581,7 +581,7 @@ export class Cell<
    * @returns mapped cell
    */
   map = <T, NF extends boolean = false>(
-    fn: (v: V) => T | Promise<T | AnyCell<T>> | AnyCell<T>,
+    fn: (v: V, prev?: T) => T | Promise<T | AnyCell<T>> | AnyCell<T>,
     name?: string,
     noFail?: NF
   ): MapCell<T, NF> =>
