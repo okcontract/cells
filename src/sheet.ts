@@ -190,14 +190,17 @@ export class Sheet {
    */
   new<V>(
     value: V | Promise<V>,
-    proxy?: SheetProxy,
-    name?: string, // @todo replace with options
-    options?: { name?: string; _storageKey?: string }
+    options:
+      | { name?: string; _storageKey?: string; proxy?: SheetProxy }
+      // we allow to have the name directly as sole option
+      | string = {}
   ): ValueCell<V> {
+    const op = typeof options === "string" ? { name: options } : options;
+    const name = op?.name;
     const cell: ValueCell<V> = this._addCell<V, false, false, ValueCell<V>>(
       (id) =>
         new ValueCell(
-          proxy || this,
+          op?.proxy || this,
           id,
           // @todo maybe we should call cell.set(value) if not a Promise?
           value instanceof Promise ? undefined : value,

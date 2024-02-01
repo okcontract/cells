@@ -1,5 +1,3 @@
-import { appendFileSync, writeFileSync } from "fs";
-
 import { expect, test } from "vitest";
 
 import { ValueCell } from "./cell";

@@ -41,10 +41,13 @@ export class SheetProxy {
 
   new<V>(
     value: V | AnyCell<V> | Promise<V | AnyCell<V>>,
-    name?: string, // @todo migrate to options
-    options?: { name?: string; _storageKey?: string }
+    options: { name?: string; _storageKey?: string } | string = {}
   ): ValueCell<V> {
-    const cell = this._sheet.new(value, this, name, options);
+    const op =
+      typeof options === "string"
+        ? { name: options, proxy: this }
+        : { ...options, proxy: this };
+    const cell = this._sheet.new(value, op);
     // using the fact that if value is a pending promise,
     // consolidated value will resolve when value is resolved.
     this.working.addComputation(cell.id, cell.consolidatedValue);
