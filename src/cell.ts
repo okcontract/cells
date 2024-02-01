@@ -669,19 +669,19 @@ export class ValueCell<V> extends Cell<V, false, false> {
     sheet: Sheet | SheetProxy,
     id: number,
     orig: (AnyCell<V> | V) | undefined = undefined,
-    options: { name?: string; _storageKey?: string } | string = {}
+    options: { name?: string; storageKey?: string } | string = {}
   ) {
     super(sheet, id);
     const op = typeof options === "string" ? { name: options } : options;
     let value = orig;
 
     // If storageKey, try to load a previously saved value.
-    if (op?._storageKey) {
+    if (op?.storageKey) {
       try {
-        const item = localStorage.getItem(op?._storageKey);
+        const item = localStorage.getItem(op?.storageKey);
         DEV && console.log("ValueCell", { id, options, item });
         if (item !== null) value = JSON.parse(item) as V;
-        this._storageKey = op?._storageKey;
+        this._storageKey = op?.storageKey;
       } catch (_) {
         DEV &&
           console.log("ValueCell: LocalStorage not available", { id, options });

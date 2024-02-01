@@ -191,7 +191,7 @@ export class Sheet {
   new<V>(
     value: V | Promise<V>,
     options:
-      | { name?: string; _storageKey?: string; proxy?: SheetProxy }
+      | { name?: string; storageKey?: string; proxy?: SheetProxy }
       // we allow to have the name directly as sole option
       | string = {}
   ): ValueCell<V> {

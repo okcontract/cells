@@ -41,7 +41,7 @@ export class SheetProxy {
 
   new<V>(
     value: V | AnyCell<V> | Promise<V | AnyCell<V>>,
-    options: { name?: string; _storageKey?: string } | string = {}
+    options: { name?: string; storageKey?: string } | string = {}
   ): ValueCell<V> {
     const op =
       typeof options === "string"
