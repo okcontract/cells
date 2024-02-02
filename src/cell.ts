@@ -519,7 +519,7 @@ export class Cell<
 
       return;
     }
-    if (this._currentComputationRank === computationRank) {
+    if (this._valueRank <= computationRank) {
       const needUpdate = !this._sheet.equals(this.v, newValue);
       DEV &&
         console.log(`Cell ${this.name}: `, `Actually setting to ${newValue}`, {
@@ -560,13 +560,22 @@ export class Cell<
             this.unsetPointed();
           }
       }
-      if (needUpdate) {
-        if (!skipSubscribers) {
-          this._notifySubscribers();
-        }
-        if (update) {
-          // console.log(`Cell ${this.name}: `, `updating as value changed`);
-          this._sheet._update(this.id);
+      if (this._currentComputationRank === computationRank) {
+        // only updating if we are the last ongoing computation
+        if (needUpdate) {
+          if (!skipSubscribers) {
+            // @todo : remember the last notify rank and run notify on last computations, even if canceled,
+            // if lastNotified < valueRank.
+            // This requires to
+            // 1. have a list of ranks of pending computations
+            // 2. on computation success or cancel, remove the rank from the list
+            // 3. if lastNotified < valueRank, and no pending have rank > valueRank, then notify the new value.
+            this._notifySubscribers();
+          }
+          if (update) {
+            // console.log(`Cell ${this.name}: `, `updating as value changed`);
+            this._sheet._update(this.id);
+          }
         }
       }
     } else {
