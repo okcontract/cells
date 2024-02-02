@@ -129,7 +129,12 @@ abstract class SubscribeBench<V> {
    * @description notifies only if the value is defined (hStore semantics) and not an error
    */
   _notifySubscribers() {
-    DEV && console.log({ NotifySubscribersOfCell: this.name });
+    DEV &&
+      console.log({
+        NotifySubscribersOfCell: this.name,
+        subscribers: this._subscribers,
+        value: this.value
+      });
     if (this.value !== undefined) {
       const subscribers = Array.from(this._subscribers);
       for (const subscriber of subscribers) {
@@ -316,7 +321,8 @@ export class Cell<
             rank,
             pendingRank: this._pendingRank,
             currentComputationRank: this._currentComputationRank,
-            valueRank: this._valueRank
+            valueRank: this._valueRank,
+            v
           });
         if (rank === this._pendingRank) {
           this._pendingRank = null;
@@ -491,7 +497,15 @@ export class Cell<
     update: boolean,
     skipSubscribers = false
   ): void {
+    DEV &&
+      console.log(`Cell ${this.name}: `, `Trying to set to ${newValue}`, {
+        currentValue: this.value,
+        currentCompRank: this._currentComputationRank,
+        currentValueRank: this._valueRank,
+        newValueRank: computationRank
+      });
     if (newValue === undefined) {
+      console.trace();
       // if the value to be set is 'undefined',
       // the value is ignored.
       // we should make the cell invalid (ie we don't set valueRank to computationRank),
@@ -507,6 +521,12 @@ export class Cell<
     }
     if (this._currentComputationRank === computationRank) {
       const needUpdate = !this._sheet.equals(this.v, newValue);
+      DEV &&
+        console.log(`Cell ${this.name}: `, `Actually setting to ${newValue}`, {
+          currentValue: this.value,
+          currentRank: this._currentComputationRank,
+          newValueRank: computationRank
+        });
       this.v = newValue;
       this._valueRank = computationRank;
       // Update localStorage if set.
@@ -657,7 +677,7 @@ export class Cell<
               // console.log({ cell: this.name, isDefined: true });
               uns();
               resolve(v);
-              // console.log({ cell: this.name, resolved: true });
+              // console.log({ cell: this.name, resolved: true, v });
             }
           });
           // console.log(this._subscribers);

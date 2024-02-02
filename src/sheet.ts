@@ -1,3 +1,5 @@
+const DEV = true;
+
 import { Graph, ReferencesLeft } from "@okcontract/graph";
 
 import {
