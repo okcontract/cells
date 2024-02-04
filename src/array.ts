@@ -120,7 +120,7 @@ export const reduce = <
   init: R,
   name = "reduce",
   nf?: NF
-): MapCell<R, false> => {
+): MapCell<R, NF> => {
   const coll = collector<MapCell<R, NF>>(proxy);
   return proxy.map(
     [arr],
