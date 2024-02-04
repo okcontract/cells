@@ -518,66 +518,9 @@ export class Cell<
       }
       return;
     }
-    if (this._valueRank <= computationRank) {
-      const needUpdate = !this._sheet.equals(this.v, newValue);
-      DEV &&
-        console.log(`Cell ${this.name}: `, `Actually setting to ${newValue}`, {
-          currentValue: this.value,
-          currentRank: this._currentComputationRank,
-          newValueRank: computationRank
-        });
-      this.v = newValue;
-      this._valueRank = computationRank;
-      // Update localStorage if set.
-      if (this._storageKey) {
-        try {
-          const j = this.sheet._marshaller(newValue);
-          localStorage.setItem(this._storageKey, j);
-          DEV && console.log("ValueCell", { set: j, key: this._storageKey });
-        } catch (_) {
-          DEV &&
-            console.log("ValueCell: LocalStorage not available", {
-              key: this._storageKey
-            });
-        }
-      }
-      if (this.v instanceof Error && !(this.v instanceof CellError)) {
-        this._sheet.errors._setCellError(this.id, this.v);
-        this._lastStateIsError = true;
-      } else {
-        if (this._lastStateIsError) this._sheet.errors._unsetCellError(this.id);
-      }
-      if (newValue instanceof Cell) {
-        this.setPointed(newValue.id);
-      } else {
-        if (this._isPointer)
-          if (newValue === null) {
-            this.setPointed(null);
-          } else {
-            DEBUG_RANK &&
-              console.log("unsetting pointer", { cell: this.name, newValue });
-            this.unsetPointed();
-          }
-      }
-      if (this._currentComputationRank === computationRank) {
-        // only updating if we are the last ongoing computation
-        if (needUpdate) {
-          if (!skipSubscribers) {
-            // @todo : remember the last notify rank and run notify on last computations, even if canceled,
-            // if lastNotified < valueRank.
-            // This requires to
-            // 1. have a list of ranks of pending computations
-            // 2. on computation success or cancel, remove the rank from the list
-            // 3. if lastNotified < valueRank, and no pending have rank > valueRank, then notify the new value.
-            this._notifySubscribers();
-          }
-          if (update) {
-            // console.log(`Cell ${this.name}: `, `updating as value changed`);
-            this._sheet._update(this.id);
-          }
-        }
-      }
-    } else {
+
+    // Invalidation for outdated computation
+    if (computationRank < this._valueRank) {
       DEV &&
         console.log(
           `Cell ${this.name}: `,
@@ -587,6 +530,66 @@ export class Cell<
             newValueRank: computationRank
           }
         );
+      return;
+    }
+
+    const needUpdate = !this._sheet.equals(this.v, newValue);
+    DEV &&
+      console.log(`Cell ${this.name}: `, `Actually setting to ${newValue}`, {
+        currentValue: this.value,
+        currentRank: this._currentComputationRank,
+        newValueRank: computationRank
+      });
+    this.v = newValue;
+    this._valueRank = computationRank;
+    // Update localStorage if set.
+    if (this._storageKey) {
+      try {
+        const j = this.sheet._marshaller(newValue);
+        localStorage.setItem(this._storageKey, j);
+        DEV && console.log("ValueCell", { set: j, key: this._storageKey });
+      } catch (_) {
+        DEV &&
+          console.log("ValueCell: LocalStorage not available", {
+            key: this._storageKey
+          });
+      }
+    }
+    if (this.v instanceof Error && !(this.v instanceof CellError)) {
+      this._sheet.errors._setCellError(this.id, this.v);
+      this._lastStateIsError = true;
+    } else {
+      if (this._lastStateIsError) this._sheet.errors._unsetCellError(this.id);
+    }
+    if (newValue instanceof Cell) {
+      this.setPointed(newValue.id);
+    } else {
+      if (this._isPointer)
+        if (newValue === null) {
+          this.setPointed(null);
+        } else {
+          DEBUG_RANK &&
+            console.log("unsetting pointer", { cell: this.name, newValue });
+          this.unsetPointed();
+        }
+    }
+    if (this._currentComputationRank === computationRank) {
+      // only updating if we are the last ongoing computation
+      if (needUpdate) {
+        if (!skipSubscribers) {
+          // @todo : remember the last notify rank and run notify on last computations, even if canceled,
+          // if lastNotified < valueRank.
+          // This requires to
+          // 1. have a list of ranks of pending computations
+          // 2. on computation success or cancel, remove the rank from the list
+          // 3. if lastNotified < valueRank, and no pending have rank > valueRank, then notify the new value.
+          this._notifySubscribers();
+        }
+        if (update) {
+          // console.log(`Cell ${this.name}: `, `updating as value changed`);
+          this._sheet._update(this.id);
+        }
+      }
     }
   }
 
