@@ -543,7 +543,7 @@ export class Cell<
     this.v = newValue;
     this._valueRank = computationRank;
     // Update localStorage if set.
-    if (this._storageKey) {
+    if (needUpdate && this._storageKey) {
       try {
         const j = this.sheet._marshaller(newValue);
         localStorage.setItem(this._storageKey, j);
