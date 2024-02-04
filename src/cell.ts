@@ -129,7 +129,12 @@ abstract class SubscribeBench<V> {
    * @description notifies only if the value is defined (hStore semantics) and not an error
    */
   _notifySubscribers() {
-    DEV && console.log({ NotifySubscribersOfCell: this.name });
+    DEV &&
+      console.log({
+        NotifySubscribersOfCell: this.name,
+        subscribers: this._subscribers,
+        value: this.value
+      });
     if (this.value !== undefined) {
       const subscribers = Array.from(this._subscribers);
       for (const subscriber of subscribers) {
@@ -316,7 +321,8 @@ export class Cell<
             rank,
             pendingRank: this._pendingRank,
             currentComputationRank: this._currentComputationRank,
-            valueRank: this._valueRank
+            valueRank: this._valueRank,
+            v
           });
         if (rank === this._pendingRank) {
           this._pendingRank = null;
@@ -491,7 +497,15 @@ export class Cell<
     update: boolean,
     skipSubscribers = false
   ): void {
+    DEV &&
+      console.log(`Cell ${this.name}: `, `Trying to set to ${newValue}`, {
+        currentValue: this.value,
+        currentCompRank: this._currentComputationRank,
+        currentValueRank: this._valueRank,
+        newValueRank: computationRank
+      });
     if (newValue === undefined) {
+      DEV && console.trace();
       // if the value to be set is 'undefined',
       // the value is ignored.
       // we should make the cell invalid (ie we don't set valueRank to computationRank),
@@ -502,54 +516,11 @@ export class Cell<
       if (this._currentComputationRank === computationRank) {
         this._valueRank = computationRank;
       }
-
       return;
     }
-    if (this._currentComputationRank === computationRank) {
-      const needUpdate = !this._sheet.equals(this.v, newValue);
-      this.v = newValue;
-      this._valueRank = computationRank;
-      // Update localStorage if set.
-      if (this._storageKey) {
-        try {
-          const j = this.sheet._marshaller(newValue);
-          localStorage.setItem(this._storageKey, j);
-          DEV && console.log("ValueCell", { set: j, key: this._storageKey });
-        } catch (_) {
-          DEV &&
-            console.log("ValueCell: LocalStorage not available", {
-              key: this._storageKey
-            });
-        }
-      }
-      if (this.v instanceof Error && !(this.v instanceof CellError)) {
-        this._sheet.errors._setCellError(this.id, this.v);
-        this._lastStateIsError = true;
-      } else {
-        if (this._lastStateIsError) this._sheet.errors._unsetCellError(this.id);
-      }
-      if (newValue instanceof Cell) {
-        this.setPointed(newValue.id);
-      } else {
-        if (this._isPointer)
-          if (newValue === null) {
-            this.setPointed(null);
-          } else {
-            DEBUG_RANK &&
-              console.log("unsetting pointer", { cell: this.name, newValue });
-            this.unsetPointed();
-          }
-      }
-      if (needUpdate) {
-        if (!skipSubscribers) {
-          this._notifySubscribers();
-        }
-        if (update) {
-          // console.log(`Cell ${this.name}: `, `updating as value changed`);
-          this._sheet._update(this.id);
-        }
-      }
-    } else {
+
+    // Invalidation for outdated computation
+    if (computationRank < this._valueRank) {
       DEV &&
         console.log(
           `Cell ${this.name}: `,
@@ -559,6 +530,66 @@ export class Cell<
             newValueRank: computationRank
           }
         );
+      return;
+    }
+
+    const needUpdate = !this._sheet.equals(this.v, newValue);
+    DEV &&
+      console.log(`Cell ${this.name}: `, `Actually setting to ${newValue}`, {
+        currentValue: this.value,
+        currentRank: this._currentComputationRank,
+        newValueRank: computationRank
+      });
+    this.v = newValue;
+    this._valueRank = computationRank;
+    // Update localStorage if set.
+    if (needUpdate && this._storageKey) {
+      try {
+        const j = this.sheet._marshaller(newValue);
+        localStorage.setItem(this._storageKey, j);
+        DEV && console.log("ValueCell", { set: j, key: this._storageKey });
+      } catch (_) {
+        DEV &&
+          console.log("ValueCell: LocalStorage not available", {
+            key: this._storageKey
+          });
+      }
+    }
+    if (this.v instanceof Error && !(this.v instanceof CellError)) {
+      this._sheet.errors._setCellError(this.id, this.v);
+      this._lastStateIsError = true;
+    } else {
+      if (this._lastStateIsError) this._sheet.errors._unsetCellError(this.id);
+    }
+    if (newValue instanceof Cell) {
+      this.setPointed(newValue.id);
+    } else {
+      if (this._isPointer)
+        if (newValue === null) {
+          this.setPointed(null);
+        } else {
+          DEBUG_RANK &&
+            console.log("unsetting pointer", { cell: this.name, newValue });
+          this.unsetPointed();
+        }
+    }
+    if (this._currentComputationRank === computationRank) {
+      // only updating if we are the last ongoing computation
+      if (needUpdate) {
+        if (!skipSubscribers) {
+          // @todo : remember the last notify rank and run notify on last computations, even if canceled,
+          // if lastNotified < valueRank.
+          // This requires to
+          // 1. have a list of ranks of pending computations
+          // 2. on computation success or cancel, remove the rank from the list
+          // 3. if lastNotified < valueRank, and no pending have rank > valueRank, then notify the new value.
+          this._notifySubscribers();
+        }
+        if (update) {
+          // console.log(`Cell ${this.name}: `, `updating as value changed`);
+          this._sheet._update(this.id);
+        }
+      }
     }
   }
 
@@ -576,7 +607,7 @@ export class Cell<
    * @returns mapped cell
    */
   map = <T, NF extends boolean = false>(
-    fn: (v: V) => T | Promise<T | AnyCell<T>> | AnyCell<T>,
+    fn: (v: V, prev?: T) => T | Promise<T | AnyCell<T>> | AnyCell<T>,
     name?: string,
     noFail?: NF
   ): MapCell<T, NF> =>
@@ -657,7 +688,7 @@ export class Cell<
               // console.log({ cell: this.name, isDefined: true });
               uns();
               resolve(v);
-              // console.log({ cell: this.name, resolved: true });
+              // console.log({ cell: this.name, resolved: true, v });
             }
           });
           // console.log(this._subscribers);

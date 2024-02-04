@@ -109,7 +109,11 @@ export const collector = <C extends AnyCell<unknown>>(proxy: SheetProxy) => {
  * @param init
  * @returns reduced cell
  */
-export const reduce = <T, R, NF extends boolean = false>(
+export const reduce = <
+  T,
+  R extends unknown | Promise<unknown>,
+  NF extends boolean = false
+>(
   proxy: SheetProxy,
   arr: CellArray<T>,
   fn: (acc: R, elt: T, index?: number) => R,
@@ -118,7 +122,6 @@ export const reduce = <T, R, NF extends boolean = false>(
   nf?: NF
 ): MapCell<R, false> => {
   const coll = collector<MapCell<R, NF>>(proxy);
-  // @ts-expect-error: introduce NF in collector
   return proxy.map(
     [arr],
     (cells) =>
