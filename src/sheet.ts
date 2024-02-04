@@ -550,7 +550,7 @@ export class Sheet {
             console.log("Update Finished", this.naming({ _result }));
         }
         this._internalNotify(_result.done);
-        release();
+
         // Collect garbage
         if (this._gc.size) {
           const l = Array.from(this._gc);
@@ -561,9 +561,13 @@ export class Sheet {
           this._gc = new Set();
           this.delete(...l);
         }
+
+        // End of the update
+        release();
       }
     );
   }
+
   private registerCancelAndDone<V>(
     updatable: number[],
     computations: (V | Canceled | Error)[],
