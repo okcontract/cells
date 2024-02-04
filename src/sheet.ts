@@ -1,3 +1,5 @@
+const DEV = false;
+
 import { Graph, ReferencesLeft } from "@okcontract/graph";
 
 import {
@@ -503,7 +505,7 @@ export class Sheet {
       if (this._debug) {
         // @todo _watchAll
         const inter = this._logList.filter((v) => roots.has(v));
-        inter.length &&
+        (inter.length || DEV) &&
           console.log(
             this.naming({ updateRec: roots, done, computations, canceled })
           );
@@ -544,7 +546,7 @@ export class Sheet {
         if (this._debug) {
           // @todo _watchAll
           const inter = intersection(roots, this._logList);
-          inter.length &&
+          (inter.length || DEV) &&
             console.log("Update Finished", this.naming({ _result }));
         }
         this._internalNotify(_result.done);
@@ -603,7 +605,7 @@ export class Sheet {
   ): IterationResult<V> | Promise<IterationResult<V>> {
     if (this._debug) {
       const inter = this._logList.filter((v) => ids.has(v));
-      inter.length &&
+      (inter.length || DEV) &&
         console.log(this.naming({ updateIterationOn: ids, done, canceled }));
     }
     const isPointer = (id: number) => this.get(id).isPointer;
@@ -618,7 +620,7 @@ export class Sheet {
     } = selection;
     if (this._debug) {
       const inter = this._logList.filter((v) => ids.has(v));
-      inter.length &&
+      (inter.length || DEV) &&
         console.log(
           "selectUpdatableCells result",
           this.naming({
@@ -700,7 +702,7 @@ export class Sheet {
             if (this._debug) {
               // @todo consider more cells (or optionally all)
               const inter = this._logList.filter((v) => ids.has(v));
-              inter.length &&
+              (inter.length || DEV) &&
                 console.log(
                   "Border recomputed, end of iteration:",
                   this.naming(iterationResult)
@@ -780,7 +782,8 @@ export class Sheet {
       const inter = this._logList.filter(
         (v) => roots.has(v) || updated.includes(v)
       );
-      inter.length && console.log("Prepared Border: ", this.naming(res));
+      (inter.length || DEV) &&
+        console.log("Prepared Border: ", this.naming(res));
     }
     return res;
   }
@@ -817,8 +820,10 @@ export class Sheet {
         .partialTopologicalSortRootsSet(Array.from(ids), {
           includeRoots: false,
           next
-        }) // we remove ids as they should have been computed/modified in the right order.
+        })
+        // we remove ids as they should have been computed/modified in the right order.
         .filter((id) => !ids.has(id)) || [];
+
     /** List of nodes that will be updated that currently are pointers  */
     const pointersToBeUpdated = mightChange.filter(isPointer);
 
