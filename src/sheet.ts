@@ -1,4 +1,4 @@
-const DEV = true;
+const DEV = false;
 
 import { Graph, ReferencesLeft } from "@okcontract/graph";
 
@@ -55,7 +55,7 @@ export class Sheet {
   /**
    * for debugging
    */
-  private _debug = true;
+  private _debug = false;
   private _logList: number[] = [];
   private _autoWatch: string[] = [];
 

@@ -505,7 +505,7 @@ export class Cell<
         newValueRank: computationRank
       });
     if (newValue === undefined) {
-      console.trace();
+      DEV && console.trace();
       // if the value to be set is 'undefined',
       // the value is ignored.
       // we should make the cell invalid (ie we don't set valueRank to computationRank),
