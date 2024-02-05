@@ -198,7 +198,7 @@ functions or modules.
 the MIT license.
 
 Contributors are welcome, feel free to submit PRs directly for small changes.
-You can also reach out in our [Discord](https://discord.gg/Cun5aF7k) or
+You can also reach out in our [Discord](https://discord.gg/Ns45RTUXka) or
 contact us on [Twitter](https://x.com/okcontract) in advance for larger
 contributions.
 
