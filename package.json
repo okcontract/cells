@@ -33,7 +33,8 @@
     "definitions": "tsc --project tsconfig.build.json",
     "prepublishOnly": "npm test && npm run build && npm run check && npm run definitions",
     "check": "npx @biomejs/biome check src",
-    "format": "npx @biomejs/biome format src --write"
+    "format": "npx @biomejs/biome format src --write",
+    "formatReadme": "prettier README.md --prose-wrap always --print-width 78 -w"
   },
   "repository": {
     "type": "git",
