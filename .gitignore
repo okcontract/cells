@@ -3,3 +3,4 @@ dist
 *.dot
 src/*.dot
 README.html
+coverage
