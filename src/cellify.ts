@@ -11,16 +11,15 @@ export type Cellified<T> = T extends object
   : ValueCell<T>;
 
 // Uncellified computes an uncellified type.
-export type Uncellified<T> =
-  T extends AnyCell<infer U>
-    ? U extends object
-      ? U extends Array<infer Elt>
-        ? Array<Uncellified<Elt>>
-        : {
-            [P in keyof U]: Uncellified<U[P]>;
-          }
-      : U
-    : T;
+export type Uncellified<T> = T extends AnyCell<infer U>
+  ? U extends object
+    ? U extends Array<infer Elt>
+      ? Array<Uncellified<Elt>>
+      : {
+          [P in keyof U]: Uncellified<U[P]>;
+        }
+    : U
+  : T;
 
 /**
  * cellify converts any value to a Cellified value where each array or record
@@ -30,7 +29,7 @@ export type Uncellified<T> =
  * @returns
  * @todo cell reuses
  */
-export const _cellify = <T,>(proxy: SheetProxy, v: T): Cellified<T> => {
+export const _cellify = <T>(proxy: SheetProxy, v: T): Cellified<T> => {
   if (v instanceof Cell) throw new Error("cell");
   return proxy.new(
     Array.isArray(v)
@@ -41,11 +40,11 @@ export const _cellify = <T,>(proxy: SheetProxy, v: T): Cellified<T> => {
         ? Object.fromEntries(
             Object.entries(v).map(
               ([k, vv]) => [k, _cellify(proxy, vv)],
-              "cellify.{}",
-            ),
+              "cellify.{}"
+            )
           )
         : v,
-    "cellify",
+    "cellify"
   ) as Cellified<T>;
 };
 
@@ -54,14 +53,14 @@ export const _cellify = <T,>(proxy: SheetProxy, v: T): Cellified<T> => {
  * @param v any value
  * @returns value without cells
  */
-export const _uncellify = async <T,>(
-  v: T | AnyCell<T>,
+export const _uncellify = async <T>(
+  v: T | AnyCell<T>
 ): Promise<Uncellified<T>> => {
   const value = v instanceof Cell ? await v.get() : v;
   if (value instanceof Error) throw value;
   if (Array.isArray(value))
     return Promise.all(
-      value.map(async (_element) => await _uncellify(_element)),
+      value.map(async (_element) => await _uncellify(_element))
     ) as Promise<Uncellified<T>>;
   if (
     typeof value === "object" &&
@@ -70,8 +69,8 @@ export const _uncellify = async <T,>(
   )
     return Object.fromEntries(
       await Promise.all(
-        Object.entries(value).map(async ([k, vv]) => [k, await _uncellify(vv)]),
-      ),
+        Object.entries(value).map(async ([k, vv]) => [k, await _uncellify(vv)])
+      )
     );
   // Classes, null or base types (string, number, ...)
   return value as Uncellified<T>;
