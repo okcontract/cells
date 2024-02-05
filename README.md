@@ -2,6 +2,7 @@
 
 ![CI](https://github.com/okcontract/cells/actions/workflows/main.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/okcontract/cells/badge.svg?branch=main)](https://coveralls.io/github/okcontract/cells?branch=main)
+![size](https://deno.bundlejs.com/badge?q=@okcontract/cells)
 
 Functional & Reactive programming (FRP) simplifies handling complex, dynamic
 data flows: It is particularly useful in scenarios with asynchronous data
@@ -20,8 +21,7 @@ inspired by spreadsheets.
 - pointers
 
 Although it is a fully independent library, `cells` can be a powerful drop-in
-replacement for Svelte stores. The build artifacts are currently at 19.5 kB (6
-kB gzipped).
+replacement for Svelte stores. 
 
 ## Walkthrough
 
