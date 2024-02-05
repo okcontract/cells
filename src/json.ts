@@ -7,7 +7,10 @@ const errorCell = new Error("cell");
  * @param obj
  * @returns
  */
-export const jsonStringify = <T>(obj: T) => {
+export const jsonStringify = <T>(
+  obj: T,
+  options: { skipNull?: boolean } = {}
+) => {
   if (obj instanceof Cell) throw errorCell;
   let out = "";
   const aux = <T>(v: T) => {
@@ -24,13 +27,17 @@ export const jsonStringify = <T>(obj: T) => {
     }
     switch (typeof v) {
       case "object": {
+        if (v === null) {
+          out += "null";
+          break;
+        }
         out += "{";
         let first = true;
         // sort objects alphabetically
         for (const [k, elt] of Object.entries(v).sort(([k1, _v1], [k2, _v2]) =>
           k1 < k2 ? -1 : k1 > k2 ? 1 : 0
         )) {
-          if (elt === undefined || elt === null) continue;
+          if (elt === undefined || (options.skipNull && elt === null)) continue;
           if (!first) out += ",";
           out += JSON.stringify(k);
           out += ":";
@@ -46,9 +53,6 @@ export const jsonStringify = <T>(obj: T) => {
       case "bigint":
         out += `"${v.toString()}"`;
         break;
-      // case "boolean":
-      //   out += v ? "true" : "false";
-      //   break;
       default:
         out += JSON.stringify(v);
     }
