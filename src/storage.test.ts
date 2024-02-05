@@ -14,16 +14,16 @@ afterEach(() => {
 
 test("basic persistence", async () => {
   const sheet = new Sheet();
-  const _storageKey = "test/foo";
+  const storageKey = "test/foo";
   let proxy = new SheetProxy(sheet);
-  let cell = proxy.new(13, "v", { _storageKey });
+  let cell = proxy.new(13, { name: "v", storageKey });
   await expect(cell.get()).resolves.toEqual(13);
   cell.set(11);
   await expect(cell.get()).resolves.toEqual(11);
   proxy.destroy();
 
   proxy = new SheetProxy(sheet);
-  cell = proxy.new(0, "v", { _storageKey });
+  cell = proxy.new(0, { name: "v", storageKey });
   await expect(cell.get()).resolves.toEqual(11);
   proxy.destroy();
 });

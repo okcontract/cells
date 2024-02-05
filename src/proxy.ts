@@ -13,13 +13,17 @@ export class SheetProxy {
   // private _name: string;
   /** locally created cells */
   private _list: AnyCell<unknown>[];
+  /** optional debug */
+  _debug: boolean;
+  /** optional name (for debug) */
+  _name: string;
 
   working: Working;
 
   /** Cell holding all the current "initial" errors of the proxy */
   public errors: CellErrors;
 
-  constructor(sh: Sheet, name?: string) {
+  constructor(sh: Sheet, options: { name?: string; debug?: boolean } = {}) {
     if (!sh) {
       throw new Error("no sheet");
     }
@@ -27,8 +31,9 @@ export class SheetProxy {
     // if (name) this._name = name;
     this._list = [];
     this.working = new Working(sh.working);
-
     this.errors = new CellErrors(sh.errors);
+    this._name = options?.name;
+    this._debug = options?.debug;
   }
 
   bless(id: number, name: string) {
@@ -41,10 +46,21 @@ export class SheetProxy {
 
   new<V>(
     value: V | AnyCell<V> | Promise<V | AnyCell<V>>,
-    name?: string, // @todo migrate to options
-    options?: { name?: string; _storageKey?: string }
+    options: { name?: string; storageKey?: string } | string = {}
   ): ValueCell<V> {
-    const cell = this._sheet.new(value, this, name, options);
+    const op =
+      typeof options === "string"
+        ? { name: options, proxy: this }
+        : { ...options, proxy: this };
+    const cell = this._sheet.new(value, op);
+    if (this._debug) {
+      console.log("new cell", {
+        proxy: this._name,
+        id: cell.id,
+        name: op.name,
+        value
+      });
+    }
     // using the fact that if value is a pending promise,
     // consolidated value will resolve when value is resolved.
     this.working.addComputation(cell.id, cell.consolidatedValue);

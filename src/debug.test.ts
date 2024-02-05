@@ -6,8 +6,8 @@ import { Sheet } from "./sheet";
 test("Debugger", () => {
   const sheet = new Sheet();
   const debug = new Debugger(sheet);
-  const a = sheet.new(1, undefined, "age");
-  const b = sheet.new("foo", undefined, "name");
+  const a = sheet.new(1, "age");
+  const b = sheet.new("foo", "name");
   const c = sheet.map([a, b], (_a, _b) => _a + _b.length);
   const d = c.map((_) => {
     throw new Error("no");
