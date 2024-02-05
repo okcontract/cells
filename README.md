@@ -1,6 +1,7 @@
 # Cells: Simplified Functional & Reactive Programming
 
 ![CI](https://github.com/okcontract/cells/actions/workflows/main.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/okcontract/cells/badge.svg?branch=main)](https://coveralls.io/github/okcontract/cells?branch=main)
 
 Functional & Reactive programming (FRP) simplifies handling complex, dynamic
 data flows: It is particularly useful in scenarios with asynchronous data
