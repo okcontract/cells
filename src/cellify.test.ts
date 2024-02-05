@@ -37,3 +37,11 @@ test("fix point", async () => {
     expect(u).toEqual(v);
   }
 });
+
+test("_cellify one", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const res = _cellify(proxy, { a: 1 });
+  const cell = await res.get();
+  await expect(cell.a.get()).resolves.toBe(1);
+});
