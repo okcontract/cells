@@ -1,4 +1,6 @@
-# Cells: A Functional & Reactive Programming library
+# Cells: Simplified Functional & Reactive Programming
+
+![CI](https://github.com/okcontract/cells/actions/workflows/main.yml/badge.svg)
 
 `cells` is a Functional & Reactive Programming (FRP) library inspired by
 spreadsheets. This programming paradigm simplifies handling complex, dynamic
