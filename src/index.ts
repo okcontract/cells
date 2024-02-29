@@ -1,5 +1,6 @@
 // Promise and low-level utilities
 
+export { filterAsync } from "./filter-async";
 export {
   delayed,
   dispatch,
@@ -7,7 +8,6 @@ export {
   sleep,
   waitAll
 } from "./promise";
-export { filterAsync } from "./filter-async";
 
 // Core
 
@@ -30,12 +30,17 @@ export { WrappedCell } from "./wrapped";
 
 export { Debugger } from "./debug";
 
+export { collector, reuseOrCreate } from "./gc";
+
 export {
-  type CellArray,
   filter,
+  filterPredicateCell,
+  find,
+  findCell,
+  findIndex,
+  first,
+  last,
   mapArray,
   mapArrayCell,
-  reduce,
-  sort,
-  collector
+  reduce
 } from "./array";
