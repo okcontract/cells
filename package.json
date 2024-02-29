@@ -1,7 +1,7 @@
 {
   "name": "@okcontract/cells",
-  "version": "0.1.7",
-  "description": "Functional & Reactive Programming library inspired by spreadsheets",
+  "version": "0.2.0",
+  "description": "Simplified reactive functional programming for the web",
   "private": false,
   "main": "dist/cells.umd.cjs",
   "module": "dist/cells.js",
@@ -39,7 +39,7 @@
     "coverage": "vitest run --coverage",
     "definitions": "tsc --project tsconfig.build.json",
     "prepublishOnly": "npm test && npm run build && npm run check && npm run definitions",
-    "check": "npx @biomejs/biome check src",
+    "check": "npx @biomejs/biome check src --apply",
     "format": "npx @biomejs/biome format src --write",
     "formatReadme": "prettier README.md --prose-wrap always --print-width 78 -w"
   },

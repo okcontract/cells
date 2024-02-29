@@ -89,6 +89,9 @@ export class Sheet {
   /** Cell holding all the current "initial" errors of the sheet */
   public errors: CellErrors;
 
+  /** Cells that can be garbage collected */
+  private _gc: Set<number>;
+
   /**
    * @param equality function comparing a new value with previous value for updates
    */
@@ -108,6 +111,7 @@ export class Sheet {
     this.working = new Working();
 
     this.errors = new CellErrors();
+    this._gc = new Set();
   }
 
   bless(id: number, name: string) {
@@ -125,7 +129,9 @@ export class Sheet {
   }
 
   /**
-   * count is the size of the sheet in cells.
+   * stats returns statistics about the sheet.
+   * @description count is the total cells ever created
+   * @size is the current number of cells in the sheet
    */
   get stats() {
     return { count: this[count], size: this[size] };
@@ -480,7 +486,7 @@ export class Sheet {
     if (this._debug) {
       // @todo _watchAll
       const inter = intersection(roots, this._logList);
-      console.log(this.naming({ _update: inter }));
+      if (inter.length) console.log(this.naming({ _update: inter }));
     }
     const finished = new Set<number>(roots);
     // @todo add lock mechanism to prevent concurrent updates
@@ -544,10 +550,24 @@ export class Sheet {
             console.log("Update Finished", this.naming({ _result }));
         }
         this._internalNotify(_result.done);
+
+        // Collect garbage
+        if (this._gc.size) {
+          const l = Array.from(this._gc);
+          if (this._debug) {
+            // const inter = intersection(l, this._logList);
+            console.log({ deleting: l });
+          }
+          this._gc = new Set();
+          this.delete(...l);
+        }
+
+        // End of the update
         release();
       }
     );
   }
+
   private registerCancelAndDone<V>(
     updatable: number[],
     computations: (V | Canceled | Error)[],
@@ -914,5 +934,13 @@ export class Sheet {
       delete this._cells[id];
       this[size]--;
     }
+  }
+
+  /**
+   * collect marks cells for deletion by the garbage collector.
+   */
+  collect(...input: (number | AnyCell<unknown>)[]) {
+    const ids = input.map((v) => (typeof v === "number" ? v : v.id));
+    for (const id of ids) this._gc.add(id);
   }
 }

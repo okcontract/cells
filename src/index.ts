@@ -7,7 +7,6 @@ export {
   sleep,
   waitAll
 } from "./promise";
-export { filterAsync } from "./filter-async";
 
 // Core
 
@@ -30,4 +29,17 @@ export { WrappedCell } from "./wrapped";
 
 export { Debugger } from "./debug";
 
-export { filter, mapArray, mapArrayCell, reduce, sort } from "./array";
+export { collector, reuseOrCreate } from "./gc";
+
+export {
+  filter,
+  filterPredicateCell,
+  find,
+  findCell,
+  findIndex,
+  first,
+  last,
+  mapArray,
+  mapArrayCell,
+  reduce
+} from "./array";

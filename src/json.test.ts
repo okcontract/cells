@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 
 import { jsonStringify } from "./json";
 
-const values: any[] = [
+const values: unknown[] = [
   1,
   "hello, world",
   '"and"',
@@ -16,7 +16,7 @@ const values: any[] = [
 ];
 
 test("jsonStringify re-parse", async () => {
-  for (let v of values) {
+  for (const v of values) {
     expect(JSON.parse(jsonStringify(v))).toEqual(v);
   }
 });
