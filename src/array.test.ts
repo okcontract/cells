@@ -5,7 +5,10 @@ import type { Graph } from "@okcontract/graph";
 import {
   filter,
   filterPredicateCell,
+  find,
   findIndex,
+  first,
+  last,
   mapArray,
   mapArrayCell,
   reduce,
@@ -270,4 +273,24 @@ test("sort array remapped", async () => {
   await expect(_uncellify(s)).resolves.toEqual([1, 3, 4, 5]);
   await expect(sum.get()).resolves.toBe(13);
   expect(sheet.stats).toEqual({ size: 10, count: 13 }); // +1 original cell, changed 2 pointers
+});
+
+test("first and last", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+
+  const arr = proxy.new([1, 5, 3].map((v) => proxy.new(v)));
+  const fst = first(proxy, arr);
+  const lst = last(proxy, arr);
+  await expect(fst.get()).resolves.toEqual(1);
+  await expect(lst.get()).resolves.toEqual(3);
+});
+
+test("basic find", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+
+  const arr = proxy.new([1, 5, 3].map((v) => proxy.new(v)));
+  const f = find(proxy, arr, (v) => v > 2);
+  await expect(f.get()).resolves.toEqual(5);
 });
