@@ -25,6 +25,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.5.3",
     "@types/node": "^20.11.5",
+    "@vitest/coverage-v8": "^1.2.2",
     "happy-dom": "13.0.2",
     "immer": "^10.0.3",
     "terser": "5.26.0",
@@ -35,10 +36,12 @@
   "scripts": {
     "build": "npm run format && vite build",
     "test": "vitest run",
+    "coverage": "vitest run --coverage",
     "definitions": "tsc --project tsconfig.build.json",
     "prepublishOnly": "npm test && npm run build && npm run check && npm run definitions",
     "check": "npx @biomejs/biome check src --apply",
-    "format": "npx @biomejs/biome format src --write"
+    "format": "npx @biomejs/biome format src --write",
+    "formatReadme": "prettier README.md --prose-wrap always --print-width 78 -w"
   },
   "repository": {
     "type": "git",

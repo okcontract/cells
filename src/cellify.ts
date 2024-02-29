@@ -36,7 +36,7 @@ export const _cellify = <T>(proxy: SheetProxy, v: T): Cellified<T> => {
       ? v.map((vv) => _cellify(proxy, vv), "cellify.[]")
       : typeof v === "object" &&
           v !== null &&
-          v?.constructor?.prototype !== Object.prototype // exclude classes
+          v.constructor.prototype === Object.prototype // exclude classes
         ? Object.fromEntries(
             Object.entries(v).map(
               ([k, vv]) => [k, _cellify(proxy, vv)],
@@ -65,12 +65,13 @@ export const _uncellify = async <T>(
   if (
     typeof value === "object" &&
     value !== null &&
-    v?.constructor?.prototype === Object.prototype
+    value.constructor.prototype === Object.prototype // exclude classes
   )
     return Object.fromEntries(
       await Promise.all(
         Object.entries(value).map(async ([k, vv]) => [k, await _uncellify(vv)])
       )
     );
+  // Classes, null or base types (string, number, ...)
   return value as Uncellified<T>;
 };
