@@ -1,6 +1,5 @@
 // Promise and low-level utilities
 
-export { filterAsync } from "./filter-async";
 export {
   delayed,
   dispatch,
