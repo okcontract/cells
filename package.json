@@ -1,6 +1,6 @@
 {
   "name": "@okcontract/cells",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Simplified reactive functional programming for the web",
   "private": false,
   "main": "dist/cells.umd.cjs",
