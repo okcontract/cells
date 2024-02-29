@@ -1,4 +1,4 @@
-# Cells: Simplified Functional & Reactive Programming
+# Cells: Simplified reactive functional programming for the web
 
 ![CI](https://github.com/okcontract/cells/actions/workflows/main.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/okcontract/cells/badge.svg?branch=main)](https://coveralls.io/github/okcontract/cells?branch=main)

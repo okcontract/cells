@@ -41,5 +41,6 @@ export {
   last,
   mapArray,
   mapArrayCell,
-  reduce
+  reduce,
+  sort
 } from "./array";
