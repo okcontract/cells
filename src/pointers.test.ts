@@ -318,3 +318,12 @@ test("get pointer chain", async () => {
   const m2 = m.map((v) => delayed(m, 20));
   await expect(m2.get()).resolves.toBe(2);
 });
+
+test("update from pointer", async () => {
+  const proxy = new Sheet().newProxy();
+  const v = proxy.new(1);
+  const p = proxy.new(v);
+  p.update((x) => x + 1);
+  await expect(v.get()).resolves.toBe(2);
+  await expect(p.get()).resolves.toBe(2);
+});

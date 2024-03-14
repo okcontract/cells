@@ -781,7 +781,11 @@ export class ValueCell<V> extends Cell<V, false, false> {
   update = (
     fn: (v: V) => V | Promise<V> | AnyCell<V> | Promise<AnyCell<V>>
   ) => {
-    if (this.isPointer) throw this.newError("Cell is a pointer");
+    if (this.isPointer) {
+      const cell = this._sheet.get(this.pointed);
+      if (cell instanceof ValueCell) return cell.update(fn);
+      throw this.newError("Cell is a pointer to a MapCell");
+    }
     // this line is here to help the typechecker
     //@ts-expect-error isPointer rules out AnyCell
     const v: V | Error | undefined = this.v;
