@@ -20,16 +20,13 @@ export {
   type ValueCell,
   type Working
 } from "./cell";
+export { collector, reuseOrCreate } from "./gc";
 export { SheetProxy } from "./proxy";
 export { Sheet } from "./sheet";
 export type { ComputeFn, Unsubscriber } from "./types";
 export { WrappedCell } from "./wrapped";
 
 // Utilities
-
-export { Debugger } from "./debug";
-
-export { collector, reuseOrCreate } from "./gc";
 
 export {
   filter,
@@ -44,3 +41,7 @@ export {
   reduce,
   sort
 } from "./array";
+
+export { Debugger } from "./debug";
+
+export { jsonStringify } from "./json";
