@@ -41,7 +41,6 @@ export {
   reduce,
   sort
 } from "./array";
-
 export { Debugger } from "./debug";
-
 export { jsonStringify } from "./json";
+export { nextSubscriber } from "./next";
