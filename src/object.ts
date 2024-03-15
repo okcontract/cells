@@ -76,11 +76,11 @@ export const reduceObject = <
   );
 };
 
-export const cellifyObject = (
+export const cellifyObject = <Obj extends AnyCell<Record<string, unknown>>>(
   proxy: SheetProxy,
-  obj: AnyCell<Record<string, unknown>>,
+  obj: Obj,
   name = "çObj"
-): MapCell<CellObject, true> => {
+): MapCell<Record<string, ValueCell<unknown>>, true> => {
   const set = <T>(c: ValueCell<T>, v: T): ValueCell<T> => {
     c.set(v);
     return c;
