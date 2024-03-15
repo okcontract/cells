@@ -1,4 +1,4 @@
-import type { AnyCell, MapCell } from "./cell";
+import type { AnyCell, MapCell, ValueCell } from "./cell";
 import { collector } from "./gc";
 import type { SheetProxy } from "./proxy";
 
@@ -73,5 +73,30 @@ export const reduceObject = <
     },
     name,
     nf
+  );
+};
+
+export const cellifyObject = (
+  proxy: SheetProxy,
+  obj: AnyCell<Record<string, unknown>>,
+  name = "çObj"
+): MapCell<CellObject, true> => {
+  const set = <T>(c: ValueCell<T>, v: T): ValueCell<T> => {
+    c.set(v);
+    return c;
+  };
+  return proxy.map(
+    [obj],
+    (_obj, prev) => {
+      // @todo delete unused cells
+      return Object.fromEntries(
+        Object.entries(_obj).map(([k, v]) => [
+          k,
+          prev?.[k] ? set(prev[k], v) : proxy.new(v)
+        ])
+      );
+    },
+    name,
+    true
   );
 };

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 
 import { _cellify, _uncellify } from "./cellify";
-import { mapObject, reduceObject } from "./object";
+import { cellifyObject, mapObject, reduceObject } from "./object";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 
@@ -65,4 +65,20 @@ test("reduceObject", async () => {
   l.update((obj) => ({ ...obj, d: proxy.new(5) }));
   await expect(v.get()).resolves.toBe(14);
   expect(sheet.stats).toEqual({ count: 8, size: 7 }); // +1 cell, update pointer
+});
+
+test("cellifyObject", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const obj = proxy.new({ a: 1, b: 2, c: 3 } as Record<string, number>);
+  const c = cellifyObject(proxy, obj);
+  await expect(_uncellify(c)).resolves.toEqual({ a: 1, b: 2, c: 3 });
+  expect(sheet.stats).toEqual({ count: 5, size: 5 }); // 1 obj + 3 ç + 1 map
+  expect(sheet.get(2).value).toBe(1);
+
+  obj.set({ a: 4, b: 2, d: 10 });
+  await expect(_uncellify(c)).resolves.toEqual({ a: 4, b: 2, d: 10 });
+  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // +1 ç
+  expect(sheet.get(2).value).toBe(4); // cell has been updated
+  expect(sheet.get(5).value).toBe(10); // last created is 10
 });
