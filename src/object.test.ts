@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 
 import { _cellify, _uncellify } from "./cellify";
+import { isEqual } from "./isEqual.test";
 import { cellifyObject, mapObject, reduceObject } from "./object";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
@@ -68,7 +69,7 @@ test("reduceObject", async () => {
 });
 
 test("cellifyObject", async () => {
-  const sheet = new Sheet();
+  const sheet = new Sheet(isEqual);
   const proxy = new SheetProxy(sheet);
   const obj = proxy.new({ a: 1, b: 2, c: 3 } as Record<string, number>);
   const c = cellifyObject(proxy, obj);
@@ -81,4 +82,16 @@ test("cellifyObject", async () => {
   expect(sheet.stats).toEqual({ count: 6, size: 6 }); // +1 ç
   expect(sheet.get(2).value).toBe(4); // cell has been updated
   expect(sheet.get(5).value).toBe(10); // last created is 10
+
+  let count = 0;
+  c.subscribe((_) => count++);
+  expect(count).toBe(1); // first subscription fired immediately
+
+  obj.set({ a: 4, b: 2, d: 10 });
+  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // no change
+  expect(count).toBe(1); // same values
+
+  obj.set({ a: 5, b: 2, d: 10 });
+  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // no change
+  expect(count).toBe(2); // subscription fired
 });
