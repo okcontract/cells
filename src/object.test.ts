@@ -1,8 +1,11 @@
+import { writeFileSync } from "fs";
 import { expect, test } from "vitest";
 
 import { _cellify, _uncellify } from "./cellify";
+import { Debugger } from "./debug";
 import { isEqual } from "./isEqual.test";
 import { cellifyObject, mapObject, reduceObject } from "./object";
+import { delayed } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 
@@ -70,28 +73,45 @@ test("reduceObject", async () => {
 
 test("cellifyObject", async () => {
   const sheet = new Sheet(isEqual);
+  const debug = new Debugger(sheet);
   const proxy = new SheetProxy(sheet);
-  const obj = proxy.new({ a: 1, b: 2, c: 3 } as Record<string, number>);
+
+  const obj = proxy.new({ a: 1, b: 2, c: 3 } as Record<string, number>, "obj");
   const c = cellifyObject(proxy, obj);
   await expect(_uncellify(c)).resolves.toEqual({ a: 1, b: 2, c: 3 });
-  expect(sheet.stats).toEqual({ count: 5, size: 5 }); // 1 obj + 3 ç + 1 map
-  expect(sheet.get(2).value).toBe(1);
+  const a = sheet.get(2);
+  const ma = a.map(async (v: number) => delayed(v * 2, 100), "double");
+
+  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // 1 obj + 3 ç + 1 map
+  expect(a.value).toBe(1);
+  await expect(ma.get()).resolves.toBe(2);
 
   obj.set({ a: 4, b: 2, d: 10 });
   await expect(_uncellify(c)).resolves.toEqual({ a: 4, b: 2, d: 10 });
-  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // +1 ç
-  expect(sheet.get(2).value).toBe(4); // cell has been updated
-  expect(sheet.get(5).value).toBe(10); // last created is 10
+  expect(sheet.stats).toEqual({ count: 7, size: 7 }); // +1 ç
+
+  writeFileSync(
+    "cellifyObject.dot",
+    debug.dot("cellifyObject { a: 4, b: 2, d: 10 }")
+  );
+
+  const d = sheet.get(6); // last created is d
+
+  await expect(a.get()).resolves.toBe(4); // cell has been updated
+  await expect(d.get()).resolves.toBe(10);
+  await expect(ma.consolidatedValue).resolves.toBe(8);
 
   let count = 0;
   c.subscribe((_) => count++);
   expect(count).toBe(1); // first subscription fired immediately
 
   obj.set({ a: 4, b: 2, d: 10 });
-  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // no change
+  expect(sheet.stats).toEqual({ count: 7, size: 7 }); // no change
   expect(count).toBe(1); // same values
+  expect(ma.consolidatedValue).toBe(8);
 
   obj.set({ a: 5, b: 2, d: 10 });
-  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // no change
-  expect(count).toBe(2); // subscription fired
+  expect(sheet.stats).toEqual({ count: 7, size: 7 }); // no change
+  expect(count).toBe(2); // subscription
+  await expect(ma.consolidatedValue).resolves.toBe(10);
 });

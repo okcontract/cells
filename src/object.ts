@@ -92,7 +92,7 @@ export const cellifyObject = <Obj extends AnyCell<Record<string, unknown>>>(
       return Object.fromEntries(
         Object.entries(_obj).map(([k, v]) => [
           k,
-          prev?.[k] ? set(prev[k], v) : proxy.new(v)
+          prev?.[k] ? set(prev[k], v) : proxy.new(v, `${name}[${k}]`)
         ])
       );
     },
