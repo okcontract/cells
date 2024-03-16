@@ -275,6 +275,9 @@ export class Cell<
   get name(): string {
     return this._sheet.name(this.id);
   }
+  get fullName(): string {
+    return this._sheet.name(this.id, true);
+  }
 
   /**
    * get the immediate cell value. or pointed value
@@ -522,7 +525,7 @@ export class Cell<
     // Invalidation for outdated computation
     if (computationRank < this._valueRank) {
       DEV &&
-        console.log(
+        console.warn(
           `Cell ${this.name}: `,
           `setting to ${newValue} has been invalidated`,
           {
