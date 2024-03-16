@@ -2,6 +2,9 @@ node_modules
 coverage
 dist
 *.dot
+*.png
 src/*.dot
+src/*.png
 README.html
 coverage
+.DS_Store
