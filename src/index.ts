@@ -46,3 +46,4 @@ export { clock, clockWork } from "./clock";
 export { Debugger } from "./debug";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
+export { _uncellify, _cellify } from "./cellify";
