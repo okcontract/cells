@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { MapCell, ValueCell } from "./cell";
+import type { MapCell, ValueCell } from "./cell";
 import { delayed, sleep } from "./promise";
 import { Sheet } from "./sheet";
 

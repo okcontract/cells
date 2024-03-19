@@ -15,5 +15,8 @@
     "rules": {
       "recommended": true
     }
+  },
+  "files": {
+    "ignore": ["*.d.ts", "*.js"]
   }
 }

@@ -5,7 +5,7 @@ import { Graph, ReferencesLeft } from "@okcontract/graph";
 import {
   type AnyCell,
   Canceled,
-  Cell,
+  type Cell,
   CellErrors,
   type CellResult,
   MapCell,

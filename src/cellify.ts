@@ -1,5 +1,5 @@
-import { AnyCell, Cell, ValueCell } from "./cell";
-import { SheetProxy } from "./proxy";
+import { type AnyCell, Cell, type ValueCell } from "./cell";
+import type { SheetProxy } from "./proxy";
 
 // Cellified computes a cellified type.
 export type Cellified<T> = T extends object

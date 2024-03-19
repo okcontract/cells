@@ -1,5 +1,5 @@
-import { AnyCell } from "./cell";
-import { Unsubscriber } from "./types";
+import type { AnyCell } from "./cell";
+import type { Unsubscriber } from "./types";
 
 /**
  * nextSubscriber subscribes to get the next value of a cell. This is useful

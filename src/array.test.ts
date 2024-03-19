@@ -3,6 +3,7 @@ import { expect, test } from "vitest";
 import type { Graph } from "@okcontract/graph";
 
 import {
+  type CellArray,
   filter,
   filterPredicateCell,
   find,
@@ -11,11 +12,12 @@ import {
   last,
   mapArray,
   mapArrayCell,
+  mapArrayRec,
   reduce,
   sort
 } from "./array";
 import type { AnyCell } from "./cell";
-import { _uncellify } from "./cellify";
+import { _cellify, _uncellify } from "./cellify";
 import { delayed } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
@@ -293,4 +295,12 @@ test("basic find", async () => {
   const arr = proxy.new([1, 5, 3].map((v) => proxy.new(v)));
   const f = find(proxy, arr, (v) => v > 2);
   await expect(f.get()).resolves.toEqual(5);
+});
+
+test("mapArrayRec array", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const arr = _cellify(proxy, [1, 2, [3, [4]]]) as CellArray<number>;
+  const fl = mapArrayRec(proxy, arr, (x) => x + 1);
+  await expect(_uncellify(fl)).resolves.toEqual([2, 3, [4, [5]]]);
 });
