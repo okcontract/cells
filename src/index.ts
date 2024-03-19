@@ -38,6 +38,7 @@ export {
   last,
   mapArray,
   mapArrayCell,
+  mapArrayRec,
   reduce,
   sort
 } from "./array";
