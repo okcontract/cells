@@ -132,7 +132,7 @@ test(
     const proxy = new SheetProxy(sheet);
 
     const fails = async (): Promise<string> => {
-      throw new Error("a");
+      throw new Error("bar");
     };
 
     const a = proxy.new(delayed(1, 15), "a");
@@ -145,7 +145,7 @@ test(
     //      ↑
     // a ─┬─ c ── d
     // b ─┴
-    await expect(d.get()).resolves.toBeInstanceOf(Error);
+    await expect(d.get()).rejects.toThrow("bar");
   },
   { timeout: 1000 }
 );
@@ -155,7 +155,7 @@ test("Error cascade with pointers", async () => {
   const proxy = new SheetProxy(sheet);
 
   const fails = async (): Promise<string> => {
-    throw new Error("a");
+    throw new Error("bar");
   };
 
   const a = proxy.new(delayed(1, 15));
@@ -168,7 +168,7 @@ test("Error cascade with pointers", async () => {
   const cc = proxy.new(c);
   const d = proxy.map([aa, cc], (a, _c) => a);
 
-  await expect(d.get()).resolves.toBeInstanceOf(Error);
+  await expect(d.get()).rejects.toThrow("bar");
 });
 
 test("Errors in set", async () => {
@@ -179,5 +179,5 @@ test("Errors in set", async () => {
     throw new Error("a");
   };
   const a = proxy.new(fails());
-  await expect(a.get()).resolves.toBeInstanceOf(Error);
+  await expect(a.get).rejects.toThrow("a");
 });
