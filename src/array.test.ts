@@ -17,7 +17,7 @@ import {
   sort
 } from "./array";
 import type { AnyCell } from "./cell";
-import { _cellify, _uncellify } from "./cellify";
+import { cellify, uncellify } from "./cellify";
 import { delayed } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
@@ -32,17 +32,17 @@ test("mapArray", async () => {
   expect(sheet.stats.count).toBe(8); // +4 cells
 
   // initial value
-  await expect(_uncellify(m)).resolves.toEqual([2, 3, 4]);
+  await expect(uncellify(m)).resolves.toEqual([2, 3, 4]);
   expect(sheet.stats.count).toBe(8); // unchanged
 
   // update one cell
   (await l.get())[0].set(4);
-  await expect(_uncellify(m)).resolves.toEqual([5, 3, 4]);
+  await expect(uncellify(m)).resolves.toEqual([5, 3, 4]);
   expect(sheet.stats.count).toBe(8); // @unchanged
 
   // add one cell
   l.update((arr) => [...arr, proxy.new(5)]);
-  await expect(_uncellify(m)).resolves.toEqual([5, 3, 4, 6]);
+  await expect(uncellify(m)).resolves.toEqual([5, 3, 4, 6]);
   expect(sheet.stats.count).toBe(10); // +1 original cell, +1 new mapped
 
   // get one cell
@@ -50,7 +50,7 @@ test("mapArray", async () => {
 
   // delete one cell
   l.update((arr) => [...arr.slice(0, 1), ...arr.slice(1 + 1)]);
-  await expect(_uncellify(m)).resolves.toEqual([5, 4, 6]);
+  await expect(uncellify(m)).resolves.toEqual([5, 4, 6]);
   expect(await (await m.get())[2].get()).toBe(6);
   expect(sheet.stats.count).toBe(10); // @unchanged
 });
@@ -63,16 +63,16 @@ test("mapArrayCell function change", async () => {
   const fn = proxy.new((v: AnyCell<number>) => v.map((v) => v + 1));
   const m = mapArrayCell(proxy, l, fn);
   expect(sheet.stats.count).toBe(9); // +4 cells
-  await expect(_uncellify(m)).resolves.toEqual([2, 3, 4]);
+  await expect(uncellify(m)).resolves.toEqual([2, 3, 4]);
 
   // update one cell
   (await l.get())[0].set(4);
-  await expect(_uncellify(m)).resolves.toEqual([5, 3, 4]);
+  await expect(uncellify(m)).resolves.toEqual([5, 3, 4]);
   expect(sheet.stats.count).toBe(9); // @unchanged
 
   // function change
   fn.set((v: AnyCell<number>) => v.map((v) => v - 1));
-  await expect(_uncellify(m)).resolves.toEqual([3, 1, 2]);
+  await expect(uncellify(m)).resolves.toEqual([3, 1, 2]);
   expect(sheet.stats.count).toBe(12); // +3 new mapped cells
 });
 
@@ -86,19 +86,19 @@ test("mapArray async", async () => {
   expect(sheet.stats.count).toBe(8); // +4 cells
 
   // initial value
-  await expect(_uncellify(m)).resolves.toEqual([2, 3, 4]);
+  await expect(uncellify(m)).resolves.toEqual([2, 3, 4]);
   expect(sheet.stats.count).toBe(8); // unchanged
 
   // update one cell
   (await l.get())[0].set(4);
   await proxy.working.wait();
-  await expect(_uncellify(m)).resolves.toEqual([5, 3, 4]);
+  await expect(uncellify(m)).resolves.toEqual([5, 3, 4]);
   expect(sheet.stats.count).toBe(8); // @unchanged
 
   // add one cell
   l.update((arr) => [...arr, proxy.new(5)]);
   await proxy.working.wait();
-  await expect(_uncellify(m)).resolves.toEqual([5, 3, 4, 6]);
+  await expect(uncellify(m)).resolves.toEqual([5, 3, 4, 6]);
   expect(sheet.stats.count).toBe(10); // +1 original cell, +1 new mapped
 
   // get one cell
@@ -106,7 +106,7 @@ test("mapArray async", async () => {
 
   // delete one cell
   l.update((arr) => [...arr.slice(0, 1), ...arr.slice(1 + 1)]);
-  await expect(_uncellify(m)).resolves.toEqual([5, 4, 6]);
+  await expect(uncellify(m)).resolves.toEqual([5, 4, 6]);
   expect(await (await m.get())[2].get()).toBe(6);
   expect(sheet.stats.count).toBe(10); // @unchanged
 });
@@ -161,18 +161,18 @@ test("sort array", async () => {
   const l = proxy.new([1, 5, 3].map((v) => proxy.new(v)));
   const s = sort(proxy, l);
 
-  await expect(_uncellify(s)).resolves.toEqual([1, 3, 5]);
+  await expect(uncellify(s)).resolves.toEqual([1, 3, 5]);
   expect(sheet.stats.count).toBe(6); // 3+1 array +1 sorted +1 pointer
 
   // update one cell
   (await l.get())[0].set(4);
-  await expect(_uncellify(s)).resolves.toEqual([3, 4, 5]);
+  await expect(uncellify(s)).resolves.toEqual([3, 4, 5]);
   expect(sheet.stats.count).toBe(6); // @unchanged
 
   // add one cell
   l.update((arr) => [...arr, proxy.new(1)]);
-  await expect(_uncellify(l)).resolves.toEqual([4, 5, 3, 1]);
-  await expect(_uncellify(s)).resolves.toEqual([1, 3, 4, 5]);
+  await expect(uncellify(l)).resolves.toEqual([4, 5, 3, 1]);
+  await expect(uncellify(s)).resolves.toEqual([1, 3, 4, 5]);
   expect(sheet.stats.count).toBe(8); // +1 original cell +1 sorted pointer
 });
 
@@ -189,18 +189,18 @@ test("filter array", async () => {
 
   // we wait before expecting
   await proxy.working.wait();
-  await expect(_uncellify(f)).resolves.toEqual([5, 3]);
+  await expect(uncellify(f)).resolves.toEqual([5, 3]);
   // the removed cell is not deleted ("garbage collected" at proxy level)
   expect(sheet.stats.count).toBe(7); // unchanged
 
   // update one cell
   (await l.get())[0].set(4);
-  await expect(_uncellify(f)).resolves.toEqual([4, 5, 3]);
+  await expect(uncellify(f)).resolves.toEqual([4, 5, 3]);
   expect(sheet.stats.count).toBe(7); // unchanged
 
   // change predicate
   pred.set((v) => v > 3);
-  await expect(_uncellify(f)).resolves.toEqual([4, 5]);
+  await expect(uncellify(f)).resolves.toEqual([4, 5]);
   expect(sheet.stats).toEqual({ size: 7, count: 8 }); // one pointer updated
 });
 
@@ -217,11 +217,11 @@ test("filterPredicateCell array", async () => {
 
   // we wait before expecting
   await proxy.working.wait();
-  await expect(_uncellify(f)).resolves.toEqual([5, 3]);
+  await expect(uncellify(f)).resolves.toEqual([5, 3]);
 
   pred.set((v: AnyCell<number>) => v.map((_v) => _v > 3));
   await proxy.working.wait();
-  await expect(_uncellify(f)).resolves.toEqual([5]);
+  await expect(uncellify(f)).resolves.toEqual([5]);
   expect(sheet.stats).toEqual({ size: 14, count: 15 }); // we should not recreate mapped cells
 });
 
@@ -259,20 +259,20 @@ test("sort array remapped", async () => {
     Promise.resolve(0)
   );
 
-  await expect(_uncellify(s)).resolves.toEqual([1, 3, 5]);
+  await expect(uncellify(s)).resolves.toEqual([1, 3, 5]);
   expect(sheet.stats).toEqual({ size: 9, count: 9 }); // 3+1 array +1 sorted +1 pointer +1 sum +1 pointer
   await expect(sum.get()).resolves.toBe(9);
 
   // update one cell
   (await l.get())[0].set(4);
-  await expect(_uncellify(s)).resolves.toEqual([3, 4, 5]);
+  await expect(uncellify(s)).resolves.toEqual([3, 4, 5]);
   await expect(sum.get()).resolves.toBe(12);
   expect(sheet.stats).toEqual({ size: 9, count: 10 }); // size unchanged, one pointer changed
 
   // add one cell
   l.update((arr) => [...arr, proxy.new(1)]);
-  await expect(_uncellify(l)).resolves.toEqual([4, 5, 3, 1]);
-  await expect(_uncellify(s)).resolves.toEqual([1, 3, 4, 5]);
+  await expect(uncellify(l)).resolves.toEqual([4, 5, 3, 1]);
+  await expect(uncellify(s)).resolves.toEqual([1, 3, 4, 5]);
   await expect(sum.get()).resolves.toBe(13);
   expect(sheet.stats).toEqual({ size: 10, count: 13 }); // +1 original cell, changed 2 pointers
 });
@@ -300,7 +300,7 @@ test("basic find", async () => {
 test("mapArrayRec array", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const arr = _cellify(proxy, [1, 2, [3, [4]]]) as CellArray<number>;
+  const arr = cellify(proxy, [1, 2, [3, [4]]]) as CellArray<number>;
   const fl = mapArrayRec(proxy, arr, (x) => x + 1);
-  await expect(_uncellify(fl)).resolves.toEqual([2, 3, [4, [5]]]);
+  await expect(uncellify(fl)).resolves.toEqual([2, 3, [4, [5]]]);
 });

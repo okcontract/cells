@@ -29,17 +29,17 @@ export type Uncellified<T> = T extends AnyCell<infer U>
  * @returns
  * @todo cell reuses
  */
-export const _cellify = <T>(proxy: SheetProxy, v: T): Cellified<T> => {
+export const cellify = <T>(proxy: SheetProxy, v: T): Cellified<T> => {
   if (v instanceof Cell) throw new Error("cell");
   return proxy.new(
     Array.isArray(v)
-      ? v.map((vv) => _cellify(proxy, vv), "cellify.[]")
+      ? v.map((vv) => cellify(proxy, vv), "cellify.[]")
       : typeof v === "object" &&
           v !== null &&
           v.constructor.prototype === Object.prototype // exclude classes
         ? Object.fromEntries(
             Object.entries(v).map(
-              ([k, vv]) => [k, _cellify(proxy, vv)],
+              ([k, vv]) => [k, cellify(proxy, vv)],
               "cellify.{}"
             )
           )
@@ -49,18 +49,18 @@ export const _cellify = <T>(proxy: SheetProxy, v: T): Cellified<T> => {
 };
 
 /**
- * _uncellify is used in tests to flatten a value tree that contains multiple cells.
+ * uncellify is used in tests to flatten a value tree that contains multiple cells.
  * @param v any value
  * @returns value without cells
  */
-export const _uncellify = async <T>(
+export const uncellify = async <T>(
   v: T | AnyCell<T>
 ): Promise<Uncellified<T>> => {
   const value = v instanceof Cell ? await v.get() : v;
   if (value instanceof Error) throw value;
   if (Array.isArray(value))
     return Promise.all(
-      value.map(async (_element) => await _uncellify(_element))
+      value.map(async (_element) => await uncellify(_element))
     ) as Promise<Uncellified<T>>;
   if (
     typeof value === "object" &&
@@ -69,7 +69,7 @@ export const _uncellify = async <T>(
   )
     return Object.fromEntries(
       await Promise.all(
-        Object.entries(value).map(async ([k, vv]) => [k, await _uncellify(vv)])
+        Object.entries(value).map(async ([k, vv]) => [k, await uncellify(vv)])
       )
     );
   // Classes, null or base types (string, number, ...)

@@ -17,7 +17,7 @@ export {
   type CellResult,
   type MapCell,
   type Pending,
-  type ValueCell,
+  ValueCell,
   type Working
 } from "./cell";
 export { collector, reuseOrCreate } from "./gc";
@@ -46,4 +46,5 @@ export { clock, clockWork } from "./clock";
 export { Debugger } from "./debug";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
-export { _uncellify, _cellify } from "./cellify";
+export { uncellify, cellify } from "./cellify";
+export { mapObject, reduceObject } from "./object";

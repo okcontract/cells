@@ -3,8 +3,8 @@ import { expect, test } from "vitest";
 import {
   type Cellified,
   type Uncellified,
-  _cellify,
-  _uncellify
+  cellify,
+  uncellify
 } from "./cellify";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
@@ -37,16 +37,16 @@ test("fix point", async () => {
 
   for (let i = 0; i < tests.length; i++) {
     const v = tests[i];
-    const c = _cellify(proxy, v);
-    const u = await _uncellify(c);
+    const c = cellify(proxy, v);
+    const u = await uncellify(c);
     expect(u).toEqual(v);
   }
 });
 
-test("_cellify one", async () => {
+test("cellify one", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const res = _cellify(proxy, { a: 1 });
+  const res = cellify(proxy, { a: 1 });
   const cell = await res.get();
   await expect(cell.a.get()).resolves.toBe(1);
 });
