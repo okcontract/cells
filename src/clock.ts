@@ -10,13 +10,14 @@ export const clock = (
     stop: () => void;
     restart: () => void;
   };
-  let run: ReturnType<typeof setInterval>;
-  const start = () => {
-    if (run) clearInterval(run);
-    run = setInterval(() => clock.update((v) => v + 1), delay);
-  };
+  let run: ReturnType<typeof setInterval> | undefined;
   const stop = () => {
     if (run) clearInterval(run);
+    run = undefined;
+  };
+  const start = () => {
+    if (run) return;
+    run = setInterval(() => clock.update((v) => v + 1), delay);
   };
   clock.stop = stop;
   clock.restart = start;
