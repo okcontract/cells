@@ -3,16 +3,16 @@ import { collector } from "./gc";
 import type { SheetProxy } from "./proxy";
 
 // @todo introduce a type variable that is a sum type of all possible field types?
-export type CellObject = AnyCell<Record<string, AnyCell<unknown>>>;
+export type CellObject<T> = AnyCell<Record<string, AnyCell<T>>>;
 
 /**
  * mapObject applies a function to a CellObject.
  */
-export const mapObject = <NF extends boolean = false>(
+export const mapObject = <T, NF extends boolean = false>(
   proxy: SheetProxy,
-  obj: CellObject,
+  obj: CellObject<T>,
   // @todo return type
-  fn: (key: string, value: unknown) => unknown | Promise<unknown>,
+  fn: (key: string, vcell: AnyCell<T>, value: T) => unknown | Promise<unknown>,
   name = "mapObject",
   nf?: NF
 ): MapCell<Record<string, AnyCell<unknown>>, NF> =>
@@ -29,7 +29,7 @@ export const mapObject = <NF extends boolean = false>(
           // console.log({ k, reuse, prev: prev?.[k]?.id });
           return [
             k,
-            reuse ? prev[k] : proxy.map([v], (_v) => fn(k, _v), `[${k}]`)
+            reuse ? prev[k] : proxy.map([v], (_v) => fn(k, v, _v), `[${k}]`)
           ];
         })
       );
@@ -47,7 +47,7 @@ export const reduceObject = <
   NF extends boolean = false
 >(
   proxy: SheetProxy,
-  obj: CellObject,
+  obj: CellObject<T>,
   fn: (acc: R, elt: [string, unknown], index?: number) => R,
   init: R,
   name = "reduceObject",
