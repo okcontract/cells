@@ -1,6 +1,8 @@
+import { writeFileSync } from "fs";
 import { expect, test } from "vitest";
 import { clock, clockWork } from "./clock";
-import { sleep } from "./promise";
+import { Debugger } from "./debug";
+import { delayed, sleep } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 
@@ -52,7 +54,9 @@ test("wait list", async () => {
     (_q: string[], prev: M) =>
       ({
         ...(prev || ({} as M)),
-        ...Object.fromEntries(_q.map((elt) => [elt, elt.length]))
+        ...Object.fromEntries(
+          _q.filter((elt) => !prev?.[elt]).map((elt) => [elt, elt.length])
+        )
       }) as M,
     "m"
   );
@@ -65,4 +69,84 @@ test("wait list", async () => {
   await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3 });
   await sleep(10);
   await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3, test: 4 });
+});
+
+test("wait list self update fails", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const live = proxy.new(true);
+  const cl = clock(proxy, live, 10);
+  const q = proxy.new([] as string[], "q");
+  const m = cl.work(
+    [q],
+    (_q: string[], prev: M) => {
+      if (_q.includes("test")) q.set(["win"]);
+      return {
+        ...(prev || ({} as M)),
+        ...Object.fromEntries(
+          _q.filter((elt) => !prev?.[elt]).map((elt) => [elt, elt.length])
+        )
+      } as M;
+    },
+    "m"
+  );
+  await expect(m.get()).resolves.toEqual({});
+  q.set(["foo", "bar"]);
+  await expect(m.get()).resolves.toEqual({});
+  await sleep(15);
+  await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3 });
+  q.set(["test"]);
+  await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3 });
+  await sleep(10);
+  // fails: test is never updated because of the cancellation
+  await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3 });
+});
+
+test("wait list self update with subscription", async () => {
+  const sheet = new Sheet();
+  const debug = new Debugger(sheet);
+  const proxy = new SheetProxy(sheet);
+  const live = proxy.new(true, "live");
+  const cl = clock(proxy, live, 10);
+  const q = proxy.new([] as string[], "q");
+  const remote = proxy.new(null as string[] | null, "remote");
+  remote.subscribe((l) => {
+    if (l) {
+      console.log({ remote: l });
+      q.set(l);
+    }
+  });
+  const m = cl.work(
+    [q],
+    (_q: string[], prev: M) => {
+      if (_q.includes("test")) {
+        console.log({ test: "found" });
+        // we must async, otherwise the remote subscriber is called immediately
+        remote.set(delayed(["win"], 0));
+      }
+      const next = {
+        ...(prev || ({} as M)),
+        ...Object.fromEntries(
+          _q.filter((elt) => !prev?.[elt]).map((elt) => [elt, elt.length])
+        )
+      } as M;
+      console.log({ _q, prev, next });
+      return next;
+    },
+    "m"
+  );
+  // debug.w(4);
+
+  writeFileSync("clock.dot", debug.dot("clockWork with remote"));
+  await expect(m.get()).resolves.toEqual({});
+  q.set(["foo", "bar"]);
+  await expect(m.get()).resolves.toEqual({});
+  await sleep(15);
+  await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3 });
+  q.set(["test"]);
+  await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3 });
+  await sleep(10);
+  await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3, test: 4 });
+  await sleep(10);
+  await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3, test: 4, win: 3 });
 });
