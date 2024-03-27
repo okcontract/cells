@@ -7,7 +7,7 @@ export type Clock = ValueCell<number> & {
   work: <T, NF extends boolean = false>(
     cells: AnyCell<unknown>[],
     fn: (...args: unknown[]) => T,
-    name: string,
+    name?: string,
     nf?: NF
   ) => MapCell<T, NF>;
 };
