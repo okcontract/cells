@@ -6,6 +6,10 @@ export type Clock = ValueCell<number> & {
   restart: () => void;
 };
 
+/**
+ * clock creates a special ValueCell that updates
+ * its tick every `delay`.
+ */
 export const clock = (
   proxy: SheetProxy,
   live: AnyCell<boolean>,
@@ -27,6 +31,10 @@ export const clock = (
   return clock;
 };
 
+/**
+ * clockWork performs work every time the `clock` changes by
+ * computing `fn` from original `cells` values.
+ */
 export const clockWork = <T>(
   proxy: SheetProxy,
   clock: Clock,
@@ -35,14 +43,18 @@ export const clockWork = <T>(
 ) => {
   // n must match fn arguments
   const n = cells.length;
-  let c: number;
-  return proxy.map([...cells, clock], (...all) => {
-    const args = all.splice(0, n);
-    const [cl, prev] = all;
-    console.log({ args, cl, prev });
-    if (c !== undefined && c === cl) return prev; // unchanged, we wait for the next tick
-    console.log({ c, cl });
-    c = cl as number;
-    return fn(...args);
-  }) as MapCell<T, false>;
+  let prevClock: number;
+  return proxy.map(
+    // @ts-expect-error @todo generic types
+    [...cells, clock],
+    (...all) => {
+      const args = all.splice(0, n);
+      const [cl, prev] = all;
+      // console.log({ args, cl, prev });
+      if (prevClock !== undefined && prevClock === cl) return prev; // unchanged, we wait for the next tick
+      // console.log({ c: prevClock, cl });
+      prevClock = cl as number;
+      return fn(...args, prev);
+    }
+  ) as MapCell<T, false>;
 };
