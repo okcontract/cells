@@ -35,11 +35,13 @@ export const clock = (
  * clockWork performs work every time the `clock` changes by
  * computing `fn` from original `cells` values.
  */
-export const clockWork = <T>(
+export const clockWork = <T, NF extends boolean = false>(
   proxy: SheetProxy,
   clock: Clock,
   cells: AnyCell<unknown>[],
-  fn: (...args: unknown[]) => T
+  fn: (...args: unknown[]) => T,
+  name = "work",
+  nf?: NF
 ) => {
   // n must match fn arguments
   const n = cells.length;
@@ -55,6 +57,8 @@ export const clockWork = <T>(
       // console.log({ c: prevClock, cl });
       prevClock = cl as number;
       return fn(...args, prev);
-    }
+    },
+    name,
+    nf
   ) as MapCell<T, false>;
 };
