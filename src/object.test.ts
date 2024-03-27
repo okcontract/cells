@@ -11,8 +11,11 @@ test("mapObject", async () => {
 
   const obj = cellify(proxy, { a: 1, b: "foo", c: "bar" });
   expect(sheet.stats).toEqual({ count: 4, size: 4 });
-  const m = mapObject(proxy, obj, (_k: string, _v: unknown): number =>
-    typeof _v === "string" ? _v.length : (_v as number)
+  const m = mapObject(
+    proxy,
+    obj,
+    (_k: string, _cell: unknown, _v: unknown): number =>
+      typeof _v === "string" ? _v.length : (_v as number)
   );
 
   // initial value
