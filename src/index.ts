@@ -41,6 +41,7 @@ export {
   reduce,
   sort
 } from "./array";
+export { clock, clockWork } from "./clock";
 export { Debugger } from "./debug";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
