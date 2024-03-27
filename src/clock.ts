@@ -4,6 +4,12 @@ import { SheetProxy } from "./proxy";
 export type Clock = ValueCell<number> & {
   stop: () => void;
   restart: () => void;
+  work: <T, NF extends boolean = false>(
+    cells: AnyCell<unknown>[],
+    fn: (...args: unknown[]) => T,
+    name: string,
+    nf?: NF
+  ) => MapCell<T, NF>;
 };
 
 /**
@@ -27,6 +33,8 @@ export const clock = (
   };
   clock.stop = stop;
   clock.restart = start;
+  clock.work = (cells, fn, name, nf) =>
+    clockWork(proxy, clock, cells, fn, name, nf);
   live.subscribe((b) => (b ? start() : stop()));
   return clock;
 };
@@ -52,13 +60,12 @@ export const clockWork = <T, NF extends boolean = false>(
     (...all) => {
       const args = all.splice(0, n);
       const [cl, prev] = all;
-      // console.log({ args, cl, prev });
-      if (prevClock !== undefined && prevClock === cl) return prev; // unchanged, we wait for the next tick
-      // console.log({ c: prevClock, cl });
+      // unchanged, we wait for the next tick
+      if (prevClock !== undefined && prevClock === cl) return prev as T;
       prevClock = cl as number;
       return fn(...args, prev);
     },
     name,
     nf
-  ) as MapCell<T, false>;
+  ) as MapCell<T, NF>;
 };

@@ -47,13 +47,11 @@ test("wait list", async () => {
   const live = proxy.new(true);
   const cl = clock(proxy, live, 10);
   const q = proxy.new([] as string[], "q");
-  const m = clockWork(
-    proxy,
-    cl,
+  const m = cl.work(
     [q],
-    (_q: string[], prev) =>
+    (_q: string[], prev: M) =>
       ({
-        ...((prev as M) || ({} as M)),
+        ...(prev || ({} as M)),
         ...Object.fromEntries(_q.map((elt) => [elt, elt.length]))
       }) as M,
     "m"
