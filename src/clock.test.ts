@@ -118,11 +118,10 @@ test("wait list self update with subscription", async () => {
   });
   const m = cl.work(
     [q],
-    (_q: string[], prev: M) => {
+    async (_q: string[], prev: M) => {
       if (_q.includes("test")) {
         console.log({ test: "found" });
-        // we must async, otherwise the remote subscriber is called immediately
-        remote.set(delayed(["win"], 0));
+        sheet.queue(remote, ["win"]);
       }
       const next = {
         ...(prev || ({} as M)),
@@ -131,22 +130,30 @@ test("wait list self update with subscription", async () => {
         )
       } as M;
       console.log({ _q, prev, next });
-      return next;
+      return delayed(next, 10);
     },
     "m"
   );
   // debug.w(4);
-
   writeFileSync("clock.dot", debug.dot("clockWork with remote"));
-  await expect(m.get()).resolves.toEqual({});
+  await expect(m.consolidatedValue).resolves.toEqual({});
   q.set(["foo", "bar"]);
-  await expect(m.get()).resolves.toEqual({});
+  expect(m.consolidatedValue).toEqual({});
   await sleep(15);
-  await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3 });
+  await expect(m.consolidatedValue).resolves.toEqual({ foo: 3, bar: 3 });
   q.set(["test"]);
-  await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3 });
+  expect(m.consolidatedValue).toEqual({ foo: 3, bar: 3 });
   await sleep(10);
-  await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3, test: 4 });
+  await expect(m.consolidatedValue).resolves.toEqual({
+    foo: 3,
+    bar: 3,
+    test: 4
+  });
   await sleep(10);
-  await expect(m.get()).resolves.toEqual({ foo: 3, bar: 3, test: 4, win: 3 });
+  await expect(m.consolidatedValue).resolves.toEqual({
+    foo: 3,
+    bar: 3,
+    test: 4,
+    win: 3
+  });
 });
