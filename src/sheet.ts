@@ -89,6 +89,8 @@ export class Sheet {
   /** Cell holding all the current "initial" errors of the sheet */
   public errors: CellErrors;
 
+  /** Queued updates */
+  private _queue: [number, unknown | Promise<unknown>][];
   /** Cells that can be garbage collected */
   private _gc: Set<number>;
 
@@ -112,6 +114,7 @@ export class Sheet {
 
     this.errors = new CellErrors();
     this._gc = new Set();
+    this._queue = [];
   }
 
   bless(id: number, name: string) {
@@ -564,6 +567,18 @@ export class Sheet {
 
         // End of the update
         release();
+
+        // Queued updates
+        // @todo transactions
+        for (const [id, v] of this._queue) {
+          const cell = this._cells[id];
+          if (!cell || !(cell instanceof ValueCell)) {
+            console.error(`cell ${id} is not a ValueCell`);
+            return;
+          }
+          cell.set(v);
+        }
+        this._queue = [];
       }
     );
   }
@@ -942,5 +957,9 @@ export class Sheet {
   collect(...input: (number | AnyCell<unknown>)[]) {
     const ids = input.map((v) => (typeof v === "number" ? v : v.id));
     for (const id of ids) this._gc.add(id);
+  }
+
+  queue<T>(cell: number | AnyCell<T>, v: T | Promise<T>) {
+    this._queue.push([typeof cell === "number" ? cell : cell.id, v]);
   }
 }
