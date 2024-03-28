@@ -7,7 +7,7 @@ export type Clock = ValueCell<number> & {
   work: <T, NF extends boolean = false>(
     cells: AnyCell<unknown>[],
     fn: (...args: unknown[]) => T,
-    name: string,
+    name?: string,
     nf?: NF
   ) => MapCell<T, NF>;
 };
@@ -47,7 +47,7 @@ export const clockWork = <T, NF extends boolean = false>(
   proxy: SheetProxy,
   clock: Clock,
   cells: AnyCell<unknown>[],
-  fn: (...args: unknown[]) => T,
+  fn: (...args: unknown[]) => T | Promise<T>,
   name = "work",
   nf?: NF
 ) => {
