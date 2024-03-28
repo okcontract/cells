@@ -959,7 +959,7 @@ export class Sheet {
     for (const id of ids) this._gc.add(id);
   }
 
-  queue<T>(cell: number | AnyCell<T>, v: T | Promise<T>) {
-    this._queue.push([typeof cell === "number" ? cell : cell.id, v]);
+  queue<T>(cell: ValueCell<T>, v: T | Promise<T>) {
+    this._queue.push([cell.id, v]);
   }
 }
