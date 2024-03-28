@@ -47,7 +47,7 @@ export const clockWork = <T, NF extends boolean = false>(
   proxy: SheetProxy,
   clock: Clock,
   cells: AnyCell<unknown>[],
-  fn: (...args: unknown[]) => T,
+  fn: (...args: unknown[]) => T | Promise<T>,
   name = "work",
   nf?: NF
 ) => {
