@@ -15,6 +15,8 @@ export class Debugger {
 
   constructor(sheet: Sheet) {
     this.sheet = sheet;
+    // activate debugging for the sheet
+    this.sheet._debug = true;
     // @ts-expect-error private
     this.cells = sheet._cells;
     // @ts-expect-error private
@@ -34,6 +36,8 @@ export class Debugger {
     console.log("e         -- show all cell errors");
     console.log("u         -- show all undefined cells");
     console.log("dot       -- generate graphviz dot graph");
+    console.log("sub       -- subscribe to a given cell");
+    console.log("map       -- map a given cell");
     return undefined;
   }
 
@@ -41,24 +45,20 @@ export class Debugger {
    * watch cells
    */
   w(...cells: number[]) {
-    // @ts-expect-error private
     this.sheet._debug = true;
-    // @ts-expect-error private
     this.sheet._logList.push(...cells);
   }
 
   aw(pat: string) {
-    // @ts-expect-error private
     this.sheet._debug = true;
     // @ts-expect-error private
-    this.sheet._autoWatch.push(pat);
+    this.sheet._autoWatch.push(pat.toLowerCase());
   }
 
   /**
    * unwatch cells
    */
   uw(...cells: number[]) {
-    // @ts-expect-error private
     this.sheet._logList = this.sheet._logList.filter((c) => !cells.includes(c));
   }
 
@@ -109,6 +109,28 @@ export class Debugger {
         value: this.cells[id].value
       });
     return `[${pred.join(",")}] ==> {${cell}} ==> [${succ.join(",")}]`;
+  }
+
+  sub(cell: number, cb: (v: unknown) => void, delay = 30) {
+    const cells = this.cells;
+    return new Promise((resolve) => {
+      function checkAndSubscribe() {
+        if (cells[cell]) resolve(cells[cell].subscribe(cb));
+        else setTimeout(checkAndSubscribe, delay);
+      }
+      checkAndSubscribe();
+    });
+  }
+
+  map(cell: number, cb: (v: unknown) => void, delay = 30) {
+    const cells = this.cells;
+    return new Promise((resolve) => {
+      function checkAndSubscribe() {
+        if (cells[cell]) resolve(cells[cell].map(cb));
+        else setTimeout(checkAndSubscribe, delay);
+      }
+      checkAndSubscribe();
+    });
   }
 
   /**
