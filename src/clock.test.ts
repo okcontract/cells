@@ -109,19 +109,12 @@ test("wait list self update with subscription", async () => {
   const live = proxy.new(true, "live");
   const cl = clock(proxy, live, 10);
   const q = proxy.new([] as string[], "q");
-  const remote = proxy.new(null as string[] | null, "remote");
-  remote.subscribe((l) => {
-    if (l) {
-      console.log({ remote: l });
-      q.set(l);
-    }
-  });
   const m = cl.work(
     [q],
     async (_q: string[], prev: M) => {
       if (_q.includes("test")) {
         console.log({ test: "found" });
-        sheet.queue(remote, ["win"]);
+        sheet.queue(q, (_l) => ["win"]);
       }
       const next = {
         ...(prev || ({} as M)),

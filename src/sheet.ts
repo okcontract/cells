@@ -16,7 +16,7 @@ import {
 } from "./cell";
 import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { SheetProxy } from "./proxy";
-import type { AnyCellArray } from "./types";
+import type { AnyCellArray, Updater } from "./types";
 import { intersection } from "./utils";
 
 type Computations<V> = (
@@ -90,7 +90,7 @@ export class Sheet {
   public errors: CellErrors;
 
   /** Queued updates */
-  private _queue: [number, unknown | Promise<unknown>][];
+  private _queue: [number, Updater<unknown>][];
   /** Cells that can be garbage collected */
   private _gc: Set<number>;
 
@@ -570,13 +570,13 @@ export class Sheet {
 
         // Queued updates
         // @todo transactions
-        for (const [id, v] of this._queue) {
+        for (const [id, fn] of this._queue) {
           const cell = this._cells[id];
           if (!cell || !(cell instanceof ValueCell)) {
             console.error(`cell ${id} is not a ValueCell`);
             return;
           }
-          cell.set(v);
+          cell.update((v) => fn(v));
         }
         this._queue = [];
       }
@@ -959,7 +959,20 @@ export class Sheet {
     for (const id of ids) this._gc.add(id);
   }
 
-  queue<T>(cell: ValueCell<T>, v: T | Promise<T>) {
-    this._queue.push([cell.id, v]);
+  queue<T>(cell: ValueCell<T>, fn: (v: T) => T | Promise<T>) {
+    const prev = this._queue.find(([id, _]) => id === cell.id);
+    if (prev !== undefined) {
+      console.log({ prev });
+      throw new Error("stop");
+      this._queue[prev[0]] = [
+        cell.id,
+        async (v: T) => {
+          const app = (await prev[1](v)) as T;
+          return fn(app);
+        }
+      ];
+      return;
+    }
+    this._queue.push([cell.id, fn]);
   }
 }

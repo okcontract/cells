@@ -18,7 +18,7 @@ export type Subscriber<T> = (value: T) => void;
 export type Unsubscriber = () => void;
 
 /** Callback to update a value. */
-export type Updater<T> = (value: T) => T;
+export type Updater<T> = (value: T) => T | Promise<T>;
 
 /** Cleanup logic callback. */
 type Invalidator<T> = (value?: T) => void;
