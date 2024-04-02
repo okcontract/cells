@@ -903,26 +903,27 @@ export class Sheet {
     this._update(Object.keys(this._cells));
   }
 
-  private canDelete(ids: number[]): boolean {
-    const deps: Set<number> = new Set();
+  private references(ids: number[]): Set<number> {
+    const refs: Set<number> = new Set();
     for (const id of ids)
-      for (const dep of this.g.partialTopologicalSort(id)) deps.add(dep);
-    // @todo we need to order to make sure dependent cells are properly managed
-    for (const id of ids) deps.delete(id);
-    return deps.size === 0;
+      for (const dep of this.g.partialTopologicalSort(id)) refs.add(dep);
+    for (const id of ids) refs.delete(id);
+    return refs;
   }
 
   /**
-   * delete cells
+   * delete cells: There should be no references left.
    */
   delete(...input: (number | AnyCell<unknown>)[]) {
     const ids = input
       .map((v) => (typeof v === "number" ? v : v.id))
       .filter((id) => this._cells[id]);
-    // @todo restore by checking the whole graph properly
-    if (!this.canDelete(ids)) throw ReferencesLeft;
+    const refs = this.references(ids);
+    if (refs.size > 0) {
+      console.warn("deletion failed", { refs });
+      throw ReferencesLeft;
+    }
     for (const id of ids) {
-      // console.log({ deleting: "cell", id });
       this.g.delete(id);
       delete this._cells[id];
       this[size]--;
@@ -936,10 +937,9 @@ export class Sheet {
    */
   collect(...input: (number | AnyCell<unknown>)[]) {
     const ids = input.map((v) => (typeof v === "number" ? v : v.id));
-    // console.log({ collecting: ids, cells: input });
+    if (this._debug) console.log(simplifier({ collecting: ids, cells: input }));
     for (const id of ids) {
       const deps = this.g.partialTopologicalSort(id);
-      // [id];
       this.debug(undefined, "collect", { deps });
       for (const dep of deps) this._gc.add(dep);
     }
