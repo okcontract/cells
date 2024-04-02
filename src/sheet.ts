@@ -290,7 +290,7 @@ export class Sheet {
     });
     if (missing !== undefined) {
       console.log({ dependencies });
-      throw new Error(`Deleted cell: ${missing}`);
+      throw new Error(`Deleted cell: ${missing.id}`);
     }
     const mapCell = this._addCell(
       (id) =>
