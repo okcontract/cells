@@ -103,3 +103,15 @@ test("proxy deletion", async () => {
   proxy.destroy();
   expect(sheet.stats).toEqual({ count: 3, size: 0 });
 });
+
+test("proxy deletion with loop", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const a = proxy.new(delayed(1, 10));
+  const b = proxy.new(delayed(2, 15));
+  const sub = new SheetProxy(sheet);
+  const c = sub.map([a, b], async (a, b) => delayed(a + b, 5));
+  const d = proxy.map([c], async (v) => delayed(v * 2, 15));
+  expect(sheet.stats).toEqual({ count: 4, size: 4 });
+  expect(() => sub.destroy()).toThrow("Cell has references");
+});
