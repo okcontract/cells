@@ -119,14 +119,11 @@ export class Sheet {
     this.g = new Graph();
     this._cells = {};
     this._pointers = new Graph();
-    // this.order = [];
     this[count] = 0;
     this[size] = 0;
     this.equals = equality;
     this._marshaller = marshaller;
-
     this.working = new Working();
-
     this.errors = new CellErrors();
     this._gc = new Set();
   }
@@ -454,42 +451,6 @@ export class Sheet {
       }
     }
   }
-
-  // naming(obj) {
-  //   const excludedKeys = ["computationRank"];
-  //   if (!this._debug) return obj;
-  //   const nameOne = (id) => this.name(id);
-  //   const nameComp = (comp: unknown[]) => {
-  //     const newComp = comp
-  //       .map((val, id) => [this.name(id), val])
-  //       .filter((v) => v !== undefined);
-  //     return Object.fromEntries(newComp);
-  //   };
-  //   if (Array.isArray(obj)) {
-  //     return obj.map(nameOne);
-  //   }
-  //   if (obj instanceof Set) {
-  //     return new Set([...obj].map(nameOne));
-  //   }
-  //   if (typeof obj === "number") {
-  //     return nameOne(obj);
-  //   }
-  //   if (obj !== undefined) {
-  //     try {
-  //       const entries = Object.entries(obj).map(([k, v]) => [
-  //         k,
-  //         !excludedKeys.includes(k)
-  //           ? k !== "computations"
-  //             ? this.naming(v)
-  //             : nameComp(v as unknown[])
-  //           : v
-  //       ]);
-  //       return Object.fromEntries(entries);
-  //     } catch (_) {
-  //       return obj;
-  //     }
-  //   } else undefined;
-  // }
 
   /**
    * Recompute other updated cells when cells `ids` are updated.
