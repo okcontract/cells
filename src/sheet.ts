@@ -17,10 +17,10 @@ import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { SheetProxy } from "./proxy";
 import type { AnyCellArray } from "./types";
 
-type Computations<V> = Record<
-  number,
-  Pending<V | Canceled, true> | CellResult<V | Canceled, true>
->;
+type Computations<V> = (
+  | Pending<V | Canceled, true>
+  | CellResult<V | Canceled, true>
+)[];
 type IterationResult<V> = {
   computations: Computations<V>;
   updated: Set<number>;
@@ -506,7 +506,7 @@ export class Sheet {
       );
     };
 
-    const computations: Computations<V> = {};
+    const computations: Computations<V> = [];
     const release = this.working.startNewComputation();
     for (const id of roots) {
       computations[id] = dispatch(
@@ -617,7 +617,7 @@ export class Sheet {
     // Form now on, we need updatable pointers to be up-to-date to continue
     const newComputations = this.computeUpdatable(toBeRecomputed, computations);
     const borderComputation = dispatchPromiseOrValueArray(
-      Object.values(newComputations),
+      newComputations,
       // wait for all new computations to be over before proceeding to the next step
       (newComputations) => {
         // finding all canceled computations
@@ -649,7 +649,7 @@ export class Sheet {
       borderComputation,
       ({ computationsOfBorder, nextIteration }) => {
         return dispatchPromiseOrValueArray(
-          Object.values(computationsOfBorder),
+          computationsOfBorder,
           (computationsOfBorder) => {
             //checking for canceled computations
             this.registerCancelAndDone(
@@ -826,7 +826,7 @@ export class Sheet {
   ): Computations<V> {
     const order = toBeRecomputed.slice(); // slice copies the array
     let currentCellId: number | undefined;
-    const newComputations = {};
+    const newComputations = [];
 
     // biome-ignore lint/suspicious/noAssignInExpressions: shorter, still explicit
     while ((currentCellId = order.pop()) !== undefined) {
