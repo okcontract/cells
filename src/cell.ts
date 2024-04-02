@@ -192,6 +192,7 @@ export class Cell<
    * optional key for localStorage persistence.
    */
   protected _storageKey: string | undefined;
+  readonly _proxy: number;
 
   constructor(
     sheet: Sheet | SheetProxy,
@@ -209,6 +210,7 @@ export class Cell<
     this._lastStateIsError = false;
     this._noFail = options.noFail;
     this._isPointer = true;
+    this._proxy = sheet.id;
     // console.log(`Cell ${id}: `, "constructed")
   }
 

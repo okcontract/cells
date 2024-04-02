@@ -36,9 +36,14 @@ type updateRecResult<V> = {
   done: Set<number>;
   canceled: Set<number>;
 };
-/** sheet count name */
+
+/** sheet count */
 const count = Symbol();
+/** sheet size */
 const size = Symbol();
+/** proxy count */
+const proxies = Symbol();
+
 /**
  * Sheet are a set of Cells.
  *
@@ -48,7 +53,6 @@ const size = Symbol();
  * @todo Ensure that if to update are triggered concurrently from two different cells,
  *       the final state of cells that depend on the is coherent.
  */
-
 export class Sheet {
   /**
    * for debugging
@@ -121,11 +125,22 @@ export class Sheet {
     this._pointers = new Graph();
     this[count] = 0;
     this[size] = 0;
+    this[proxies] = 0;
     this.equals = equality;
     this._marshaller = marshaller;
     this.working = new Working();
     this.errors = new CellErrors();
     this._gc = new Set();
+  }
+
+  // a Sheet has id 0, proxies > 0
+  get id() {
+    return 0;
+  }
+
+  incrementProxyCount() {
+    this[proxies]++;
+    return this[proxies]; // keeping 0 as original Sheet
   }
 
   bless(id: number, name: string) {

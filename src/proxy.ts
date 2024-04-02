@@ -9,10 +9,10 @@ import type { AnyCellArray } from "./types";
  */
 export class SheetProxy {
   _sheet: Sheet;
-  // @todo use
-  // private _name: string;
   /** locally created cells */
   private _list: AnyCell<unknown>[];
+  readonly _id: number;
+  readonly _name: string;
 
   working: Working;
 
@@ -24,11 +24,16 @@ export class SheetProxy {
       throw new Error("no sheet");
     }
     this._sheet = sh;
-    // if (name) this._name = name;
     this._list = [];
     this.working = new Working(sh.working);
-
     this.errors = new CellErrors(sh.errors);
+    if (name) this._name = name;
+    this._id = sh.incrementProxyCount();
+  }
+
+  // a Sheet has id 0, proxies > 0
+  get id() {
+    return this._id;
   }
 
   bless(id: number, name: string) {
