@@ -28,7 +28,7 @@ export class SheetProxy {
     this.working = new Working(sh.working);
     this.errors = new CellErrors(sh.errors);
     if (name) this._name = name;
-    this._id = sh.incrementProxyCount();
+    this._id = sh.addProxy();
   }
 
   // a Sheet has id 0, proxies > 0
@@ -182,6 +182,7 @@ export class SheetProxy {
     // @ts-expect-error conflict with overloaded definitions
     const cell = this._sheet.map(dependencies, computeFn, name, this, noFail);
     this._list.push(cell);
+    this._sheet.addProxyDependencies(this._id, dependencies);
     return cell as MapCell<V, NF>;
   }
 
@@ -207,6 +208,7 @@ export class SheetProxy {
       noFail
     );
     this._list.push(cell);
+    this._sheet.addProxyDependencies(this._id, dependencies);
     return cell;
   }
 

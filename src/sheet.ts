@@ -113,6 +113,8 @@ export class Sheet {
   /** Cells that can be garbage collected */
   private _gc: Set<number>;
 
+  private _proxies: Graph<number>;
+
   /**
    * @param equality function comparing a new value with previous value for updates
    */
@@ -131,6 +133,8 @@ export class Sheet {
     this.working = new Working();
     this.errors = new CellErrors();
     this._gc = new Set();
+    this._proxies = new Graph();
+    this._proxies.addNode(0);
   }
 
   // a Sheet has id 0, proxies > 0
@@ -138,9 +142,22 @@ export class Sheet {
     return 0;
   }
 
-  incrementProxyCount() {
+  addProxy() {
+    // keeping 0 as original Sheet
     this[proxies]++;
-    return this[proxies]; // keeping 0 as original Sheet
+    const id = this[proxies];
+    this._proxies.addNode(id);
+    return id;
+  }
+
+  addProxyEdge(from: number, to: number) {
+    this._proxies.addEdge(from, to);
+  }
+  addProxyDependencies(id: number, deps: AnyCellArray<unknown[]>) {
+    for (const dep of deps)
+      if (dep._proxy !== id) this.addProxyEdge(dep._proxy, id);
+    if (this._proxies.topologicalSort() === null)
+      this.debug(undefined, "proxy cycle", { proxy: id, deps });
   }
 
   bless(id: number, name: string) {
