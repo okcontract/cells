@@ -4,7 +4,7 @@ import { expect, test } from "vitest";
 import { _cellify, _uncellify } from "./cellify";
 import { Debugger } from "./debug";
 import { isEqual } from "./isEqual.test";
-import { cellifyObject, mapObject, reduceObject } from "./object";
+import { asyncReduce, cellifyObject, mapObject, reduceObject } from "./object";
 import { delayed } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
@@ -51,25 +51,44 @@ test("mapObject", async () => {
   expect(sheet.stats).toEqual({ count: 10, size: 9 }); // gc works
 });
 
-test("reduceObject", async () => {
-  const sheet = new Sheet();
-  const proxy = new SheetProxy(sheet);
-
-  const l = _cellify(proxy, { a: 1, b: 2, c: 3 });
-  const v = reduceObject(proxy, l, (acc, [_key, v]) => acc + (v as number), 0);
-  await expect(v.get()).resolves.toBe(6);
-  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // 3+1 array +1 sum +1 pointer
-
-  // update one cell
-  await (await l.get()).a.set(4);
-  await expect(v.get()).resolves.toBe(9);
-  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // unchanged
-
-  // add one cell
-  l.update((obj) => ({ ...obj, d: proxy.new(5) }));
-  await expect(v.get()).resolves.toBe(14);
-  expect(sheet.stats).toEqual({ count: 8, size: 7 }); // +1 cell, update pointer
+test("asyncReduce", async () => {
+  await expect(
+    asyncReduce([1, 2, 3], (acc, v) => delayed(acc + v, 10), 0)
+  ).resolves.toBe(6);
 });
+
+test(
+  "reduceObject",
+  async () => {
+    const sheet = new Sheet();
+    const debug = new Debugger(sheet);
+    const proxy = new SheetProxy(sheet);
+
+    const l = _cellify(proxy, { a: 1, b: 2, c: 3 });
+    const v = reduceObject(
+      proxy,
+      l,
+      async (acc, _key, v) => delayed(acc + (v as number), 1),
+      0
+    );
+    writeFileSync("reduceObject1.dot", debug.dot("reduceObject before"));
+    await expect(v.consolidatedValue).resolves.toBe(6);
+    expect(sheet.stats).toEqual({ count: 6, size: 6 }); // 3+1 array +1 sum +1 pointer
+
+    // update one cell
+    await (await l.get()).a.set(4);
+    await expect(v.consolidatedValue).resolves.toBe(9);
+    writeFileSync("reduceObject2.dot", debug.dot("reduceObject after update"));
+    expect(sheet.stats).toEqual({ count: 6, size: 6 }); // unchanged
+
+    // add one cell
+    l.update((obj) => ({ ...obj, d: proxy.new(5, "n:5") }));
+    await expect(v.consolidatedValue).resolves.toBe(14);
+    writeFileSync("reduceObject3.dot", debug.dot("reduceObject after add"));
+    expect(sheet.stats).toEqual({ count: 8, size: 7 }); // +1 cell, update pointer
+  },
+  { timeout: 1000 }
+);
 
 test("cellifyObject", async () => {
   const sheet = new Sheet(isEqual);

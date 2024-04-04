@@ -3,16 +3,20 @@ import { collector } from "./gc";
 import type { SheetProxy } from "./proxy";
 
 // @todo introduce a type variable that is a sum type of all possible field types?
-export type CellObject = AnyCell<Record<string, AnyCell<unknown>>>;
+export type CellObject<T> = AnyCell<Record<string, AnyCell<T>>>;
 
 /**
  * mapObject applies a function to a CellObject.
  */
 export const mapObject = <NF extends boolean = false>(
   proxy: SheetProxy,
-  obj: CellObject,
+  obj: CellObject<unknown>,
   // @todo return type
-  fn: (key: string, value: unknown) => unknown | Promise<unknown>,
+  fn: (
+    key: string,
+    value: unknown,
+    valueCell: AnyCell<unknown>
+  ) => unknown | Promise<unknown>,
   name = "mapObject",
   nf?: NF
 ): MapCell<Record<string, AnyCell<unknown>>, NF> =>
@@ -29,7 +33,7 @@ export const mapObject = <NF extends boolean = false>(
           // console.log({ k, reuse, prev: prev?.[k]?.id });
           return [
             k,
-            reuse ? prev[k] : proxy.map([v], (_v) => fn(k, _v), `[${k}]`)
+            reuse ? prev[k] : proxy.map([v], (_v) => fn(k, _v, v), `[${k}]µ`)
           ];
         })
       );
@@ -41,14 +45,34 @@ export const mapObject = <NF extends boolean = false>(
     nf
   );
 
-export const reduceObject = <
-  T,
-  R extends unknown | Promise<unknown>,
-  NF extends boolean = false
->(
+export const asyncReduce = async <T, U>(
+  array: T[],
+  reducer: (
+    accumulator: U,
+    currentValue: T,
+    currentIndex: number,
+    array: T[]
+  ) => U | Promise<U>,
+  initialValue: U
+): Promise<U> => {
+  let acc: U = initialValue;
+  for (let index = 0; index < array.length; index++) {
+    acc = await reducer(acc, array[index], index, array);
+    // console.log({ acc });
+  }
+  return acc;
+};
+
+export const reduceObject = <T, R, NF extends boolean = false>(
   proxy: SheetProxy,
-  obj: CellObject,
-  fn: (acc: R, elt: [string, unknown], index?: number) => R,
+  obj: CellObject<T>,
+  fn: (
+    acc: R,
+    key: string,
+    value: T,
+    cell?: AnyCell<T>,
+    index?: number
+  ) => R | Promise<R>,
   init: R,
   name = "reduceObject",
   nf?: NF
@@ -59,16 +83,18 @@ export const reduceObject = <
     (cells) => {
       const keys = Object.keys(cells);
       const values = Object.values(cells);
+      // console.log({ reduce: keys, name, count: proxy._sheet.stats.count });
       return coll(
         proxy.mapNoPrevious(
           values,
           (..._cells) =>
-            _cells.reduce(
-              (acc, _cell, i) => fn(acc as R, [keys[i], _cell], i),
+            asyncReduce(
+              _cells,
+              (acc, _cell, i) => fn(acc, keys[i], _cell, values[i], i),
               init
             ),
           "_reduce"
-        ) as MapCell<R, NF>
+        )
       );
     },
     name,
@@ -76,11 +102,11 @@ export const reduceObject = <
   );
 };
 
-export const cellifyObject = <Obj extends AnyCell<Record<string, unknown>>>(
+export const cellifyObject = <T, Obj extends AnyCell<Record<string, T>>>(
   proxy: SheetProxy,
   obj: Obj,
   name = "çObj"
-): MapCell<Record<string, ValueCell<unknown>>, true> => {
+): MapCell<Record<string, ValueCell<T>>, true> => {
   const set = <T>(c: ValueCell<T>, v: T): ValueCell<T> => {
     c.set(v);
     return c;
