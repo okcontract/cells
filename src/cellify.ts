@@ -21,6 +21,13 @@ export type Uncellified<T> = T extends AnyCell<infer U>
     : U
   : T;
 
+// @todo is type only if true
+// exclude classes
+export const isObject = <K extends string | number | symbol>(
+  v: unknown
+): v is Record<K, unknown> =>
+  typeof v === "object" && v !== null && v.constructor?.name === "Object";
+
 /**
  * cellify converts any value to a Cellified value where each array or record
  * becomes a Cell in canonical form.
@@ -34,9 +41,7 @@ export const _cellify = <T>(proxy: SheetProxy, v: T): Cellified<T> => {
   return proxy.new(
     Array.isArray(v)
       ? v.map((vv) => _cellify(proxy, vv), "cellify.[]")
-      : typeof v === "object" &&
-          v !== null &&
-          v.constructor.prototype === Object.prototype // exclude classes
+      : isObject(v)
         ? Object.fromEntries(
             Object.entries(v).map(
               ([k, vv]) => [k, _cellify(proxy, vv)],
@@ -62,11 +67,7 @@ export const _uncellify = async <T>(
     return Promise.all(
       value.map(async (_element) => await _uncellify(_element))
     ) as Promise<Uncellified<T>>;
-  if (
-    typeof value === "object" &&
-    value !== null &&
-    value.constructor.prototype === Object.prototype // exclude classes
-  )
+  if (isObject(value))
     return Object.fromEntries(
       await Promise.all(
         Object.entries(value).map(async ([k, vv]) => [k, await _uncellify(vv)])

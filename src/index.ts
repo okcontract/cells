@@ -41,6 +41,13 @@ export {
   reduce,
   sort
 } from "./array";
+export {
+  _cellify,
+  _uncellify,
+  isObject,
+  type Cellified,
+  type Uncellified
+} from "./cellify";
 export { Debugger } from "./debug";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
