@@ -1,4 +1,5 @@
-import { AnyCell, Cell, ValueCell } from "./cell";
+import { AnyCell, Cell, MapCell, ValueCell } from "./cell";
+import { collector } from "./gc";
 import { SheetProxy } from "./proxy";
 
 // Cellified computes a cellified type.
@@ -75,4 +76,34 @@ export const _uncellify = async <T>(
     );
   // Classes, null or base types (string, number, ...)
   return value as Uncellified<T>;
+};
+
+export type Path = (string | number)[];
+
+/**
+ * follow a static path for a Cellified value.
+ */
+export const follow = (
+  proxy: SheetProxy,
+  v: Cellified<unknown>,
+  path: Path,
+  name = "follow"
+) => {
+  const aux = (v: Cellified<unknown>, path: Path, name: string) => {
+    // @todo multi collector?
+    const coll = collector<MapCell<unknown, false>>(proxy);
+    return proxy.map(
+      [v],
+      (_v) => {
+        const key = path[0];
+        const isContainer = Array.isArray(_v) || isObject(_v);
+        if (isContainer && _v[key])
+          return coll(aux(_v[key], path.slice(1), `${name}.${key}`));
+        if (isContainer) throw new Error(`path not found: ${key}`);
+        return _v; // pointer
+      },
+      name
+    );
+  };
+  return aux(v, path, name);
 };

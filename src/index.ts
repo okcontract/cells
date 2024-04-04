@@ -44,8 +44,10 @@ export {
 export {
   _cellify,
   _uncellify,
+  follow,
   isObject,
   type Cellified,
+  type Path,
   type Uncellified
 } from "./cellify";
 export { Debugger } from "./debug";
