@@ -795,8 +795,11 @@ export class Sheet {
   }
 
   private dependentCells(id) {
-    return Array.from(new Set([...this.g.get(id), ...this._pointers.get(id)]));
+    return Array.from(
+      new Set([...(this.g.get(id) || []), ...this._pointers.get(id)])
+    );
   }
+
   /**
    * Computes the cells that can be safely computed.
    * Safely means that their dependencies will not change until an external modification occurs.
