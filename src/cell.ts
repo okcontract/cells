@@ -1,7 +1,7 @@
-const DEV = false;
 const DEBUG_RANK = false;
 
 import { CellError } from "./errors";
+import { simplifier } from "./printer";
 import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
@@ -47,10 +47,10 @@ export type PendingArray<V, CanBeError> = Promise<
 >;
 
 /** Array of (maybe pending) computation results */
-export type MaybePendingDict<V, CanBeError> = (
-  | PendingMaybe<V, CanBeError>
-  | MaybeResultOrPointer<V, CanBeError>
-)[];
+export type MaybePendingDict<V, CanBeError> = Record<
+  number,
+  PendingMaybe<V, CanBeError> | MaybeResultOrPointer<V, CanBeError>
+>;
 
 export type Not<T extends boolean> = T extends true ? false : true;
 
@@ -61,12 +61,14 @@ export type OnlyA<A extends boolean, B extends boolean> = A extends true
   : false;
 
 abstract class SubscribeBench<V> {
+  readonly _debug = false;
   protected _subscribers: [(value: V) => void, number][] = [];
   protected abstract value: V;
 
   get name(): string {
     return "Unextended Subscriber";
   }
+
   /**
    * subscribe to changes in the cell value
    * @param run the subscriber callback
@@ -76,13 +78,13 @@ abstract class SubscribeBench<V> {
    */
   public subscribe(
     runRaw: (value: V) => void,
-    invalidate?: (value?: V) => void
+    _invalidate?: (value?: V) => void
   ): () => void {
     // initial run if value is defined
     const value = this.value;
     const id = generateFreshId();
     const run = (v: V) => {
-      DEV &&
+      this._debug &&
         console.log({
           RunSubscriberOfCell: this.name,
           subscriber: id,
@@ -129,7 +131,7 @@ abstract class SubscribeBench<V> {
    * @description notifies only if the value is defined (hStore semantics) and not an error
    */
   _notifySubscribers() {
-    DEV &&
+    this._debug &&
       console.log({
         NotifySubscribersOfCell: this.name,
         subscribers: this._subscribers,
@@ -180,7 +182,7 @@ export class Cell<
   protected _currentComputationRank = 0;
 
   protected _pending_: PendingMaybe<V, MaybeError> | undefined;
-  private _pendingRank: number = null;
+  private _pendingRank: number | null = null;
   private _pendingResolve = (_: MaybeResultOrPointer<V, MaybeError>) => {};
 
   protected _lastStateIsError: boolean;
@@ -190,6 +192,7 @@ export class Cell<
    * optional key for localStorage persistence.
    */
   protected _storageKey: string | undefined;
+  readonly _proxy: number;
 
   constructor(
     sheet: Sheet | SheetProxy,
@@ -207,6 +210,7 @@ export class Cell<
     this._lastStateIsError = false;
     this._noFail = options.noFail;
     this._isPointer = true;
+    this._proxy = sheet.id;
     // console.log(`Cell ${id}: `, "constructed")
   }
 
@@ -224,12 +228,11 @@ export class Cell<
    * @param newPointed
    */
   setPointed(newPointed: number | null): void {
-    DEV &&
-      console.log("setPointed:", {
-        cell: this.name,
-        newPointed,
-        currentlyPointed: this._pointed
-      });
+    this.sheet.debug([this.id], "setPointed:", {
+      cell: this.name,
+      newPointed,
+      currentlyPointed: this._pointed
+    });
     if (newPointed !== this._pointed) {
       this.sheet._updatePointer(
         this.id,
@@ -247,11 +250,10 @@ export class Cell<
    * @param newPointed
    */
   unsetPointed(): void {
-    DEV &&
-      console.log("unsetPointed:", {
-        cell: this.name,
-        currentlyPointed: this._pointed
-      });
+    this.sheet.debug([this.id], "unsetPointed:", {
+      cell: this.fullName,
+      currentlyPointed: this._pointed
+    });
     this.sheet._updatePointer(this.id, this.pointed, undefined);
     this._isPointer = false;
     this._pointed = undefined;
@@ -269,7 +271,6 @@ export class Cell<
   /** Give a [name] to the cell */
   bless(name: string) {
     this._sheet.bless(this.id, name);
-    DEV && console.log(`Cell ${this.id} name is  ${name} - ${this.name}`);
   }
 
   get name(): string {
@@ -377,12 +378,11 @@ export class Cell<
    * this will never end.
    */
   get consolidatedValue(): Pending<V, MaybeError> | CellResult<V, MaybeError> {
-    DEV &&
-      console.log("consolidatedValue Call: ", {
-        cell: this.name,
-        valueRank: this._valueRank,
-        currentComputationRank: this._currentComputationRank
-      });
+    this.sheet.debug([this.id], "consolidatedValue Call: ", {
+      cell: this.fullName,
+      valueRank: this._valueRank,
+      currentComputationRank: this._currentComputationRank
+    });
 
     if (this._valueRank === this._currentComputationRank) {
       if (this.isPointer)
@@ -420,15 +420,17 @@ export class Cell<
   get consolidatedValueWthUndefined():
     | Pending<V, MaybeError>
     | CellResult<V, MaybeError> {
-    DEV &&
-      console.log("consolidatedValueWthUndefined Call:", {
-        cell: this.name,
-        valueRank: this._valueRank,
-        currentComputationRank: this._currentComputationRank
-      });
+    this.sheet.debug([this.id], "consolidatedValueWthUndefined Call:", {
+      cell: this.name,
+      valueRank: this._valueRank,
+      currentComputationRank: this._currentComputationRank
+    });
 
     if (this._valueRank === this._currentComputationRank) {
       if (this.isPointer) {
+        this.sheet.debug([this.id], "consolidatedValueWthUndefined", {
+          isPointer: this.isPointer
+        });
         // @ts-expect-error Cell<V>
         return this.v === undefined || this.v === null
           ? this.v
@@ -442,13 +444,15 @@ export class Cell<
 
     const pending: PendingMaybe<V, MaybeError> = this._pending_;
     if (pending === undefined) {
-      console.error(
-        "Pending undefined although compRak differs from value rank",
-        this.sheet.naming({
+      this.sheet.debug(
+        undefined,
+        "Pending undefined although compRank differs from value rank",
+        {
           cell: this.id,
           valueRank: this._valueRank,
           compRank: this._currentComputationRank
-        })
+        },
+        console.error
       );
       return undefined;
     }
@@ -473,7 +477,7 @@ export class Cell<
   get consolidatedError(): Error {
     //@todo, what about pointers (is pointing to an error, an error ?)
     //@ts-expect-error Don't know why this error pops after intro of pointers
-    return dispatch(this.consolidatedValue, (value) =>
+    return dispatch(this.consolidatedValue, (_value) =>
       this.v instanceof Error ? this.v : undefined
     );
   }
@@ -500,15 +504,18 @@ export class Cell<
     update: boolean,
     skipSubscribers = false
   ): void {
-    DEV &&
-      console.log(`Cell ${this.name}: `, `Trying to set to ${newValue}`, {
+    this.sheet.debug(
+      [this.id],
+      `Cell ${this.name} (${this.id}) <== ${newValue}`,
+      {
         currentValue: this.value,
         currentCompRank: this._currentComputationRank,
         currentValueRank: this._valueRank,
         newValueRank: computationRank
-      });
+      }
+    );
     if (newValue === undefined) {
-      DEV && console.trace();
+      this.sheet.debug([this.id], "newValue undefined", {}, console.trace);
       // if the value to be set is 'undefined',
       // the value is ignored.
       // we should make the cell invalid (ie we don't set valueRank to computationRank),
@@ -524,25 +531,24 @@ export class Cell<
 
     // Invalidation for outdated computation
     if (computationRank < this._valueRank) {
-      DEV &&
-        console.warn(
-          `Cell ${this.name}: `,
-          `setting to ${newValue} has been invalidated`,
-          {
-            currentRank: this._currentComputationRank,
-            newValueRank: computationRank
-          }
-        );
+      this.sheet.debug(
+        [this.id],
+        `Cell ${this.fullName} <== ${newValue} has been invalidated`,
+        {
+          currentRank: this._currentComputationRank,
+          newValueRank: computationRank
+        },
+        console.warn
+      );
       return;
     }
 
     const needUpdate = !this._sheet.equals(this.v, newValue);
-    DEV &&
-      console.log(`Cell ${this.name}: `, `Actually setting to ${newValue}`, {
-        currentValue: this.value,
-        currentRank: this._currentComputationRank,
-        newValueRank: computationRank
-      });
+    this.sheet.debug([this.id], `Cell ${this.name} <== ${newValue}`, {
+      currentValue: simplifier(this.value),
+      currentRank: this._currentComputationRank,
+      newValueRank: computationRank
+    });
     this.v = newValue;
     this._valueRank = computationRank;
     // Update localStorage if set.
@@ -550,12 +556,19 @@ export class Cell<
       try {
         const j = this.sheet._marshaller(newValue);
         localStorage.setItem(this._storageKey, j);
-        DEV && console.log("ValueCell", { set: j, key: this._storageKey });
+        this.sheet.debug([this.id], "ValueCell", {
+          set: j,
+          key: this._storageKey
+        });
       } catch (_) {
-        DEV &&
-          console.log("ValueCell: LocalStorage not available", {
+        this.sheet.debug(
+          [this.id],
+          "ValueCell: LocalStorage not available",
+          {
             key: this._storageKey
-          });
+          },
+          console.warn
+        );
       }
     }
     if (this.v instanceof Error && !(this.v instanceof CellError)) {
@@ -713,12 +726,19 @@ export class ValueCell<V> extends Cell<V, false, false> {
     if (options?._storageKey) {
       try {
         const item = localStorage.getItem(options?._storageKey);
-        DEV && console.log("ValueCell", { id, options, item });
+        this.sheet.debug([this.id], "ValueCell", { id, options, item });
         if (item !== null) value = JSON.parse(item) as V;
         this._storageKey = options?._storageKey;
       } catch (_) {
-        DEV &&
-          console.log("ValueCell: LocalStorage not available", { id, options });
+        this.sheet.debug(
+          [this.id],
+          "ValueCell: LocalStorage not available",
+          {
+            id,
+            options
+          },
+          console.warn
+        );
       }
     }
 
@@ -744,7 +764,10 @@ export class ValueCell<V> extends Cell<V, false, false> {
   public set(
     value: AnyCell<V> | Promise<AnyCell<V>> | V | Promise<V>
   ): void | Promise<void> {
-    DEV && console.log("Setting cell value", { cell: this.name, value });
+    this.sheet.debug([this.id], "Setting cell value", {
+      cell: this.fullName,
+      value
+    });
     this._currentComputationRank += 1;
     const computationRank = this._currentComputationRank;
 
@@ -850,7 +873,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
     dependencies: AnyCell<V>[],
     usePreviousValue: boolean,
     noFail?: NF, // noFail indicates the computeFn
-    isVolatile = false // @todo volatile functions like NOW() must be recomputed all the time
+    _isVolatile = false // @todo volatile functions like NOW() must be recomputed all the time
   ) {
     super(
       sheet,
@@ -860,7 +883,8 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
     );
     this._computeFn = computeFn;
     this._usePreviousValue = usePreviousValue;
-    const comp = this._computeValue([], true);
+    // const comp =
+    this._computeValue([], true);
     // no need to notify, there are no subscribers
     // @todo or should we, if initial computation is long, subscriber can come concurrently
   }
@@ -875,6 +899,11 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
     [key: number]: PendingMaybe<V, boolean> | MaybeResultOrPointer<V, boolean>;
   }): PendingArray<V, boolean> | MaybeResultOrPointer<V, boolean>[] {
     const deps: (PendingMaybe<V, boolean> | V)[] = [];
+    this.sheet.debug([this.id], "gathering deps values", {
+      id: this.id,
+      deps: this.dependencies,
+      provided
+    });
     // getting all deps
     // console.log(
     //   `Cell ${this.id}: gathering deps values from ${this.dependencies}, first looking into ${provided}`
@@ -935,11 +964,11 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
         false,
         false
       );
-      DEV &&
-        console.log(
-          "Cancel Computation on canceled parameter",
-          this.sheet.naming({ paramsResults, firstCanceled, cell: this.id })
-        );
+      // this.sheet._debug &&
+      console.warn(
+        "cancelled",
+        simplifier({ paramsResults, firstCanceled, cell: this.id })
+      );
       return cancelComputation;
     }
     // set to CellError when depending on an Error
@@ -1078,11 +1107,10 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
           V | Canceled,
           Not<NF>
         > = computed instanceof Promise ? computed : Promise.resolve(computed);
-        DEV &&
-          console.log(`_computeValue in cell ${this.name}: `, {
-            computed,
-            pendingComputation
-          });
+        this.sheet.debug([this.id], `_computeValue in cell ${this.name}: `, {
+          computed: simplifier(computed),
+          pendingComputation: simplifier(pendingComputation)
+        });
         this.setPendingComputation(computationRank, pendingComputation);
         return computed;
       } catch (error) {
@@ -1101,7 +1129,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
 
 export class Working extends SubscribeBench<boolean> {
   protected value = false;
-  private pending: Promise<void> = Promise.resolve();
+  // private pending: Promise<void> = Promise.resolve();
   private _onGoingComputation: Promise<void> = Promise.resolve();
   private _onGoingComputationCount = 0;
   private resolve = () => {};

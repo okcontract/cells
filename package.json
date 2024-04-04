@@ -20,7 +20,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@okcontract/graph": "0.1.3"
+    "@okcontract/graph": "0.1.4"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
