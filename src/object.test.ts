@@ -62,6 +62,7 @@ test(
   async () => {
     const sheet = new Sheet();
     const debug = new Debugger(sheet);
+    debug.w(5);
     const proxy = new SheetProxy(sheet);
 
     const l = _cellify(proxy, { a: 1, b: 2, c: 3 });

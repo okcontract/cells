@@ -782,7 +782,9 @@ export class Sheet {
   }
 
   private dependentCells(id: number) {
-    return Array.from(new Set([...this.g.get(id), ...this._pointers.get(id)]));
+    return Array.from(
+      new Set([...(this.g.get(id) || []), ...this._pointers.get(id)])
+    );
   }
 
   /**
