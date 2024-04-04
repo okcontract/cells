@@ -81,7 +81,7 @@ export const reduceObject = <T, R, NF extends boolean = false>(
   nf?: NF
 ): MapCell<R, NF> => {
   const coll = collector<MapCell<R, NF>>(proxy);
-  return proxy.map(
+  return proxy.mapNoPrevious(
     [obj],
     (cells) => {
       const keys = Object.keys(cells);
