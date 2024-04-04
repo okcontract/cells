@@ -58,11 +58,14 @@ export const asyncReduce = async <T, U>(
   let acc: U = initialValue;
   for (let index = 0; index < array.length; index++) {
     acc = await reducer(acc, array[index], index, array);
-    // console.log({ acc });
   }
   return acc;
 };
 
+/**
+ * reduceObject applies the reducer function `fn` for each
+ * element in `obj`, starting from `init` value.
+ */
 export const reduceObject = <T, R, NF extends boolean = false>(
   proxy: SheetProxy,
   obj: CellObject<T>,
@@ -99,30 +102,5 @@ export const reduceObject = <T, R, NF extends boolean = false>(
     },
     name,
     nf
-  );
-};
-
-export const cellifyObject = <T, Obj extends AnyCell<Record<string, T>>>(
-  proxy: SheetProxy,
-  obj: Obj,
-  name = "çObj"
-): MapCell<Record<string, ValueCell<T>>, true> => {
-  const set = <T>(c: ValueCell<T>, v: T): ValueCell<T> => {
-    c.set(v);
-    return c;
-  };
-  return proxy.map(
-    [obj],
-    (_obj, prev) => {
-      // @todo delete unused cells
-      return Object.fromEntries(
-        Object.entries(_obj).map(([k, v]) => [
-          k,
-          prev?.[k] ? set(prev[k], v) : proxy.new(v, `${name}[${k}]`)
-        ])
-      );
-    },
-    name,
-    true
   );
 };

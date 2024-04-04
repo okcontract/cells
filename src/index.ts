@@ -44,4 +44,4 @@ export {
 export { Debugger } from "./debug";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
-export { cellifyObject, mapObject, reduceObject } from "./object";
+export { asyncReduce, mapObject, reduceObject } from "./object";
