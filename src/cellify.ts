@@ -100,7 +100,7 @@ export const follow = (
         if (isContainer && _v[key])
           return coll(aux(_v[key], path.slice(1), `${name}.${key}`));
         if (isContainer) throw new Error(`path not found: ${key}`);
-        return _v; // pointer
+        return v; // pointer
       },
       name
     );
