@@ -63,7 +63,7 @@ export const _cellify = <T>(proxy: SheetProxy, v: T): Cellified<T> => {
 export const _uncellify = async <T>(
   v: T | AnyCell<T>
 ): Promise<Uncellified<T>> => {
-  const value = v instanceof Cell ? await v.get() : v;
+  const value = v instanceof Cell ? await v.consolidatedValue : v;
   if (value instanceof Error) throw value;
   if (Array.isArray(value))
     return Promise.all(
