@@ -18,7 +18,7 @@ export type CellArray<T> = AnyCell<AnyCell<T>[]>;
 export const mapArray = <T, U>(
   proxy: SheetProxy,
   arr: CellArray<T>,
-  fn: (v: T, index?: number) => U | Promise<U>,
+  fn: (v: T, index?: number) => U | Promise<U | AnyCell<U>> | AnyCell<U>,
   name = "map"
 ): MapCell<MapCell<U, false>[], false> =>
   proxy.map(
