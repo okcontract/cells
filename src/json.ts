@@ -1,4 +1,5 @@
 import { Cell } from "./cell";
+import { isObject } from "./cellify";
 
 const errorCell = new Error("cell");
 
@@ -31,6 +32,8 @@ export const jsonStringify = <T>(
           out += "null";
           break;
         }
+        // use toString for classes
+        if (!isObject(v)) out += JSON.stringify(v.toString());
         out += "{";
         let first = true;
         // sort objects alphabetically
