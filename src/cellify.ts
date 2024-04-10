@@ -36,7 +36,11 @@ export const isObject = <K extends string | number | symbol>(
  * @returns
  * @todo cell reuses
  */
-export const _cellify = <T>(proxy: SheetProxy, v: T): Cellified<T> => {
+export const _cellify = <T>(
+  proxy: SheetProxy,
+  v: T,
+  name = "cellify"
+): Cellified<T> => {
   if (v instanceof Cell) throw new Error("cell");
   return proxy.new(
     Array.isArray(v)
@@ -45,13 +49,10 @@ export const _cellify = <T>(proxy: SheetProxy, v: T): Cellified<T> => {
           v !== null &&
           v.constructor.prototype === Object.prototype // exclude classes
         ? Object.fromEntries(
-            Object.entries(v).map(
-              ([k, vv]) => [k, _cellify(proxy, vv)],
-              "cellify.{}"
-            )
+            Object.entries(v).map(([k, vv]) => [k, _cellify(proxy, vv)], "ç{}")
           )
         : v,
-    "cellify"
+    name
   ) as Cellified<T>;
 };
 
