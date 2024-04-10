@@ -1,6 +1,6 @@
-import { AnyCell, Cell, MapCell, ValueCell } from "./cell";
+import { type AnyCell, Cell, type MapCell, type ValueCell } from "./cell";
 import { collector } from "./gc";
-import { SheetProxy } from "./proxy";
+import type { SheetProxy } from "./proxy";
 
 // Cellified computes a cellified type.
 export type Cellified<T> = T extends object

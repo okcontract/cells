@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
 
 import {
-  Cellified,
-  Uncellified,
+  type Cellified,
+  type Uncellified,
   _cellify,
   _uncellify,
   follow

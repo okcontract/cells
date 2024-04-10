@@ -1,6 +1,12 @@
-import { type AnyCell, CellErrors, MapCell, ValueCell, Working } from "./cell";
+import {
+  type AnyCell,
+  CellErrors,
+  type MapCell,
+  type ValueCell,
+  Working
+} from "./cell";
 import { dispatch } from "./promise";
-import { Sheet } from "./sheet";
+import type { Sheet } from "./sheet";
 import type { AnyCellArray } from "./types";
 
 /**

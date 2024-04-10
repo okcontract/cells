@@ -39,7 +39,8 @@ export {
   mapArray,
   mapArrayCell,
   reduce,
-  sort
+  sort,
+  type CellArray
 } from "./array";
 export {
   _cellify,
@@ -53,4 +54,9 @@ export {
 export { Debugger } from "./debug";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
-export { asyncReduce, mapObject, reduceObject } from "./object";
+export {
+  asyncReduce,
+  mapObject,
+  reduceObject,
+  type CellObject
+} from "./object";
