@@ -1,4 +1,4 @@
-import { writeFileSync } from "fs";
+import { writeFileSync } from "node:fs";
 import { expect, test } from "vitest";
 
 import { _cellify, _uncellify } from "./cellify";

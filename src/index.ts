@@ -41,7 +41,14 @@ export {
   reduce,
   sort
 } from "./array";
+export { _cellify, _uncellify, isObject } from "./cellify";
 export { Debugger } from "./debug";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
-export { asyncReduce, mapObject, reduceObject } from "./object";
+export {
+  asyncReduce,
+  mapObject,
+  reduceObject,
+  type CellObject
+} from "./object";
+export { simplifier } from "./printer";

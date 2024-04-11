@@ -4,8 +4,8 @@ import { CellError } from "./errors";
 import { simplifier } from "./printer";
 import { dispatch, dispatchPromiseOrValueArray } from "./promise";
 import { SheetProxy } from "./proxy";
-import { Sheet } from "./sheet";
-import { type Unsubscriber } from "./types";
+import type { Sheet } from "./sheet";
+import type { Unsubscriber } from "./types";
 
 let idCounter = 0;
 

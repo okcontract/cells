@@ -1,4 +1,4 @@
-import { type AnyCell, MapCell, ValueCell } from "./cell";
+import { type AnyCell, type MapCell, ValueCell } from "./cell";
 import { collector, reuseOrCreate } from "./gc";
 import type { SheetProxy } from "./proxy";
 

@@ -1,6 +1,11 @@
 import { expect, test } from "vitest";
 
-import { Cellified, Uncellified, _cellify, _uncellify } from "./cellify";
+import {
+  type Cellified,
+  type Uncellified,
+  _cellify,
+  _uncellify
+} from "./cellify";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 
