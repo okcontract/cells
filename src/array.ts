@@ -166,7 +166,7 @@ export const reduce = <
 >(
   proxy: SheetProxy,
   arr: CellArray<T>,
-  fn: (acc: R, elt: T, index?: number) => R,
+  fn: (acc: R, elt: T, index?: number, length?: number) => R,
   init: R,
   name = "reduce",
   nf?: NF
@@ -178,7 +178,11 @@ export const reduce = <
       coll(
         proxy.mapNoPrevious(
           cells,
-          (..._cells) => _cells.reduce(fn, init),
+          (..._cells) =>
+            _cells.reduce(
+              (acc, elt, i) => fn(acc, elt, i, _cells.length),
+              init
+            ),
           "_reduce"
         )
       ),
