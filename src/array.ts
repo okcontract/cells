@@ -18,12 +18,17 @@ export type CellArray<T> = AnyCell<AnyCell<T>[]>;
 export const mapArray = <T, U>(
   proxy: SheetProxy,
   arr: CellArray<T>,
-  fn: (v: T, index?: number) => U | Promise<U | AnyCell<U>> | AnyCell<U>,
+  fn: (
+    v: T,
+    index?: number,
+    cell?: AnyCell<T>
+  ) => U | Promise<U | AnyCell<U>> | AnyCell<U>,
   name = "map"
 ): MapCell<MapCell<U, false>[], false> =>
   proxy.map(
     [arr],
     (cells, prev) => {
+      if (!cells) return [];
       const set = new Set((prev || []).map((cell) => cell.id));
       const res = cells.map((cell, index) => {
         // reuse previously mapped cell
@@ -32,7 +37,11 @@ export const mapArray = <T, U>(
         return (
           reuse ||
           // create new map
-          proxy.map([cell], (_cell) => fn(_cell, index), `[${index}]`)
+          proxy.map(
+            [cell],
+            (_cell) => fn(_cell, index, cell),
+            `${cell.id}:[${index}]`
+          )
         );
       });
       // collect unused previously mapped cells
