@@ -48,6 +48,7 @@ export {
   follow,
   isObject,
   type Cellified,
+  type Key,
   type Path,
   type Uncellified
 } from "./cellify";

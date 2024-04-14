@@ -79,7 +79,8 @@ export const _uncellify = async <T>(
   return value as Uncellified<T>;
 };
 
-export type Path = (string | number)[];
+export type Key = string | number;
+export type Path = Key[];
 
 /**
  * follow a static path for a Cellified value.
