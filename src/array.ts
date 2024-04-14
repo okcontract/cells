@@ -1,4 +1,4 @@
-import { type AnyCell, MapCell, ValueCell } from "./cell";
+import { type AnyCell, type MapCell, ValueCell } from "./cell";
 import { collector, reuseOrCreate } from "./gc";
 import type { SheetProxy } from "./proxy";
 
@@ -18,12 +18,17 @@ export type CellArray<T> = AnyCell<AnyCell<T>[]>;
 export const mapArray = <T, U>(
   proxy: SheetProxy,
   arr: CellArray<T>,
-  fn: (v: T, index?: number) => U | Promise<U>,
+  fn: (
+    v: T,
+    index?: number,
+    cell?: AnyCell<T>
+  ) => U | Promise<U | AnyCell<U>> | AnyCell<U>,
   name = "map"
 ): MapCell<MapCell<U, false>[], false> =>
   proxy.map(
     [arr],
     (cells, prev) => {
+      if (!cells) return [];
       const set = new Set((prev || []).map((cell) => cell.id));
       const res = cells.map((cell, index) => {
         // reuse previously mapped cell
@@ -32,7 +37,11 @@ export const mapArray = <T, U>(
         return (
           reuse ||
           // create new map
-          proxy.map([cell], (_cell) => fn(_cell, index), `[${index}]`)
+          proxy.map(
+            [cell],
+            (_cell) => fn(_cell, index, cell),
+            `${cell.id}:[${index}]`
+          )
         );
       });
       // collect unused previously mapped cells
@@ -166,7 +175,7 @@ export const reduce = <
 >(
   proxy: SheetProxy,
   arr: CellArray<T>,
-  fn: (acc: R, elt: T, index?: number) => R,
+  fn: (acc: R, elt: T, index?: number, length?: number) => R,
   init: R,
   name = "reduce",
   nf?: NF
@@ -178,7 +187,11 @@ export const reduce = <
       coll(
         proxy.mapNoPrevious(
           cells,
-          (..._cells) => _cells.reduce(fn, init),
+          (..._cells) =>
+            _cells.reduce(
+              (acc, elt, i) => fn(acc, elt, i, _cells.length),
+              init
+            ),
           "_reduce"
         )
       ),

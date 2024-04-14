@@ -5,7 +5,7 @@ import { Graph, ReferencesLeft } from "@okcontract/graph";
 import {
   type AnyCell,
   Canceled,
-  Cell,
+  type Cell,
   CellErrors,
   type CellResult,
   MapCell,
@@ -76,6 +76,8 @@ export class Sheet {
    *
    */
   private _pointers: Graph<number>;
+  private _containers: Graph<number>;
+
   /** equality function */
   public equals: <V>(prev: V, next: V) => boolean;
   readonly _marshaller: <V>(a: V) => string;
@@ -102,14 +104,12 @@ export class Sheet {
     this.g = new Graph();
     this._cells = {};
     this._pointers = new Graph();
-    // this.order = [];
+    this._containers = new Graph();
     this[count] = 0;
     this[size] = 0;
     this.equals = equality;
     this._marshaller = marshaller;
-
     this.working = new Working();
-
     this.errors = new CellErrors();
     this._gc = new Set();
   }
@@ -118,9 +118,11 @@ export class Sheet {
     this.g.bless(id, name);
   }
 
-  name(id: number): string {
-    return this.g.name(id) || id.toString();
+  name(id: number, full = false): string {
+    const name = this.g.name(id);
+    return name ? (full ? `${name} (${id})` : name) : id.toString();
   }
+
   /**
    * Promise that keeps pending until all computations that were running at call-time are settled.
    */
@@ -793,8 +795,11 @@ export class Sheet {
   }
 
   private dependentCells(id) {
-    return Array.from(new Set([...this.g.get(id), ...this._pointers.get(id)]));
+    return Array.from(
+      new Set([...(this.g.get(id) || []), ...this._pointers.get(id)])
+    );
   }
+
   /**
    * Computes the cells that can be safely computed.
    * Safely means that their dependencies will not change until an external modification occurs.
