@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { MapCell, ValueCell } from "./cell";
+import type { MapCell, ValueCell } from "./cell";
 import { delayed, sleep } from "./promise";
 import { Sheet } from "./sheet";
 
@@ -68,7 +68,7 @@ test("sheet with circular dependencies throws error", () => {
   expect(() => {
     a1 = sheet.map([a2], (a2) => a2);
     // @todo maybe catch with a better error?
-  }).toThrow("Cannot read properties of undefined");
+  }).toThrow("not a cell: undefined");
 });
 
 test("Cell subscription", async () => {

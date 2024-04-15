@@ -1,6 +1,12 @@
-import { type AnyCell, CellErrors, MapCell, ValueCell, Working } from "./cell";
+import {
+  type AnyCell,
+  CellErrors,
+  type MapCell,
+  type ValueCell,
+  Working
+} from "./cell";
 import { dispatch } from "./promise";
-import { Sheet } from "./sheet";
+import type { Sheet } from "./sheet";
 import type { AnyCellArray } from "./types";
 
 /**
@@ -9,10 +15,10 @@ import type { AnyCellArray } from "./types";
  */
 export class SheetProxy {
   _sheet: Sheet;
-  // @todo use
-  // private _name: string;
   /** locally created cells */
   private _list: AnyCell<unknown>[];
+  readonly _id: number;
+  readonly _name: string;
 
   working: Working;
 
@@ -24,11 +30,16 @@ export class SheetProxy {
       throw new Error("no sheet");
     }
     this._sheet = sh;
-    // if (name) this._name = name;
     this._list = [];
     this.working = new Working(sh.working);
-
     this.errors = new CellErrors(sh.errors);
+    if (name) this._name = name;
+    this._id = sh.addProxy();
+  }
+
+  // a Sheet has id 0, proxies > 0
+  get id() {
+    return this._id;
   }
 
   bless(id: number, name: string) {
@@ -177,6 +188,7 @@ export class SheetProxy {
     // @ts-expect-error conflict with overloaded definitions
     const cell = this._sheet.map(dependencies, computeFn, name, this, noFail);
     this._list.push(cell);
+    this._sheet.addProxyDependencies(this._id, dependencies);
     return cell as MapCell<V, NF>;
   }
 
@@ -202,6 +214,7 @@ export class SheetProxy {
       noFail
     );
     this._list.push(cell);
+    this._sheet.addProxyDependencies(this._id, dependencies);
     return cell;
   }
 

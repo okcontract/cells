@@ -33,10 +33,13 @@ test("map with undefined", async () => {
   await expect(c.get()).resolves.toBe(6);
 
   a.set(1);
-  expect(a.value).toBe(1);
-  a.set(3);
+  await proxy.working.wait();
 
-  await c.working;
+  expect(a.value).toBe(1);
+  expect(l).toEqual([6]);
+
+  a.set(3);
+  await proxy.working.wait();
 
   await expect(b.get()).resolves.toBe(6);
   await expect(c.get()).resolves.toBe(9);

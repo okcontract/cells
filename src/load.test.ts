@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { type AnyCell, Cell, ValueCell } from "./cell";
+import type { AnyCell, Cell, ValueCell } from "./cell";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 

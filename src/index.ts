@@ -39,9 +39,26 @@ export {
   mapArray,
   mapArrayCell,
   reduce,
-  sort
+  sort,
+  type CellArray
 } from "./array";
 export { clock, clockWork, type Clock } from "./clock";
+export {
+  _cellify,
+  _uncellify,
+  follow,
+  isObject,
+  type Cellified,
+  type Key,
+  type Path,
+  type Uncellified
+} from "./cellify";
 export { Debugger } from "./debug";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
+export {
+  asyncReduce,
+  mapObject,
+  reduceObject,
+  type CellObject
+} from "./object";
