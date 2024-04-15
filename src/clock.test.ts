@@ -1,5 +1,6 @@
-import { writeFileSync } from "fs";
+import { writeFileSync } from "node:fs";
 import { expect, test } from "vitest";
+
 import { clock, clockWork } from "./clock";
 import { Debugger } from "./debug";
 import { delayed, sleep } from "./promise";

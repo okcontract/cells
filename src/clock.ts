@@ -1,5 +1,5 @@
-import { AnyCell, MapCell, ValueCell } from "./cell";
-import { SheetProxy } from "./proxy";
+import type { AnyCell, MapCell, ValueCell } from "./cell";
+import type { SheetProxy } from "./proxy";
 
 export type Clock = ValueCell<number> & {
   stop: () => void;
