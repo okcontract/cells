@@ -1,13 +1,9 @@
 {
-  "include": [
-    "src/*"
-  ],
-  "exclude": [
-    "node_modules/**/*",
-    "src/*.test.ts"
-  ],
+  "include": ["src"],
+  "exclude": ["node_modules/**/*", "src/*.test.ts"],
   "compilerOptions": {
     "baseUrl": ".",
+    "typeRoots": ["node_modules/@types"],
     "declaration": true,
     "emitDeclarationOnly": true,
     "outDir": "dist",

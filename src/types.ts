@@ -1,4 +1,4 @@
-import { type AnyCell } from "./cell";
+import type { AnyCell } from "./cell";
 import type { SheetProxy } from "./proxy";
 
 // Type transformation: T_k[] => AnyCell<T_k>[]

@@ -1,4 +1,5 @@
 import { Cell } from "./cell";
+import { isObject } from "./cellify";
 
 const errorCell = new Error("cell");
 
@@ -9,9 +10,12 @@ const errorCell = new Error("cell");
  */
 export const jsonStringify = <T>(
   obj: T,
-  options: { skipNull?: boolean } = {}
+  options: { skipNull?: boolean; failOnCell?: boolean } = {}
 ) => {
-  if (obj instanceof Cell) throw errorCell;
+  if (obj instanceof Cell) {
+    if (options?.failOnCell) throw errorCell;
+    return jsonStringify(obj.value, options);
+  }
   let out = "";
   const aux = <T>(v: T) => {
     if (Array.isArray(v)) {
@@ -31,6 +35,8 @@ export const jsonStringify = <T>(
           out += "null";
           break;
         }
+        // use toString for classes
+        if (!isObject(v)) out += JSON.stringify(v.toString());
         out += "{";
         let first = true;
         // sort objects alphabetically
