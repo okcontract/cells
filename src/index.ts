@@ -61,4 +61,5 @@ export {
   reduceObject,
   type CellObject
 } from "./object";
+export { simplifier } from "./printer";
 export { WrappedCell } from "./wrapped";
