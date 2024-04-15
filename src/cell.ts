@@ -47,10 +47,10 @@ export type PendingArray<V, CanBeError> = Promise<
 >;
 
 /** Array of (maybe pending) computation results */
-export type MaybePendingDict<V, CanBeError> = Record<
-  number,
-  PendingMaybe<V, CanBeError> | MaybeResultOrPointer<V, CanBeError>
->;
+export type MaybePendingDict<V, CanBeError> = (
+  | PendingMaybe<V, CanBeError>
+  | MaybeResultOrPointer<V, CanBeError>
+)[];
 
 export type Not<T extends boolean> = T extends true ? false : true;
 
