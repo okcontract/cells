@@ -12,19 +12,18 @@ export {
 
 export {
   Cell,
+  MapCell,
+  ValueCell,
   type AnyCell,
   type CellErrors,
   type CellResult,
-  type MapCell,
   type Pending,
-  type ValueCell,
   type Working
 } from "./cell";
 export { collector, reuseOrCreate } from "./gc";
 export { SheetProxy } from "./proxy";
 export { Sheet } from "./sheet";
 export type { ComputeFn, Unsubscriber } from "./types";
-export { WrappedCell } from "./wrapped";
 
 // Utilities
 
@@ -42,7 +41,6 @@ export {
   sort,
   type CellArray
 } from "./array";
-export { clock, clockWork, type Clock } from "./clock";
 export {
   _cellify,
   _uncellify,
@@ -53,6 +51,7 @@ export {
   type Path,
   type Uncellified
 } from "./cellify";
+export { clock, clockWork, type Clock } from "./clock";
 export { Debugger } from "./debug";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
@@ -62,3 +61,4 @@ export {
   reduceObject,
   type CellObject
 } from "./object";
+export { WrappedCell } from "./wrapped";
