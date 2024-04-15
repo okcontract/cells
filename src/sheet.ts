@@ -3,7 +3,7 @@ import { Graph, ReferencesLeft } from "@okcontract/graph";
 import {
   type AnyCell,
   Canceled,
-  type Cell,
+  Cell,
   CellErrors,
   type CellResult,
   MapCell,
