@@ -52,6 +52,7 @@ export {
   type Uncellified
 } from "./cellify";
 export { clock, clockWork, type Clock } from "./clock";
+export { copy } from "./copy";
 export { Debugger } from "./debug";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
