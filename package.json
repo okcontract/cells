@@ -6,6 +6,7 @@
   "main": "dist/cells.umd.cjs",
   "module": "dist/cells.js",
   "type": "module",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/cells.js",
@@ -20,7 +21,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@okcontract/graph": "0.1.4"
+    "@okcontract/graph": "^0.1.4"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.5.3",
