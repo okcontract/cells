@@ -112,6 +112,8 @@ export class Sheet {
   /** Cell holding all the current "initial" errors of the sheet */
   public errors: CellErrors;
 
+  /** Queued updates */
+  private _queue: [number, unknown | Promise<unknown>][];
   /** Cells that can be garbage collected */
   private _gc: Set<number>;
 
@@ -136,6 +138,7 @@ export class Sheet {
     this.working = new Working();
     this.errors = new CellErrors();
     this._gc = new Set();
+    this._queue = [];
     this._proxies = new Graph();
     this._proxies.addNode(0);
   }
@@ -161,6 +164,7 @@ export class Sheet {
       if (dep._proxy !== id) this.addProxyEdge(dep._proxy, id);
     if (this._proxies.topologicalSort() === null)
       this.debug(undefined, "proxy cycle", { proxy: id, deps });
+    this._queue = [];
   }
 
   bless(id: number, name: string) {
@@ -572,6 +576,18 @@ export class Sheet {
 
         // End of the update
         release();
+
+        // Queued updates
+        // @todo transactions
+        for (const [id, v] of this._queue) {
+          const cell = this._cells[id];
+          if (!cell || !(cell instanceof ValueCell)) {
+            console.error(`cell ${id} is not a ValueCell`);
+            return;
+          }
+          cell.set(v);
+        }
+        this._queue = [];
       }
     );
   }
@@ -944,5 +960,9 @@ export class Sheet {
       this.debug(undefined, "collect", { deps });
       for (const dep of deps) this._gc.add(dep);
     }
+  }
+
+  queue<T>(cell: ValueCell<T>, v: T | Promise<T>) {
+    this._queue.push([cell.id, v]);
   }
 }

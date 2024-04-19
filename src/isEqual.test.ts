@@ -6,6 +6,7 @@ import { expect, test } from "vitest";
  * @param b
  * @returns
  */
+// biome-ignore lint/suspicious/noExportsInTest: used in tests only
 export function isEqual<T>(a: T, b: T): boolean {
   // Same instance or primitive values are equal
   if (a === b) return true;
