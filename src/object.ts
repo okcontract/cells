@@ -8,18 +8,18 @@ export type CellObject<T> = AnyCell<Record<string, AnyCell<T>>>;
 /**
  * mapObject applies a function to a CellObject.
  */
-export const mapObject = <NF extends boolean = false>(
+export const mapObject = <T, U, NF extends boolean = false>(
   proxy: SheetProxy,
-  obj: CellObject<unknown>,
+  obj: CellObject<T>,
   // @todo return type
   fn: (
     key: string,
-    value: unknown,
-    valueCell: AnyCell<unknown>
-  ) => unknown | Promise<unknown>,
+    value: T,
+    valueCell: AnyCell<T>
+  ) => U | Promise<U | AnyCell<U>> | AnyCell<U>,
   name = "mapObject",
   nf?: NF
-): MapCell<Record<string, AnyCell<unknown>>, NF> =>
+): MapCell<Record<string, AnyCell<U>>, NF> =>
   proxy.map(
     [obj],
     (cells, prev) => {
