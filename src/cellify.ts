@@ -87,11 +87,11 @@ export type Path = Key[];
  */
 export const follow = (
   proxy: SheetProxy,
-  v: Cellified<unknown>,
+  v: AnyCell<unknown>,
   path: Path,
   name = "follow"
 ) => {
-  const aux = (v: Cellified<unknown>, path: Path, name: string) => {
+  const aux = (v: AnyCell<unknown>, path: Path, name: string) => {
     // @todo multi collector?
     const coll = collector<MapCell<unknown, false>>(proxy);
     return proxy.map(

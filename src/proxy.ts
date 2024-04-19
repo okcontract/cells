@@ -218,8 +218,13 @@ export class SheetProxy {
     return cell;
   }
 
+  /**
+   * get returns a cell, resolving pointers.
+   */
   get(id: number) {
-    return this._sheet.get(id);
+    const next = this._sheet.get(id);
+    if (next.pointed !== undefined) return this.get(next.pointed);
+    return next;
   }
 
   _update(id: number): Promise<void> | void {
