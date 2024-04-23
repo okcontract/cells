@@ -28,6 +28,8 @@ export const mapArray = <T, U>(
   proxy.map(
     [arr],
     (cells, prev) => {
+      if (!Array.isArray(cells))
+        throw new Error(`not an array: ${typeof cells}`);
       if (!cells) return [];
       const set = new Set((prev || []).map((cell) => cell.id));
       const res = cells.map((cell, index) => {
