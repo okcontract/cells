@@ -634,7 +634,7 @@ export class Sheet {
       done,
       canceled: [...canceled]
     });
-    const isPointer = (id: number) => this.get(id).isPointer;
+    const isPointer = (id: number) => this.get(id)?.isPointer;
     /** List of nodes that will be updated  */
     const selection = this.selectUpdatableCells(ids, isPointer);
     const {
@@ -853,7 +853,7 @@ export class Sheet {
       (id) =>
         this.g
           .predecessors(id)
-          .filter((idPred) => updatable.includes(idPred) || ids.has(idPred))
+          ?.filter((idPred) => updatable.includes(idPred) || ids.has(idPred))
           .length > 0
     );
     return {
