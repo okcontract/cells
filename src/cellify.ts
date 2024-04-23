@@ -67,7 +67,7 @@ export const _uncellify = async <T>(
   if (value instanceof Error) throw value;
   if (Array.isArray(value))
     return Promise.all(
-      value.map(async (_element) => await _uncellify(_element))
+      value.map((_element) => _uncellify(_element))
     ) as Promise<Uncellified<T>>;
   if (isObject(value))
     return Object.fromEntries(
