@@ -61,8 +61,8 @@ export class Sheet {
   _logList: number[] = [];
   debug(
     filter: undefined | Set<number> | (number | undefined)[], // @todo accept Set
-    info: string,
-    data: unknown,
+    info: string | (() => string),
+    data: unknown | (() => unknown),
     logger = console.log
   ) {
     this._debug &&
@@ -72,9 +72,9 @@ export class Sheet {
           ? this._logList.some((v) => filter.has(v))
           : filter.some((v) => v !== undefined && this._logList.includes(v))) &&
       logger(
-        info,
+        typeof info === "function" ? info() : info,
         filter !== undefined ? `[${[...filter].join(",")}]` : "[...]",
-        simplifier(data)
+        simplifier(typeof data === "function" ? data() : data)
       );
   }
 
