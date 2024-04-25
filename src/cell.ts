@@ -870,7 +870,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
     /**
      *@todo [dependencies] should match the parameters of [computeFn]
      */
-    dependencies: AnyCell<V>[],
+    dependencies: (AnyCell<V> | number)[],
     usePreviousValue: boolean,
     noFail?: NF, // noFail indicates the computeFn
     _isVolatile = false // @todo volatile functions like NOW() must be recomputed all the time
@@ -878,7 +878,7 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
     super(
       sheet,
       id,
-      dependencies.map((cell) => cell.id),
+      dependencies.map((cell) => (typeof cell === "number" ? cell : cell.id)),
       { noFail: noFail || false }
     );
     this._computeFn = computeFn;

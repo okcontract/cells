@@ -320,12 +320,14 @@ export class Sheet {
     const containingSheet = proxy || this;
     // check that all dependencies are not deleted
     const missing = dependencies.find((cell) => {
-      if (!(cell instanceof Cell)) {
+      if (!(cell instanceof Cell) && !(typeof cell === "number")) {
         console.log({ notACell: cell, name });
         throw new Error(`not a cell: ${typeof cell}`);
       }
       // console.log({ dependencies, cell });
-      return this._cells[cell.id] === undefined;
+      return (
+        this._cells[typeof cell === "number" ? cell : cell.id] === undefined
+      );
     });
     if (missing !== undefined) {
       console.log({ dependencies });
@@ -344,7 +346,8 @@ export class Sheet {
     );
     if (name) mapCell.bless(name);
     // console.log("Sheet.map:", `registered cell[${id}]`)
-    for (const cell of dependencies) this.g.addEdge(cell.id, mapCell.id);
+    for (const cell of dependencies)
+      this.g.addEdge(typeof cell === "number" ? cell : cell.id, mapCell.id);
     return mapCell as MapCell<V, NF>;
   }
 
