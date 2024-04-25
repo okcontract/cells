@@ -40,9 +40,13 @@ export const isObject = <K extends string | number | symbol>(
 export const _cellify = <T>(
   proxy: SheetProxy,
   v: T,
-  name = "cellify"
+  name = "cellify",
+  failOnCell = false
 ): Cellified<T> => {
-  if (v instanceof Cell) throw new Error("cell");
+  if (v instanceof Cell) {
+    if (failOnCell) throw new Error("cell");
+    return v as Cellified<T>;
+  }
   return proxy.new(
     Array.isArray(v)
       ? v.map((vv) => _cellify(proxy, vv), "cellify.[]")
