@@ -506,7 +506,7 @@ export class Cell<
   ): void {
     this.sheet.debug(
       [this.id],
-      `Cell ${this.name} (${this.id}) <== ${newValue}`,
+      () => `Cell ${this.name} (${this.id}) <== ${newValue}`,
       {
         currentValue: this.value,
         currentCompRank: this._currentComputationRank,
@@ -544,7 +544,7 @@ export class Cell<
     }
 
     const needUpdate = !this._sheet.equals(this.v, newValue);
-    this.sheet.debug([this.id], `Cell ${this.name} <== ${newValue}`, {
+    this.sheet.debug([this.id], () => `Cell ${this.name} <== ${newValue}`, {
       currentValue: simplifier(this.value),
       currentRank: this._currentComputationRank,
       newValueRank: computationRank

@@ -42,8 +42,8 @@ export {
   type CellArray
 } from "./array";
 export {
-  _cellify,
-  _uncellify,
+  cellify,
+  uncellify,
   follow,
   isObject,
   type Cellified,

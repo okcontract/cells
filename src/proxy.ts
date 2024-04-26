@@ -221,9 +221,9 @@ export class SheetProxy {
   /**
    * get returns a cell, resolving pointers.
    */
-  get(id: number) {
+  get(id: number): AnyCell<unknown> {
     const next = this._sheet.get(id);
-    if (next.pointed !== undefined) return this.get(next.pointed);
+    if (next?.pointed !== undefined) return this.get(next.pointed);
     return next;
   }
 

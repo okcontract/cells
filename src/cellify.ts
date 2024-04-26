@@ -29,6 +29,7 @@ export const isObject = <K extends string | number | symbol>(
 ): v is Record<K, unknown> =>
   typeof v === "object" && v !== null && v.constructor?.name === "Object";
 
+const errIsCell = new Error("value is cell");
 /**
  * cellify converts any value to a Cellified value where each array or record
  * becomes a Cell in canonical form.
@@ -37,18 +38,25 @@ export const isObject = <K extends string | number | symbol>(
  * @returns
  * @todo cell reuses
  */
-export const _cellify = <T>(
+export const cellify = <T>(
   proxy: SheetProxy,
   v: T,
-  name = "cellify"
+  name = "cellify",
+  failOnCell = false
 ): Cellified<T> => {
-  if (v instanceof Cell) throw new Error("cell");
+  if (v instanceof Cell) {
+    if (failOnCell) throw errIsCell;
+    return v as Cellified<T>;
+  }
   return proxy.new(
     Array.isArray(v)
-      ? v.map((vv) => _cellify(proxy, vv), "cellify.[]")
+      ? v.map((vv) => cellify(proxy, vv, name, failOnCell), "cellify.[]")
       : isObject(v)
         ? Object.fromEntries(
-            Object.entries(v).map(([k, vv]) => [k, _cellify(proxy, vv)], "ç{}")
+            Object.entries(v).map(
+              ([k, vv]) => [k, cellify(proxy, vv, name, failOnCell)],
+              "ç{}"
+            )
           )
         : v,
     name
@@ -56,23 +64,23 @@ export const _cellify = <T>(
 };
 
 /**
- * _uncellify is used in tests to flatten a value tree that contains multiple cells.
+ * uncellify is used in tests to flatten a value tree that contains multiple cells.
  * @param v any value
  * @returns value without cells
  */
-export const _uncellify = async <T>(
+export const uncellify = async <T>(
   v: T | AnyCell<T>
 ): Promise<Uncellified<T>> => {
   const value = v instanceof Cell ? await v.consolidatedValue : v;
   if (value instanceof Error) throw value;
   if (Array.isArray(value))
-    return Promise.all(
-      value.map(async (_element) => await _uncellify(_element))
-    ) as Promise<Uncellified<T>>;
+    return Promise.all(value.map((_element) => uncellify(_element))) as Promise<
+      Uncellified<T>
+    >;
   if (isObject(value))
     return Object.fromEntries(
       await Promise.all(
-        Object.entries(value).map(async ([k, vv]) => [k, await _uncellify(vv)])
+        Object.entries(value).map(async ([k, vv]) => [k, await uncellify(vv)])
       )
     );
   // Classes, null or base types (string, number, ...)

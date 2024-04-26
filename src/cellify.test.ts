@@ -3,9 +3,9 @@ import { expect, test } from "vitest";
 import {
   type Cellified,
   type Uncellified,
-  _cellify,
-  _uncellify,
-  follow
+  cellify,
+  follow,
+  uncellify
 } from "./cellify";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
@@ -38,16 +38,16 @@ test("fix point", async () => {
 
   for (let i = 0; i < tests.length; i++) {
     const v = tests[i];
-    const c = _cellify(proxy, v);
-    const u = await _uncellify(c);
+    const c = cellify(proxy, v);
+    const u = await uncellify(c);
     expect(u).toEqual(v);
   }
 });
 
-test("_cellify one", async () => {
+test("cellify one", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
-  const res = _cellify(proxy, { a: 1 });
+  const res = cellify(proxy, { a: 1 });
   const cell = await res.get();
   await expect(cell.a.get()).resolves.toBe(1);
 });
@@ -56,7 +56,7 @@ test("follow", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
   const v = { a: [1, 2, 3], b: { c: { foo: 1, bar: 1 } } };
-  const cv = _cellify(proxy, v);
+  const cv = cellify(proxy, v);
   const f = follow(proxy, cv, ["a", 1]);
   await expect(f.get()).resolves.toBe(2);
   expect(sheet.stats).toEqual({ size: 12, count: 12 });
@@ -75,4 +75,11 @@ test("follow", async () => {
   (await cv.get()).a.set([]);
   await expect(f.get()).resolves.toBeInstanceOf(Error);
   expect(sheet.stats).toEqual({ size: 13, count: 14 }); // unchanged
+});
+
+test("cellify failOnCell", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const v = { a: [1, 2, 3], b: { c: { foo: proxy.new(1, "1"), bar: 1 } } };
+  expect(() => cellify(proxy, v, "cv", true)).toThrowError("value is cell");
 });

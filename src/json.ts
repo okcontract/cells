@@ -12,12 +12,12 @@ export const jsonStringify = <T>(
   obj: T,
   options: { skipNull?: boolean; failOnCell?: boolean } = {}
 ) => {
-  if (obj instanceof Cell) {
-    if (options?.failOnCell) throw errorCell;
-    return jsonStringify(obj.value, options);
-  }
   let out = "";
   const aux = <T>(v: T) => {
+    if (v instanceof Cell) {
+      if (options?.failOnCell) throw errorCell;
+      return aux(v.value);
+    }
     if (Array.isArray(v)) {
       out += "[";
       let first = true;
