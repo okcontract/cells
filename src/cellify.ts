@@ -29,6 +29,7 @@ export const isObject = <K extends string | number | symbol>(
 ): v is Record<K, unknown> =>
   typeof v === "object" && v !== null && v.constructor?.name === "Object";
 
+const errIsCell = new Error("value is cell");
 /**
  * cellify converts any value to a Cellified value where each array or record
  * becomes a Cell in canonical form.
@@ -44,15 +45,18 @@ export const _cellify = <T>(
   failOnCell = false
 ): Cellified<T> => {
   if (v instanceof Cell) {
-    if (failOnCell) throw new Error("cell");
+    if (failOnCell) throw errIsCell;
     return v as Cellified<T>;
   }
   return proxy.new(
     Array.isArray(v)
-      ? v.map((vv) => _cellify(proxy, vv), "cellify.[]")
+      ? v.map((vv) => _cellify(proxy, vv, name, failOnCell), "cellify.[]")
       : isObject(v)
         ? Object.fromEntries(
-            Object.entries(v).map(([k, vv]) => [k, _cellify(proxy, vv)], "ç{}")
+            Object.entries(v).map(
+              ([k, vv]) => [k, _cellify(proxy, vv, name, failOnCell)],
+              "ç{}"
+            )
           )
         : v,
     name

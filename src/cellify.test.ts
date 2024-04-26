@@ -76,3 +76,10 @@ test("follow", async () => {
   await expect(f.get()).resolves.toBeInstanceOf(Error);
   expect(sheet.stats).toEqual({ size: 13, count: 14 }); // unchanged
 });
+
+test("cellify failOnCell", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const v = { a: [1, 2, 3], b: { c: { foo: proxy.new(1, "1"), bar: 1 } } };
+  expect(() => _cellify(proxy, v, "cv", true)).toThrowError("value is cell");
+});
