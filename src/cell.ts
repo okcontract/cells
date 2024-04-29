@@ -47,10 +47,10 @@ export type PendingArray<V, CanBeError> = Promise<
 >;
 
 /** Array of (maybe pending) computation results */
-export type MaybePendingDict<V, CanBeError> = (
-  | PendingMaybe<V, CanBeError>
-  | MaybeResultOrPointer<V, CanBeError>
-)[];
+export type MaybePendingDict<V, CanBeError> = Record<
+  number,
+  PendingMaybe<V, CanBeError> | MaybeResultOrPointer<V, CanBeError>
+>;
 
 export type Not<T extends boolean> = T extends true ? false : true;
 
@@ -97,7 +97,10 @@ abstract class SubscribeBench<V> {
     dispatch(
       value,
       (value) => {
-        if (value instanceof Canceled) return;
+        if (value instanceof Canceled) {
+          console.log("canceled", value);
+          return;
+        }
         // if their is no value, wait for the
         // next update for the first notification
         if (value !== undefined) {
@@ -895,9 +898,12 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
    * @param provided dependencies provided by the sheet as their computation have been triggered before.
    * @returns The list of promise of values for all dependencies (in the order of the dependencies)
    */
-  private _gatherDependencies(provided: {
-    [key: number]: PendingMaybe<V, boolean> | MaybeResultOrPointer<V, boolean>;
-  }): PendingArray<V, boolean> | MaybeResultOrPointer<V, boolean>[] {
+  private _gatherDependencies(
+    provided: Record<
+      number,
+      PendingMaybe<V, boolean> | MaybeResultOrPointer<V, boolean>
+    >
+  ): PendingArray<V, boolean> | MaybeResultOrPointer<V, boolean>[] {
     const deps: (PendingMaybe<V, boolean> | V)[] = [];
     this.sheet.debug([this.id], "gathering deps values", {
       id: this.id,
