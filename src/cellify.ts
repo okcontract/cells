@@ -3,13 +3,15 @@ import { collector } from "./gc";
 import type { SheetProxy } from "./proxy";
 
 // Cellified computes a cellified type.
-export type Cellified<T> = T extends object
-  ? T extends Array<infer U>
-    ? ValueCell<Cellified<U>[]>
-    : ValueCell<{
-        [P in keyof T]: Cellified<T[P]>;
-      }>
-  : ValueCell<T>;
+export type Cellified<T> = T extends AnyCell<infer U>
+  ? AnyCell<U>
+  : T extends object
+    ? T extends Array<infer U>
+      ? ValueCell<Cellified<U>[]>
+      : ValueCell<{
+          [P in keyof T]: Cellified<T[P]>;
+        }>
+    : ValueCell<T>;
 
 // Uncellified computes an uncellified type.
 export type Uncellified<T> = T extends AnyCell<infer U>
