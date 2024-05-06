@@ -31,7 +31,6 @@ export {
   filter,
   filterPredicateCell,
   find,
-  findCell,
   findIndex,
   first,
   last,
@@ -43,9 +42,9 @@ export {
 } from "./array";
 export {
   cellify,
-  uncellify,
   follow,
   isObject,
+  uncellify,
   type Cellified,
   type Key,
   type Path,
