@@ -41,7 +41,7 @@ const errIsCell = new Error("value is cell");
 export const cellify = <T>(
   proxy: SheetProxy,
   v: T,
-  name = "cellify",
+  name = "ç",
   failOnCell = false
 ): Cellified<T> => {
   if (v instanceof Cell) {
@@ -50,11 +50,11 @@ export const cellify = <T>(
   }
   return proxy.new(
     Array.isArray(v)
-      ? v.map((vv) => cellify(proxy, vv, name, failOnCell), "cellify.[]")
+      ? v.map((vv, i) => cellify(proxy, vv, `${name}[${i}]`, failOnCell), "ç[]")
       : isObject(v)
         ? Object.fromEntries(
             Object.entries(v).map(
-              ([k, vv]) => [k, cellify(proxy, vv, name, failOnCell)],
+              ([k, vv]) => [k, cellify(proxy, vv, `${name}[${k}]`, failOnCell)],
               "ç{}"
             )
           )

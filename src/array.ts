@@ -219,49 +219,6 @@ export const find = <T, NF extends boolean = false>(
   );
 };
 
-// @todo generalize
-export const findCell = <T, NF extends boolean = false>(
-  proxy: SheetProxy,
-  arr: CellArray<T>,
-  predicate: AnyCell<(v: AnyCell<T>) => AnyCell<boolean>>,
-  name = "find",
-  nf?: NF
-) => {
-  const coll = collector<MapCell<T, NF>>(proxy);
-  // Since predicate is a reactive function, we have to instantiate
-  // the computation for each cell.
-  // const keep = mapArrayCell(proxy, arr, predicate, "keep", nf);
-  let prevFn: (elt: AnyCell<T>) => AnyCell<boolean>;
-  const keep = proxy.map(
-    [predicate, arr],
-    (fn, cells, _prev: AnyCell<boolean>[]) => {
-      // console.log({ keep: cells.length });
-      // @todo if the predicate function has changed, collect previous mapped cells
-      const keep = cells.map((cell) => {
-        // We can reuse a cell only if the predicate hasn't changed.
-        // @todo collect previously mapped cells for deleted cells in arr
-        const reuse =
-          prevFn === fn &&
-          _prev?.find((_c) => _c.dependencies?.[0] === cell.id);
-        return reuse || fn(cell);
-      });
-      prevFn = fn;
-      return keep;
-    },
-    "keep",
-    nf
-  );
-  return proxy.map(
-    [arr, keep],
-    (cells, _keep) =>
-      coll(
-        proxy.mapNoPrevious(_keep, (..._flat) => cells.find((_, i) => _flat[i]))
-      ),
-    name,
-    nf
-  );
-};
-
 export const findIndex = <T, NF extends boolean = false>(
   proxy: SheetProxy,
   arr: CellArray<T>,

@@ -964,10 +964,11 @@ export class MapCell<V, NF extends boolean> extends Cell<V, true, NF> {
         false,
         false
       );
-      // this.sheet._debug &&
-      console.warn(
+      this.sheet.debug(
+        [this.id],
         "cancelled",
-        simplifier({ paramsResults, firstCanceled, cell: this.id })
+        { paramsResults, firstCanceled },
+        console.warn
       );
       return cancelComputation;
     }

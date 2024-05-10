@@ -937,7 +937,7 @@ export class Sheet {
       .filter((id) => this._cells[id]);
     const refs = this.references(ids);
     if (refs.size > 0) {
-      console.warn("deletion failed", { refs });
+      console.warn("deletion failed", { input, refs });
       throw ReferencesLeft;
     }
     for (const id of ids) {
@@ -954,7 +954,7 @@ export class Sheet {
    */
   collect(...input: (number | AnyCell<unknown>)[]) {
     const ids = input.map((v) => (typeof v === "number" ? v : v.id));
-    if (this._debug) console.log(simplifier({ collecting: ids, cells: input }));
+    this.debug(ids, "collect", { collecting: ids, cells: input });
     for (const id of ids) {
       const deps = this.g.partialTopologicalSort(id);
       this.debug(undefined, "collect", { deps });
