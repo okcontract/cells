@@ -57,7 +57,7 @@ export const jsonStringify = <T>(
       case "symbol":
         break;
       case "bigint":
-        out += `"${v.toString()}"`;
+        out += v < 1_000_000n ? Number(v) : `"${v.toString()}"`;
         break;
       default:
         out += JSON.stringify(v);
