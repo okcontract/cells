@@ -167,6 +167,31 @@ export class SheetProxy {
     name?: string,
     noFail?: NF
   ): MapCell<V, NF>;
+  map<D1, D2, D3, D4, D5, D6, D7, D8, V, NF extends boolean = false>(
+    dependencies: [
+      AnyCell<D1>,
+      AnyCell<D2>,
+      AnyCell<D3>,
+      AnyCell<D4>,
+      AnyCell<D5>,
+      AnyCell<D6>,
+      AnyCell<D7>,
+      AnyCell<D8>
+    ],
+    computeFn: (
+      arg1: D1,
+      arg2: D2,
+      arg3: D3,
+      arg4: D4,
+      arg5: D5,
+      arg6: D6,
+      arg7: D7,
+      arg8: D8,
+      prev?: V
+    ) => V | Promise<V | AnyCell<V>> | AnyCell<V>,
+    name?: string,
+    noFail?: NF
+  ): MapCell<V, NF>;
 
   /**
    * map a list to cells to a new cells using the compute function.
