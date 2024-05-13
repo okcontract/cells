@@ -57,9 +57,9 @@ export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
 export {
   asyncReduce,
+  flattenObject,
   mapObject,
   reduceObject,
-  flattenObject,
   type CellObject
 } from "./object";
 export { simplifier } from "./printer";
