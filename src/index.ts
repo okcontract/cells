@@ -59,6 +59,7 @@ export {
   asyncReduce,
   mapObject,
   reduceObject,
+  flattenObject,
   type CellObject
 } from "./object";
 export { simplifier } from "./printer";
