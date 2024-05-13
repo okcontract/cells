@@ -116,7 +116,7 @@ export const flattenObject = <T, NF extends boolean = false>(
     async (cells) => {
       const keys = Object.keys(cells);
       const values = Object.values(cells);
-      coll(
+      return coll(
         proxy.mapNoPrevious(values, (..._cells) =>
           Object.fromEntries(_cells.map((v, i) => [keys[i], v]))
         )
