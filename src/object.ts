@@ -11,7 +11,6 @@ export type CellObject<T> = AnyCell<Record<string, AnyCell<T>>>;
 export const mapObject = <T, U, NF extends boolean = false>(
   proxy: SheetProxy,
   obj: CellObject<T>,
-  // @todo return type
   fn: (
     key: string,
     value: T,
@@ -22,7 +21,7 @@ export const mapObject = <T, U, NF extends boolean = false>(
 ): MapCell<Record<string, AnyCell<U>>, NF> =>
   proxy.map(
     [obj],
-    (cells, prev) => {
+    async (cells, prev) => {
       const set = new Set(Object.keys(prev || {}));
       const res = Object.fromEntries(
         Object.entries(cells).map(([k, v]) => {
@@ -83,7 +82,7 @@ export const reduceObject = <T, R, NF extends boolean = false>(
   const coll = collector<MapCell<R, NF>>(proxy);
   return proxy.mapNoPrevious(
     [obj],
-    (cells) => {
+    async (cells) => {
       const keys = Object.keys(cells);
       const values = Object.values(cells);
       // console.log({ reduce: keys, name, count: proxy._sheet.stats.count });
@@ -112,9 +111,9 @@ export const flattenObject = <T, NF extends boolean = false>(
   nf?: NF
 ) => {
   const coll = collector<MapCell<Record<string, T>, NF>>(proxy);
-  return proxy.map(
+  return proxy.mapNoPrevious(
     [obj],
-    (cells) => {
+    async (cells) => {
       const keys = Object.keys(cells);
       const values = Object.values(cells);
       coll(
