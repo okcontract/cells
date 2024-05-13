@@ -104,3 +104,26 @@ export const reduceObject = <T, R, NF extends boolean = false>(
     nf
   );
 };
+
+export const flattenObject = <T, NF extends boolean = false>(
+  proxy: SheetProxy,
+  obj: CellObject<T>,
+  name = "flatten",
+  nf?: NF
+) => {
+  const coll = collector<MapCell<Record<string, T>, NF>>(proxy);
+  return proxy.map(
+    [obj],
+    (cells) => {
+      const keys = Object.keys(cells);
+      const values = Object.values(cells);
+      coll(
+        proxy.mapNoPrevious(values, (..._cells) =>
+          Object.fromEntries(_cells.map((v, i) => [keys[i], v]))
+        )
+      );
+    },
+    name,
+    nf
+  );
+};
