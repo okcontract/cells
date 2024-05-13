@@ -95,8 +95,12 @@ test("flattenObject", async () => {
   const debug = new Debugger(sheet);
   const proxy = new SheetProxy(sheet);
 
-  const l = cellify(proxy, { a: 1, b: 2, c: 3 });
-  const f = flattenObject(proxy, l);
-  await expect(f.get()).resolves.toEqual({ a: 1, b: 2, c: 3 });
-  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // 3+1 array +1 sum +1 pointer
+  const obj = cellify(proxy, { a: 1, b: 2, c: 3 });
+  const f = flattenObject(proxy, obj);
+  await expect(f.consolidatedValue).resolves.toEqual({ a: 1, b: 2, c: 3 });
+  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // 3+1 obj +1 flatten +1 pointer
+
+  await (await obj.consolidatedValue).a.set(4);
+  await expect(f.get()).resolves.toEqual({ a: 4, b: 2, c: 3 });
+  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // unchanged
 });
