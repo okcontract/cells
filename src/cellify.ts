@@ -1,4 +1,11 @@
-import { type AnyCell, Cell, type MapCell, type ValueCell } from "./cell";
+import {
+  type AnyCell,
+  Cell,
+  type CellResult,
+  type MapCell,
+  type Pending,
+  type ValueCell
+} from "./cell";
 import { collector } from "./gc";
 import type { SheetProxy } from "./proxy";
 
@@ -63,24 +70,32 @@ export const cellify = <T>(
   ) as Cellified<T>;
 };
 
+export type UncellifyOptions = {
+  getter: <T>(c: AnyCell<T>) => Pending<T, boolean> | CellResult<T, boolean>;
+};
+
 /**
  * uncellify is used in tests to flatten a value tree that contains multiple cells.
  * @param v any value
  * @returns value without cells
  */
 export const uncellify = async <T>(
-  v: T | AnyCell<T>
+  v: T | AnyCell<T>,
+  options: UncellifyOptions = { getter: (cell) => cell.value }
 ): Promise<Uncellified<T>> => {
-  const value = v instanceof Cell ? await v.consolidatedValue : v;
+  const value = v instanceof Cell ? await options.getter(v) : v;
   if (value instanceof Error) throw value;
   if (Array.isArray(value))
-    return Promise.all(value.map((_element) => uncellify(_element))) as Promise<
-      Uncellified<T>
-    >;
+    return Promise.all(
+      value.map((_element) => uncellify(_element, options))
+    ) as Promise<Uncellified<T>>;
   if (isObject(value))
     return Object.fromEntries(
       await Promise.all(
-        Object.entries(value).map(async ([k, vv]) => [k, await uncellify(vv)])
+        Object.entries(value).map(async ([k, vv]) => [
+          k,
+          await uncellify(vv, options)
+        ])
       )
     );
   // Classes, null or base types (string, number, ...)
