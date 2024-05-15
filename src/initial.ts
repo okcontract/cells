@@ -3,7 +3,7 @@ import type { SheetProxy } from "./proxy";
 
 export const initialValue = <T>(
   proxy: SheetProxy,
-  v0: T,
+  v0: T | AnyCell<T>,
   v: AnyCell<T>,
   name = "initial"
 ): MapCell<T, true> => {
