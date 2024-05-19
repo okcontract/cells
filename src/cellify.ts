@@ -29,14 +29,15 @@ export type Uncellified<T> = T extends AnyCell<infer U>
     : U
   : T;
 
-// @todo is type only if true
-// exclude classes
+// isObject returns true if the value is a regular JavaScript Object,
+// but not null neither a custom Class instance.
 export const isObject = <K extends string | number | symbol>(
   v: unknown
 ): v is Record<K, unknown> =>
   typeof v === "object" && v !== null && v.constructor?.name === "Object";
 
 const errIsCell = new Error("value is cell");
+
 /**
  * cellify converts any value to a Cellified value where each array or record
  * becomes a Cell in canonical form.
