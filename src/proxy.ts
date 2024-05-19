@@ -275,13 +275,9 @@ export class SheetProxy {
 
   /**
    * destroy the Proxy and free memory.
-   * @todo check for memory leaks
    */
   destroy() {
-    // if (!this?._sheet) {
-    //   throw new Error(`missing: ${this?._name}`);
-    // }
-    this._sheet.delete(...this._list);
+    this._sheet.collect(...this._list);
     this._list = [];
   }
 }
