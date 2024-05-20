@@ -957,7 +957,7 @@ export class Sheet {
     this.debug(ids, "collect", { collecting: ids, cells: input });
     for (const id of ids) {
       const deps = this.g.partialTopologicalSort(id);
-      this.debug(undefined, "collect", { deps });
+      // this.debug(undefined, "collect", { deps });
       for (const dep of deps) this._gc.add(dep);
     }
   }
