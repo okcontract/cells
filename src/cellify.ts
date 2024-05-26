@@ -72,7 +72,7 @@ export const cellify = <T>(
 };
 
 export type UncellifyOptions = {
-  getter: <T>(c: AnyCell<T>) => Pending<T, boolean> | CellResult<T, boolean>;
+  getter?: <T>(c: AnyCell<T>) => Pending<T, boolean> | CellResult<T, boolean>;
   errorsAsValues?: boolean;
 };
 
@@ -83,9 +83,12 @@ export type UncellifyOptions = {
  */
 export const uncellify = async <T>(
   v: T | AnyCell<T>,
-  options: UncellifyOptions = { getter: (cell) => cell.consolidatedValue }
+  options: UncellifyOptions = {}
 ): Promise<Uncellified<T>> => {
-  const value = v instanceof Cell ? await options.getter(v) : v;
+  const getter = options?.getter
+    ? options.getter
+    : (cell: AnyCell<unknown>) => cell.consolidatedValue;
+  const value = v instanceof Cell ? await getter(v) : v;
   if (value instanceof Error) {
     if (options?.errorsAsValues) return value as Uncellified<T>;
     throw value;
