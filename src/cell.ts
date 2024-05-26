@@ -750,6 +750,9 @@ export class ValueCell<V> extends Cell<V, false, false> {
 
     if (value !== undefined) {
       this.v = value;
+      // @ts-expect-error: _version is private, this is the single instance where
+      // we update it when creating a new ValueCell with a direct value.
+      this._version++;
       if (value instanceof Cell) {
         this.setPointed(value.id);
       } else {
