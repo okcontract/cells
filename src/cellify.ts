@@ -83,7 +83,7 @@ export type UncellifyOptions = {
  */
 export const uncellify = async <T>(
   v: T | AnyCell<T>,
-  options: UncellifyOptions = { getter: (cell) => cell.value }
+  options: UncellifyOptions = { getter: (cell) => cell.consolidatedValue }
 ): Promise<Uncellified<T>> => {
   const value = v instanceof Cell ? await options.getter(v) : v;
   if (value instanceof Error) {
