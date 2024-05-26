@@ -567,12 +567,7 @@ export class Sheet {
         this._internalNotify(_result.done);
 
         // Collect garbage
-        if (this._gc.size) {
-          const l = Array.from(this._gc);
-          this.debug(l, "gc", { deleting: l });
-          this._gc = new Set();
-          this.delete(...l);
-        }
+        this.collection();
 
         // End of the update
         release();
@@ -590,6 +585,15 @@ export class Sheet {
         this._queue = [];
       }
     );
+  }
+
+  collection() {
+    if (this._gc.size) {
+      const l = Array.from(this._gc);
+      this.debug(l, "gc", { deleting: l });
+      this._gc = new Set();
+      this.delete(...l);
+    }
   }
 
   private registerCancelAndDone<V>(
@@ -957,7 +961,7 @@ export class Sheet {
     this.debug(ids, "collect", { collecting: ids, cells: input });
     for (const id of ids) {
       const deps = this.g.partialTopologicalSort(id);
-      this.debug(undefined, "collect", { deps });
+      // this.debug(undefined, "collect", { deps });
       for (const dep of deps) this._gc.add(dep);
     }
   }

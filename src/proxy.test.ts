@@ -29,23 +29,26 @@ test("native proxy", () => {
   expect(trigger).toBeTruthy();
 });
 
-test("SheetProxy", () => {
-  const store = new Sheet();
-  const value = store.new(2);
-  const proxy = new SheetProxy(store);
+test("SheetProxy", async () => {
+  const sheet = new Sheet();
+  const value = sheet.new(2);
+  const proxy = new SheetProxy(sheet);
   const double = proxy.map([value], (x) => 2 * x);
   const add = proxy.map([double], (x) => x + 1);
   proxy.destroy();
+  // Force GC collection
+  sheet.collection();
+  await proxy.working.wait();
   value.set(3); // will not update detached/deleted cells
   expect(double.value).toBe(4);
   expect(add.value).toBe(5);
 });
 
 test("Sheet multiple async updates", async () => {
-  const store = new Sheet();
-  const value = store.new(2);
+  const sheet = new Sheet();
+  const value = sheet.new(2);
   const double = value.map(async (x) => delayed(2 * x, 50));
-  const add = store.map([value, double], (value, double) =>
+  const add = sheet.map([value, double], (value, double) =>
     delayed(value + double + 1, 30)
   );
   // console.log("value", value.id, "double", double.id, "add", add.id);
@@ -54,7 +57,7 @@ test("Sheet multiple async updates", async () => {
   value.set(3);
   expect(await add.consolidatedValue).toBe(10);
   value.set(4);
-  await store.wait();
+  await sheet.wait();
   expect(await add.consolidatedValue).toBe(13);
 });
 
@@ -98,9 +101,13 @@ test("proxy deletion", async () => {
   const c = sub.map([a, b], async (a, b) => a + b);
   expect(sheet.stats).toEqual({ count: 3, size: 3 });
   sub.destroy();
+  await proxy.working.wait();
   expect(sheet.stats).toEqual({ count: 3, size: 2 });
   await expect(b.get()).resolves.toBe(2);
   proxy.destroy();
+  // Force collection.
+  sheet.collection();
+  // Collection is not happening yet.
   expect(sheet.stats).toEqual({ count: 3, size: 0 });
 });
 
@@ -113,5 +120,7 @@ test("proxy deletion with loop", async () => {
   const c = sub.map([a, b], async (a, b) => delayed(a + b, 5));
   const d = proxy.map([c], async (v) => delayed(v * 2, 15));
   expect(sheet.stats).toEqual({ count: 4, size: 4 });
-  expect(() => sub.destroy()).toThrow("Cell has references");
+  // Since we now collect the whole subgraph, there is no error.
+  sub.destroy();
+  // expect(() => sub.destroy()).toThrow("Cell has references");
 });

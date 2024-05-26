@@ -12,7 +12,7 @@ import { Sheet } from "./sheet";
 
 type IsEqual<T, U> = [T] extends [U] ? ([U] extends [T] ? true : false) : false;
 
-test("", () => {
+test("IsEqual type", () => {
   type T = { a: string[] }[];
   type C = Cellified<T>;
   type U = Uncellified<C>;
@@ -82,4 +82,20 @@ test("cellify failOnCell", async () => {
   const proxy = new SheetProxy(sheet);
   const v = { a: [1, 2, 3], b: { c: { foo: proxy.new(1, "1"), bar: 1 } } };
   expect(() => cellify(proxy, v, "cv", true)).toThrowError("value is cell");
+});
+
+test("cellify failOnError", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const v = proxy.new(1);
+  // @ts-expect-error intentional
+  const m = v.map((v) => v.toLowerCase());
+  // The standard uncellify call throws.
+  await expect(() => uncellify(m)).rejects.toThrow(
+    "toLowerCase is not a function"
+  );
+  // But we retrieve the error with errorsAsValues.
+  await expect(uncellify(m, { errorsAsValues: true })).resolves.toBeInstanceOf(
+    Error
+  );
 });

@@ -4,13 +4,13 @@ import { expect, test } from "vitest";
 import { cellify, uncellify } from "./cellify";
 import { Debugger } from "./debug";
 import { isEqual } from "./isEqual.test";
-import { asyncReduce, mapObject, reduceObject } from "./object";
+import { asyncReduce, flattenObject, mapObject, reduceObject } from "./object";
 import { delayed } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 
 test("mapObject", async () => {
-  const sheet = new Sheet();
+  const sheet = new Sheet(isEqual);
   const proxy = new SheetProxy(sheet);
 
   const obj = cellify(proxy, { a: 1, b: "foo", c: "bar" });
@@ -60,7 +60,7 @@ test("asyncReduce", async () => {
 test(
   "reduceObject",
   async () => {
-    const sheet = new Sheet();
+    const sheet = new Sheet(isEqual);
     const debug = new Debugger(sheet);
     const proxy = new SheetProxy(sheet);
 
@@ -89,3 +89,18 @@ test(
   },
   { timeout: 1000 }
 );
+
+test("flattenObject", async () => {
+  const sheet = new Sheet(isEqual);
+  const debug = new Debugger(sheet);
+  const proxy = new SheetProxy(sheet);
+
+  const obj = cellify(proxy, { a: 1, b: 2, c: 3 });
+  const f = flattenObject(proxy, obj);
+  await expect(f.consolidatedValue).resolves.toEqual({ a: 1, b: 2, c: 3 });
+  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // 3+1 obj +1 flatten +1 pointer
+
+  await (await obj.consolidatedValue).a.set(4);
+  await expect(f.get()).resolves.toEqual({ a: 4, b: 2, c: 3 });
+  expect(sheet.stats).toEqual({ count: 6, size: 6 }); // unchanged
+});
