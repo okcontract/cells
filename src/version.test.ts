@@ -26,6 +26,14 @@ test("version for ValueCell promise", async () => {
   expect(a.version).toBe(1);
 });
 
+test("version doesn't update when isEqual", () => {
+  const proxy = new Sheet(isEqual).newProxy();
+  const a = proxy.new(1);
+  expect(a.version).toBe(1);
+  a.set(1);
+  expect(a.version).toBe(1);
+});
+
 test("version for MapCell", async () => {
   const proxy = new Sheet(isEqual).newProxy();
   const a = proxy.new(1);
