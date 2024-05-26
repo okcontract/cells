@@ -183,9 +183,9 @@ export const reduce = <
   nf?: NF
 ): MapCell<R, NF> => {
   const coll = collector<MapCell<R, NF>>(proxy);
-  return proxy.map(
+  return proxy.mapNoPrevious(
     [arr],
-    (cells) =>
+    async (cells) =>
       coll(
         proxy.mapNoPrevious(
           cells,
