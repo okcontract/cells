@@ -180,6 +180,7 @@ export class Cell<
       it means that [v] will be invalidated by an ongoing computation */
   protected _valueRank = 0;
   protected _currentComputationRank = 0;
+  private _version = 0;
 
   protected _pending_: PendingMaybe<V, MaybeError> | undefined;
   private _pendingRank: number | null = null;
@@ -212,6 +213,10 @@ export class Cell<
     this._isPointer = true;
     this._proxy = sheet.id;
     // console.log(`Cell ${id}: `, "constructed")
+  }
+
+  get version(): number {
+    return this._version;
   }
 
   get isPointer(): boolean {
@@ -550,6 +555,7 @@ export class Cell<
       newValueRank: computationRank
     });
     this.v = newValue;
+    this._version++;
     this._valueRank = computationRank;
     // Update localStorage if set.
     if (needUpdate && this._storageKey) {
