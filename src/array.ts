@@ -273,7 +273,7 @@ export const mapFlat = <T, NF extends boolean = false>(
   nf?: NF
 ) => {
   const coll = collector<MapCell<T[], NF>>(proxy);
-  return proxy.map(
+  return proxy.mapNoPrevious(
     [arr],
     (cells) => coll(proxy.mapNoPrevious(cells, (..._cells) => _cells)),
     name,

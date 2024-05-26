@@ -29,14 +29,15 @@ export type Uncellified<T> = T extends AnyCell<infer U>
     : U
   : T;
 
-// @todo is type only if true
-// exclude classes
+// isObject returns true if the value is a regular JavaScript Object,
+// but not null neither a custom Class instance.
 export const isObject = <K extends string | number | symbol>(
   v: unknown
 ): v is Record<K, unknown> =>
   typeof v === "object" && v !== null && v.constructor?.name === "Object";
 
 const errIsCell = new Error("value is cell");
+
 /**
  * cellify converts any value to a Cellified value where each array or record
  * becomes a Cell in canonical form.
@@ -72,6 +73,7 @@ export const cellify = <T>(
 
 export type UncellifyOptions = {
   getter: <T>(c: AnyCell<T>) => Pending<T, boolean> | CellResult<T, boolean>;
+  errorsAsValues?: boolean;
 };
 
 /**
@@ -81,10 +83,13 @@ export type UncellifyOptions = {
  */
 export const uncellify = async <T>(
   v: T | AnyCell<T>,
-  options: UncellifyOptions = { getter: (cell) => cell.value }
+  options: UncellifyOptions = { getter: (cell) => cell.consolidatedValue }
 ): Promise<Uncellified<T>> => {
   const value = v instanceof Cell ? await options.getter(v) : v;
-  if (value instanceof Error) throw value;
+  if (value instanceof Error) {
+    if (options?.errorsAsValues) return value as Uncellified<T>;
+    throw value;
+  }
   if (Array.isArray(value))
     return Promise.all(
       value.map((_element) => uncellify(_element, options))

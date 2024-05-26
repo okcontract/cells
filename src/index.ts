@@ -52,7 +52,9 @@ export {
 } from "./cellify";
 export { clock, clockWork, type Clock } from "./clock";
 export { copy } from "./copy";
+export { debouncer, type Debouncer } from "./debouncer";
 export { Debugger } from "./debug";
+export { initialValue } from "./initial";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
 export {
