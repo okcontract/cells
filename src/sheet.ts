@@ -229,7 +229,7 @@ export class Sheet {
    * @param pointed the formerly pointed node
    */
   private unsetPointerDep(node: number, pointed: number) {
-    if (!this._cells[node].dependencies.includes(pointed)) {
+    if (!this._cells?.[node]?.dependencies?.includes(pointed)) {
       this._pointers.removeEdge(pointed, node);
     }
   }
@@ -849,7 +849,7 @@ export class Sheet {
           includeRoots: false,
           next
         }) // we remove ids as they should have been computed/modified in the right order.
-        .filter((id) => !ids.has(id)) || [];
+        ?.filter((id) => !ids.has(id)) || [];
     /** List of nodes that will be updated that currently are pointers  */
     const pointersToBeUpdated = mightChange.filter(isPointer);
 

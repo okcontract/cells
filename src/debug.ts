@@ -156,7 +156,12 @@ export class Debugger {
     for (const [id, cell] of Object.entries(this.cells)) {
       if (cell.value === undefined) {
         ids.push(+id);
-        console.log({ id, name: this.g.name(+id), cell, undefined: true });
+        console.log({
+          id,
+          name: cell.name || this.g.name(+id),
+          cell,
+          undefined: true
+        });
       }
     }
     return this.g.topologicalSort()?.filter((id) => ids.includes(id));
