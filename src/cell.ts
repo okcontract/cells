@@ -823,7 +823,8 @@ export class ValueCell<V> extends Cell<V, false, false> {
       );
     }
     const nv = fn(v);
-    this.set(nv);
+    // We ignore undefined values (but not cell nor promises).
+    if (nv !== undefined) this.set(nv);
   };
 
   /**
