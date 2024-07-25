@@ -28,6 +28,7 @@ export type { ComputeFn, Unsubscriber } from "./types";
 // Utilities
 
 export {
+  defaultComparator,
   filter,
   filterPredicateCell,
   find,
@@ -38,7 +39,8 @@ export {
   mapArrayCell,
   reduce,
   sort,
-  type CellArray
+  type CellArray,
+  type ValueCellArray
 } from "./array";
 export {
   cellify,
