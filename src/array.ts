@@ -85,13 +85,16 @@ export const defaultComparator = <T>(a: T, b: T): number =>
  * 2. cells must be an array (possibly empty)
  * 3. compare should never fail
  */
-export const sort = <T>(
+export const sort = <T, NF extends boolean = false>(
   proxy: SheetProxy,
   arr: CellArray<T>,
   compare: (a: T, b: T) => number = defaultComparator,
-  noFail = false
-): CellArray<T> => {
-  const coll = collector<CellArray<T>>(proxy);
+  noFail?: NF
+): MapCell<typeof arr extends AnyCell<infer U> ? U : never, NF> => {
+  const coll =
+    collector<MapCell<typeof arr extends AnyCell<infer U> ? U : never, NF>>(
+      proxy
+    );
   return proxy.mapNoPrevious(
     [arr],
     (cells) =>
@@ -104,11 +107,11 @@ export const sort = <T>(
               .sort((indexA, indexB) => compare(_cells[indexA], _cells[indexB]))
               .map((index) => cells[index]),
           "_sort",
-          noFail
+          noFail || false
         )
       ),
     "sort",
-    noFail
+    noFail || false
   );
 };
 
