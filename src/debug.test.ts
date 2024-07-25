@@ -13,6 +13,7 @@ test("Debugger", () => {
     throw new Error("no");
   });
   expect(debug.p(1)).toBe("[] ==> {1} ==> [2]");
+  expect(debug.p(1, 2)).toBeUndefined();
   const errs = debug.e;
   expect(errs.length).toBe(1);
   expect(errs[0].cell).toBe(3);
