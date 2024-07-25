@@ -11,6 +11,7 @@ export const nextSubscriber = <V>(
   cb: (v: V) => void,
   _expectedCount = 2
 ) => {
+  if (!cell) return;
   // biome-ignore lint/style/useConst: need reference
   let uns: Unsubscriber;
   let count = 0;
