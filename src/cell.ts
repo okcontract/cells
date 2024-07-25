@@ -628,19 +628,11 @@ export class Cell<
     noFail?: NF
   ): MapCell<T, NF> =>
     this._sheet instanceof SheetProxy
-      ? ((this._sheet as SheetProxy).map(
-          [this as AnyCell<V>],
-          fn,
-          name,
-          noFail
-        ) as MapCell<T, NF>)
-      : ((this._sheet as Sheet).map(
-          [this as AnyCell<V>],
-          fn,
-          name,
-          undefined,
-          noFail
-        ) as MapCell<T, NF>);
+      ? (this._sheet.map([this], fn, name, noFail) as MapCell<T, NF>)
+      : (this._sheet.map([this], fn, name, undefined, noFail) as MapCell<
+          T,
+          NF
+        >);
 
   init = <T>(
     fn: (v: V) => T | Promise<T>,
@@ -1229,5 +1221,5 @@ export class CellErrors extends SubscribeBench<ErrorsList> {
 export type AnyCell<
   T,
   C extends boolean = boolean,
-  N extends boolean = boolean
-> = Cell<T, C, N> | ValueCell<T> | MapCell<T, N>;
+  NF extends boolean = false
+> = Cell<T, C, NF> | ValueCell<T> | MapCell<T, NF>;
