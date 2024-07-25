@@ -82,7 +82,13 @@ export class Debugger {
    * print: a cell and all its dependencies.
    * @param cell number
    */
-  p(cell: number) {
+  p(cell: number, to?: number) {
+    // List all cell names in range.
+    if (to) {
+      for (let i = cell; i <= to; i++)
+        console.log(`${i}: ${this.cells?.[i]?.name}`);
+      return;
+    }
     if (!this.cells[cell]) {
       console.log("not found");
       return;
@@ -156,7 +162,11 @@ export class Debugger {
     for (const [id, cell] of Object.entries(this.cells)) {
       if (cell.value === undefined) {
         ids.push(+id);
-        console.log({ id, name: this.g.name(+id), cell, undefined: true });
+        console.log({
+          id,
+          name: cell.name || this.g.name(+id),
+          undefined: true
+        });
       }
     }
     return this.g.topologicalSort()?.filter((id) => ids.includes(id));

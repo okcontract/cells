@@ -118,6 +118,7 @@ export class Sheet {
   private _gc: Set<number>;
 
   private _proxies: Graph<number>;
+  private _proxyNames: Record<number, string>;
 
   /**
    * @param equality function comparing a new value with previous value for updates
@@ -141,6 +142,7 @@ export class Sheet {
     this._queue = [];
     this._proxies = new Graph();
     this._proxies.addNode(0);
+    this._proxyNames = {};
   }
 
   // a Sheet has id 0, proxies > 0
@@ -148,22 +150,32 @@ export class Sheet {
     return 0;
   }
 
-  addProxy() {
+  addProxy(name?: string) {
     // keeping 0 as original Sheet
     this[proxies]++;
     const id = this[proxies];
     this._proxies.addNode(id);
+    this._proxyNames[id] = name;
     return id;
   }
 
   addProxyEdge(from: number, to: number) {
     this._proxies.addEdge(from, to);
   }
-  addProxyDependencies(id: number, deps: AnyCellArray<unknown[]>) {
+  addProxyDependencies(
+    id: number,
+    deps: AnyCellArray<unknown[]>,
+    cell: number
+  ) {
     for (const dep of deps)
       if (dep._proxy !== id) this.addProxyEdge(dep._proxy, id);
     if (this._proxies.topologicalSort() === null)
-      this.debug(undefined, "proxy cycle", { proxy: id, deps });
+      this.debug(undefined, "proxy cycle", {
+        proxy: id,
+        cell,
+        name: this._proxyNames[id],
+        deps
+      });
     this._queue = [];
   }
 
@@ -217,7 +229,7 @@ export class Sheet {
    * @param pointed the formerly pointed node
    */
   private unsetPointerDep(node: number, pointed: number) {
-    if (!this._cells[node].dependencies.includes(pointed)) {
+    if (!this._cells?.[node]?.dependencies?.includes(pointed)) {
       this._pointers.removeEdge(pointed, node);
     }
   }
@@ -837,7 +849,7 @@ export class Sheet {
           includeRoots: false,
           next
         }) // we remove ids as they should have been computed/modified in the right order.
-        .filter((id) => !ids.has(id)) || [];
+        ?.filter((id) => !ids.has(id)) || [];
     /** List of nodes that will be updated that currently are pointers  */
     const pointersToBeUpdated = mightChange.filter(isPointer);
 

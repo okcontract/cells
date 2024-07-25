@@ -1,8 +1,9 @@
-import { type AnyCell, type MapCell, ValueCell } from "./cell";
+import type { AnyCell, MapCell, ValueCell } from "./cell";
 import { collector, reuseOrCreate } from "./gc";
 import type { SheetProxy } from "./proxy";
 
 export type CellArray<T> = AnyCell<AnyCell<T>[]>;
+export type ValueCellArray<T> = ValueCell<ValueCell<T>[]>;
 
 /**
  * mapArray implements .map() for a cellified array.
@@ -54,19 +55,47 @@ export const mapArray = <T, U>(
   );
 
 /**
+ * Compares two values and returns a number indicating their order.
+ *
+ * This function is designed to be used as a comparator in sorting functions.
+ * It returns:
+ * - `1` if `a` is greater than `b`
+ * - `-1` if `a` is less than `b`
+ * - `0` if `a` is equal to `b`
+ *
+ * @param {*} a - The first value to compare.
+ * @param {*} b - The second value to compare.
+ * @returns {number} - Order.
+ *
+ * @example
+ * const array = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5];
+ * array.sort(defaultComparator);
+ */
+export const defaultComparator = <T>(a: T, b: T): number =>
+  a > b ? 1 : a < b ? -1 : 0;
+
+/**
  * implementation of sort for a cellified array.
  * @description this implementation relies on pointers but reuses the original cells.
  * @param proxy
  * @param arr
  * @param compare comparison function
+ * @param noFail should be true when the following conditions are met:
+ * 1. compare must be defined
+ * 2. cells must be an array (possibly empty)
+ * 3. compare should never fail
  */
-export const sort = <T>(
+export const sort = <T, NF extends boolean = false>(
   proxy: SheetProxy,
   arr: CellArray<T>,
-  compare: (a: T, b: T) => number = (a, b) => (a > b ? 1 : a < b ? -1 : 0)
-): CellArray<T> => {
-  const coll = collector<CellArray<T>>(proxy);
-  return proxy.map(
+  compare: (a: T, b: T) => number = defaultComparator,
+  noFail?: NF
+): MapCell<typeof arr extends AnyCell<infer U> ? U : never, NF> => {
+  const coll =
+    collector<MapCell<typeof arr extends AnyCell<infer U> ? U : never, NF>>(
+      proxy
+    );
+  return proxy.mapNoPrevious(
     [arr],
     (cells) =>
       coll(
@@ -77,10 +106,12 @@ export const sort = <T>(
               .map((_, index) => index)
               .sort((indexA, indexB) => compare(_cells[indexA], _cells[indexB]))
               .map((index) => cells[index]),
-          "_sort"
+          "_sort",
+          noFail || false
         )
       ),
-    "sort"
+    "sort",
+    noFail || false
   );
 };
 
@@ -177,7 +208,7 @@ export const reduce = <
 >(
   proxy: SheetProxy,
   arr: CellArray<T>,
-  fn: (acc: R, elt: T, index?: number, length?: number) => R,
+  fn: (acc: R, elt: T, index?: number, cell?: AnyCell<T>) => R,
   init: R,
   name = "reduce",
   nf?: NF
@@ -190,10 +221,7 @@ export const reduce = <
         proxy.mapNoPrevious(
           cells,
           (..._cells) =>
-            _cells.reduce(
-              (acc, elt, i) => fn(acc, elt, i, _cells.length),
-              init
-            ),
+            _cells.reduce((acc, elt, i) => fn(acc, elt, i, cells[i]), init),
           "_reduce"
         )
       ),
