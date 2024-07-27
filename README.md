@@ -22,7 +22,8 @@ inspired by spreadsheets.
 
 Although it is a fully independent library, `cells` can be a powerful drop-in
 replacement for Svelte stores as it implements the Svelte store interface. There
-is also a [React hook](https://github.com/okcontract/sdk-react/blob/main/src/cell.tsx).
+is also a [React hook](https://github.com/okcontract/sdk-react/blob/main/src/cell.tsx)
+and a demo with [Vue 3](https://github.com/hbbio/cells-vue).
 
 ## Walkthrough
 
