@@ -21,3 +21,6 @@ export class CellError<R> extends Error {
     this.reason = reason;
   }
 }
+
+// @todo : v is CellError<typeof (v["reason"])>
+export const isCellError = (v: Error) => "source" in v && "reason" in v;
