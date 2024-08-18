@@ -1,6 +1,7 @@
 import type { Graph } from "@okcontract/graph";
 
 import type { Cell } from "./cell";
+import { isCellError } from "./errors";
 import type { Sheet } from "./sheet";
 
 /**
@@ -140,18 +141,33 @@ export class Debugger {
   }
 
   /**
-   * e: print all cells containing errors.
-   * @returns
+   * errors retrieves all cells in error.
+   * @param
+   * @returns list
    */
-  get e() {
+  errors(first = false) {
     const res = [];
     for (const k of Object.keys(this.cells)) {
       const v = this.cells[k];
-      if (v.value instanceof Error) {
+      if (v.value instanceof Error && (!first || !isCellError(v.value))) {
         res.push({ cell: v.id, name: v.name, error: v.value });
       }
     }
     return res;
+  }
+
+  /**
+   * e: all errors.
+   */
+  get e() {
+    return this.errors();
+  }
+
+  /**
+   * ee: only first errors.
+   */
+  get ee() {
+    return this.errors(true);
   }
 
   /**
