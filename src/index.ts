@@ -34,6 +34,7 @@ export {
   find,
   findIndex,
   first,
+  flattenCellArray,
   last,
   mapArray,
   mapArrayCell,

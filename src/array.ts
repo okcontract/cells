@@ -294,7 +294,27 @@ export const filter = <T, NF extends boolean = false>(
   );
 };
 
-export const mapFlat = <T, NF extends boolean = false>(
+/**
+ * `flattenCellArray` is a utility function that maps and flattens an array
+ * of cells into a single cell that contains a flattened array of values.
+ * It creates a new cell that reacts to changes in the input array and updates
+ * its value accordingly.
+ *
+ * @template T - The type of the elements in the input cell array.
+ * @template NF - Type indicating if the cells are failsafe.
+ *
+ * @param {SheetProxy} proxy - An instance of `SheetProxy` used to create new
+ * cells and manage dependencies.
+ * @param {CellArray<T>} arr - An array of cells, where each cell contains a
+ * value of type `T`.
+ * @param {string} [name="flatten"] - An optional name for the resulting cell.
+ * Defaults to "flatten".
+ * @param {NF} [nf] - An optional flag indicating whether the cells can't fail.
+ * Defaults to `false`.
+ *
+ * @returns {MapCell<T[], NF>} - A cell containing a flattened array of values.
+ */
+export const flattenCellArray = <T, NF extends boolean = false>(
   proxy: SheetProxy,
   arr: CellArray<T>,
   name = "flatten",
