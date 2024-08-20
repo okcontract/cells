@@ -239,12 +239,12 @@ export class Debugger {
   }
 }
 
-const getClassNameOrType = (value: unknown) =>
+export const getClassNameOrType = (value: unknown) =>
   value !== null && typeof value === "object" && value.constructor
     ? value.constructor.name
     : typeof value;
 
-export const logger = <T>(cell: AnyCell<T>, fn?: (T) => unknown) =>
+export const logger = <T>(cell: AnyCell<T>, fn?: (v: T) => unknown) =>
   cell.subscribe((v) =>
     console.log(
       cell.name,
