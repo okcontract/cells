@@ -1,7 +1,8 @@
 import type { Graph } from "@okcontract/graph";
 
-import type { Cell } from "./cell";
+import type { AnyCell, Cell } from "./cell";
 import { isCellError } from "./errors";
+import { simplifier } from "./printer";
 import type { Sheet } from "./sheet";
 
 /**
@@ -237,3 +238,18 @@ export class Debugger {
     );
   }
 }
+
+const getClassNameOrType = (value: unknown) =>
+  value !== null && typeof value === "object" && value.constructor
+    ? value.constructor.name
+    : typeof value;
+
+export const logger = <T>(cell: AnyCell<T>, fn?: (T) => unknown) =>
+  cell.subscribe((v) =>
+    console.log(
+      cell.name,
+      fn !== undefined && !(v instanceof Error)
+        ? { [fn.name]: simplifier(fn(v)) }
+        : { [getClassNameOrType(v)]: simplifier(v) }
+    )
+  );
