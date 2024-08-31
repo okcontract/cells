@@ -323,7 +323,10 @@ export const flattenCellArray = <T, NF extends boolean = false>(
   const coll = collector<MapCell<T[], NF>>(proxy);
   return proxy.mapNoPrevious(
     [arr],
-    (cells) => coll(proxy.mapNoPrevious(cells, (..._cells) => _cells)),
+    (cells) =>
+      cells === null
+        ? null
+        : coll(proxy.mapNoPrevious(cells, (..._cells) => _cells)),
     name,
     nf
   );
