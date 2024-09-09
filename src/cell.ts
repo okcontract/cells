@@ -800,8 +800,13 @@ export class ValueCell<V> extends Cell<V, false, false> {
     fn: (v: V) => V | Promise<V> | AnyCell<V> | Promise<AnyCell<V>>
   ) => {
     if (this.isPointer) {
+      // The following implementation updates the pointed cell, but
+      // we might want to detach the pointed cell and update that cell
+      // directly.
       const cell = this._sheet.get(this.pointed);
       if (cell instanceof ValueCell) return cell.update(fn);
+      // @todo We could implement a cancellation of the pointed cell (supposedly pending)
+      // to force setting a new value.
       throw this.newError("Cell is a pointer to a MapCell");
     }
     // this line is here to help the typechecker

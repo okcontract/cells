@@ -44,7 +44,8 @@ const errIsCell = new Error("value is cell");
  * @param proxy
  * @param v any defined value (v must not be undefined)
  * @returns
- * @todo cell reuses
+ * @todo cell reuse
+ * @todo support Promise<T>
  */
 export const cellify = <T>(
   proxy: SheetProxy,
