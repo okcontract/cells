@@ -44,7 +44,8 @@ const errIsCell = new Error("value is cell");
  * @param proxy
  * @param v any defined value (v must not be undefined)
  * @returns
- * @todo cell reuses
+ * @todo cell reuse
+ * @todo support Promise<T>
  */
 export const cellify = <T>(
   proxy: SheetProxy,
@@ -58,13 +59,13 @@ export const cellify = <T>(
   }
   return proxy.new(
     Array.isArray(v)
-      ? v.map((vv, i) => cellify(proxy, vv, `${name}[${i}]`, failOnCell), "ç[]")
+      ? v.map((vv, i) => cellify(proxy, vv, `${name}[${i}]`, failOnCell))
       : isObject(v)
         ? Object.fromEntries(
-            Object.entries(v).map(
-              ([k, vv]) => [k, cellify(proxy, vv, `${name}[${k}]`, failOnCell)],
-              "ç{}"
-            )
+            Object.entries(v).map(([k, vv]) => [
+              k,
+              cellify(proxy, vv, `${name}[${k}]`, failOnCell)
+            ])
           )
         : v,
     name

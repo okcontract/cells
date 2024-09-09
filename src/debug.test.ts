@@ -1,6 +1,7 @@
-import { expect, test } from "vitest";
+import { describe, expect, it, test, vi } from "vitest";
 
-import { Debugger } from "./debug";
+import { Debugger, getClassNameOrType, logger } from "./debug";
+import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 
 test("Debugger", () => {
@@ -27,4 +28,116 @@ test("Debugger", () => {
       value: 1
     }
   ]);
+});
+
+describe("getClassNameOrType", () => {
+  it('should return "number" for a number', () => {
+    expect(getClassNameOrType(42)).toBe("number");
+  });
+
+  it('should return "string" for a string', () => {
+    expect(getClassNameOrType("Hello")).toBe("string");
+  });
+
+  it('should return "Array" for an array', () => {
+    expect(getClassNameOrType([1, 2, 3])).toBe("Array");
+  });
+
+  it('should return "Object" for a plain object', () => {
+    expect(getClassNameOrType({ key: "value" })).toBe("Object");
+  });
+
+  it('should return "null" for null', () => {
+    expect(getClassNameOrType(null)).toBe("object"); // Note: `typeof null` returns "object"
+  });
+
+  it('should return "undefined" for undefined', () => {
+    expect(getClassNameOrType(undefined)).toBe("undefined");
+  });
+
+  it("should return the class name for a custom class instance", () => {
+    class MyClass {}
+    const instance = new MyClass();
+    expect(getClassNameOrType(instance)).toBe("MyClass");
+  });
+
+  it('should return "Function" for a function', () => {
+    expect(getClassNameOrType(() => {})).toBe("function");
+  });
+
+  it("should return the correct constructor name for built-in objects", () => {
+    expect(getClassNameOrType(new Map())).toBe("Map");
+  });
+});
+
+describe("logger", () => {
+  const sheet = new Sheet(); // Create the Sheet once for all tests
+
+  it("should log the cell name and value type", () => {
+    const mockConsoleLog = vi
+      .spyOn(console, "log")
+      .mockImplementation(() => {});
+
+    const proxy = new SheetProxy(sheet);
+    const cell = proxy.new(42, "cell");
+
+    logger(cell);
+
+    expect(mockConsoleLog).toHaveBeenCalledWith("cell", { number: 42 });
+
+    mockConsoleLog.mockRestore();
+  });
+
+  it("should log the cell name and processed value when fn is provided", () => {
+    const mockConsoleLog = vi
+      .spyOn(console, "log")
+      .mockImplementation(() => {});
+
+    const proxy = new SheetProxy(sheet);
+    const cell = proxy.new(42, "cell");
+
+    const fn = (v: number) => v * 2;
+
+    logger(cell, fn);
+
+    expect(mockConsoleLog).toHaveBeenCalledWith("cell", { fn: 84 });
+
+    mockConsoleLog.mockRestore();
+  });
+
+  it("should log the cell name and error type when cell is in Error", () => {
+    const mockConsoleLog = vi
+      .spyOn(console, "log")
+      .mockImplementation(() => {});
+
+    const proxy = new SheetProxy(sheet);
+    const err = new Error("Test error");
+    const a = proxy.new("", "a");
+    const b = a.map((v) => {
+      throw err;
+    }, "b");
+    logger(b);
+    expect(mockConsoleLog).toHaveBeenCalledWith("b", {
+      Error: err
+    });
+
+    mockConsoleLog.mockRestore();
+  });
+
+  it("should log the name and value of a mapped cell", () => {
+    const mockConsoleLog = vi
+      .spyOn(console, "log")
+      .mockImplementation(() => {});
+
+    const proxy = new SheetProxy(sheet);
+    const cellA = proxy.new(1);
+    const cellB = proxy.new(2);
+    const mappedCell = proxy.map([cellA, cellB], (a, b) => a + b, "mappedCell");
+
+    logger(mappedCell);
+
+    expect(mockConsoleLog).toHaveBeenCalledWith("mappedCell", { number: 3 });
+
+    mockConsoleLog.mockRestore();
+  });
 });

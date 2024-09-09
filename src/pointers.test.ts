@@ -15,7 +15,6 @@ test("cell pointer sync", async () => {
   expect(cellMap.isPointer).toEqual(true);
   await expect(mixed.get()).resolves.toEqual(4);
   cell1.set(2);
-  // await sleep(160);
   await expect(mixed.get()).resolves.toEqual(6);
 });
 

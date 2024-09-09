@@ -1,6 +1,8 @@
 import type { Graph } from "@okcontract/graph";
 
-import type { Cell } from "./cell";
+import type { AnyCell, Cell } from "./cell";
+import { isCellError } from "./errors";
+import { simplifier } from "./printer";
 import type { Sheet } from "./sheet";
 
 /**
@@ -140,18 +142,33 @@ export class Debugger {
   }
 
   /**
-   * e: print all cells containing errors.
-   * @returns
+   * errors retrieves all cells in error.
+   * @param
+   * @returns list
    */
-  get e() {
+  errors(first = false) {
     const res = [];
     for (const k of Object.keys(this.cells)) {
       const v = this.cells[k];
-      if (v.value instanceof Error) {
+      if (v.value instanceof Error && (!first || !isCellError(v.value))) {
         res.push({ cell: v.id, name: v.name, error: v.value });
       }
     }
     return res;
+  }
+
+  /**
+   * e: all errors.
+   */
+  get e() {
+    return this.errors();
+  }
+
+  /**
+   * ee: only first errors.
+   */
+  get ee() {
+    return this.errors(true);
   }
 
   /**
@@ -221,3 +238,18 @@ export class Debugger {
     );
   }
 }
+
+export const getClassNameOrType = (value: unknown) =>
+  value !== null && typeof value === "object" && value.constructor
+    ? value.constructor.name
+    : typeof value;
+
+export const logger = <T>(cell: AnyCell<T>, fn?: (v: T) => unknown) =>
+  cell.subscribe((v) =>
+    console.log(
+      cell.name,
+      fn !== undefined && !(v instanceof Error)
+        ? { [fn.name]: simplifier(fn(v)) }
+        : { [getClassNameOrType(v)]: simplifier(v) }
+    )
+  );

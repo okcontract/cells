@@ -10,7 +10,7 @@ export const initialValue = <T>(
   const cell = proxy.new(v0, name);
   v.subscribe((v) => {
     // We do not propagate errors yet.
-    if (v instanceof Error) return;
+    if (v instanceof Error || v === null) return;
     cell.set(v);
   });
   // We fake being a MapCell to prevent setting the cell
