@@ -687,19 +687,16 @@ export class Cell<
     this.value !== undefined
       ? this.value
       : // @todo handle rejections?
-        new Promise<CellResult<V, MaybeError>>((resolve) => {
+        new Promise<CellResult<V, MaybeError>>((resolve, reject) => {
           // biome-ignore lint/style/useConst: uns needs to be defined in function
           let uns: Unsubscriber;
           uns = this.subscribe((v) => {
-            // console.log({ cell: this.name, notification: Date.now() });
+            if (v instanceof Error) reject(v);
             if (v !== undefined) {
-              // console.log({ cell: this.name, isDefined: true });
-              uns();
               resolve(v);
-              // console.log({ cell: this.name, resolved: true, v });
+              queueMicrotask(uns);
             }
           });
-          // console.log(this._subscribers);
         });
 }
 
