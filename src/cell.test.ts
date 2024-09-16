@@ -2,6 +2,9 @@ import { describe, expect, it, test } from "vitest";
 
 import { isEqual } from "./isEqual.test";
 
+import { reduce } from "./array";
+import { cellify } from "./cellify";
+import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 
 describe("writable", () => {
@@ -240,4 +243,55 @@ test("subscribe doesn't return undefined", async () => {
   url.set("");
   url.set("https://images.dog.ceo/breeds/frise-bichon/1.jpg");
   expect(l).toEqual(["frise-bichon"]); // cspell:disable-line
+});
+
+test("subscriber keeps working when pointer is updated", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const a = proxy.new(1, "a");
+  let sum = 0;
+  a.subscribe((v) => {
+    sum += v;
+  });
+  expect(sum).toBe(1);
+  const b = proxy.new(2, "b");
+  expect(sum).toBe(1); // unchanged
+  a.set(b);
+  expect(sum).toBe(3); // b
+  b.set(3);
+  expect(sum).toBe(6); // b update
+});
+
+test("subscriber keeps working when pointer is updated with pointer chain", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const a = proxy.new(1, "a");
+  let sum = 0;
+  a.subscribe((v) => {
+    sum += v;
+  });
+  expect(sum).toBe(1);
+  const b = proxy.new(2, "b");
+  const c = proxy.new(b, "c");
+  expect(sum).toBe(1); // unchanged
+  a.set(c);
+  expect(sum).toBe(3); // b
+  b.set(3);
+  expect(sum).toBe(6); // b update
+});
+
+test("subscriber keeps working with mapped pointers", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const one = proxy.new(1, "one");
+  const arr = cellify(proxy, [one, 2, 3]);
+  const sum = reduce(proxy, arr, (acc, elt) => acc + elt, 0);
+  let count = 0;
+  sum.subscribe((v) => count++);
+  await proxy.working.wait();
+  expect(count).toBe(1);
+  one.set(2);
+  expect(count).toBe(2);
+  arr.update((arr) => [...arr, proxy.new(4, "4")]);
+  expect(count).toBe(3);
 });
