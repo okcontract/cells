@@ -796,14 +796,14 @@ export class ValueCell<V> extends Cell<V, false, false> {
    * @todo throw an error if fn fails?
    * @todo make it concurrency-friendly
    */
-  update = (
-    fn: (v: V) => V | Promise<V> | AnyCell<V> | Promise<AnyCell<V>>
-  ) => {
+  update = <Ret extends V | Promise<V> | AnyCell<V> | Promise<AnyCell<V>>>(
+    fn: (v: V) => Ret
+  ): Ret => {
     if (this.isPointer) {
       // The following implementation updates the pointed cell, but
       // we might want to detach the pointed cell and update that cell
       // directly.
-      const cell = this._sheet.get(this.pointed);
+      const cell = this._sheet.get(this.pointed) as ValueCell<V>;
       if (cell instanceof ValueCell) return cell.update(fn);
       // @todo We could implement a cancellation of the pointed cell (supposedly pending)
       // to force setting a new value.
@@ -822,6 +822,7 @@ export class ValueCell<V> extends Cell<V, false, false> {
     const nv = fn(v);
     // We ignore undefined values (but not cell nor promises).
     if (nv !== undefined) this.set(nv);
+    return nv;
   };
 
   /**
