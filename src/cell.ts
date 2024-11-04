@@ -110,13 +110,13 @@ abstract class SubscribeBench<V> {
     // console.log(`Cell ${this.name}: `, `subscriber  ${id} registered`);
     const subscriber: [(value: V) => void, number] = [run, id];
     this._subscribers.push(subscriber);
+    // returns an unsubscribe function
     return () => {
       // console.log({
       //   cell: this.name,
       //   subscriber: id,
       //   unsubscribeOccurrences: this._subscribers.map((f) => f[0] === run),
       // });
-      // returns an unsubscribe function
       const index = this._subscribers.indexOf(subscriber);
       if (index !== -1) this._subscribers.splice(index, 1);
     };

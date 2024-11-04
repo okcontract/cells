@@ -280,4 +280,15 @@ export class SheetProxy {
     this._sheet.collect(...this._list);
     this._list = [];
   }
+
+  /**
+   * @todo transaction semantics
+   */
+  async values<In extends AnyCell<unknown>[]>(
+    ...l: In
+  ): Promise<{ [K in keyof In]: In[K] extends AnyCell<infer T> ? T : never }> {
+    return Promise.all(l.map((cell) => cell.consolidatedValue)) as Promise<{
+      [K in keyof In]: In[K] extends AnyCell<infer T> ? T : never;
+    }>;
+  }
 }
