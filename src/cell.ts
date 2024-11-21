@@ -180,6 +180,7 @@ export class Cell<
       it means that [v] will be invalidated by an ongoing computation */
   protected _valueRank = 0;
   protected _currentComputationRank = 0;
+  private _version = 0;
 
   protected _pending_: PendingMaybe<V, MaybeError> | undefined;
   private _pendingRank: number | null = null;
@@ -212,6 +213,10 @@ export class Cell<
     this._isPointer = true;
     this._proxy = sheet.id;
     // console.log(`Cell ${id}: `, "constructed")
+  }
+
+  get version(): number {
+    return this._version;
   }
 
   get isPointer(): boolean {
@@ -543,16 +548,41 @@ export class Cell<
       return;
     }
 
-    const needUpdate = !this._sheet.equals(this.v, newValue);
     this.sheet.debug([this.id], () => `Cell ${this.name} <== ${newValue}`, {
       currentValue: simplifier(this.value),
       currentRank: this._currentComputationRank,
       newValueRank: computationRank
     });
-    this.v = newValue;
     this._valueRank = computationRank;
+    // @todo This could be done later.
+    // this.v = newValue;
     // Update localStorage if set.
-    if (needUpdate && this._storageKey) {
+
+    if (newValue instanceof Error && !(newValue instanceof CellError)) {
+      this._sheet.errors._setCellError(this.id, newValue);
+      this._lastStateIsError = true;
+    } else {
+      if (this._lastStateIsError) this._sheet.errors._unsetCellError(this.id);
+    }
+    if (newValue instanceof Cell) {
+      this.setPointed(newValue.id);
+    } else {
+      if (this._isPointer)
+        if (newValue === null) {
+          this.setPointed(null);
+        } else {
+          DEBUG_RANK &&
+            console.log("unsetting pointer", { cell: this.name, newValue });
+          this.unsetPointed();
+        }
+    }
+
+    // We managed errors and cells, so we should be able to stop here
+    // if the value is unchanged.
+    const needUpdate = !this._sheet.equals(this.v, newValue);
+    if (!needUpdate) return;
+
+    if (this._storageKey) {
       try {
         const j = this.sheet._marshaller(newValue);
         localStorage.setItem(this._storageKey, j);
@@ -571,40 +601,24 @@ export class Cell<
         );
       }
     }
-    if (this.v instanceof Error && !(this.v instanceof CellError)) {
-      this._sheet.errors._setCellError(this.id, this.v);
-      this._lastStateIsError = true;
-    } else {
-      if (this._lastStateIsError) this._sheet.errors._unsetCellError(this.id);
-    }
-    if (newValue instanceof Cell) {
-      this.setPointed(newValue.id);
-    } else {
-      if (this._isPointer)
-        if (newValue === null) {
-          this.setPointed(null);
-        } else {
-          DEBUG_RANK &&
-            console.log("unsetting pointer", { cell: this.name, newValue });
-          this.unsetPointed();
-        }
-    }
+    this.v = newValue;
+
+    // only updating if we are the last ongoing computation
     if (this._currentComputationRank === computationRank) {
-      // only updating if we are the last ongoing computation
-      if (needUpdate) {
-        if (!skipSubscribers) {
-          // @todo : remember the last notify rank and run notify on last computations, even if canceled,
-          // if lastNotified < valueRank.
-          // This requires to
-          // 1. have a list of ranks of pending computations
-          // 2. on computation success or cancel, remove the rank from the list
-          // 3. if lastNotified < valueRank, and no pending have rank > valueRank, then notify the new value.
-          this._notifySubscribers();
-        }
-        if (update) {
-          // console.log(`Cell ${this.name}: `, `updating as value changed`);
-          this._sheet._update(this.id);
-        }
+      // @todo This is already done, but could be done here.
+      this._version++;
+      if (!skipSubscribers) {
+        // @todo : remember the last notify rank and run notify on last computations, even if canceled,
+        // if lastNotified < valueRank.
+        // This requires to
+        // 1. have a list of ranks of pending computations
+        // 2. on computation success or cancel, remove the rank from the list
+        // 3. if lastNotified < valueRank, and no pending have rank > valueRank, then notify the new value.
+        this._notifySubscribers();
+      }
+      if (update) {
+        // console.log(`Cell ${this.name}: `, `updating as value changed`);
+        this._sheet._update(this.id);
       }
     }
   }
@@ -736,6 +750,9 @@ export class ValueCell<V> extends Cell<V, false, false> {
 
     if (value !== undefined) {
       this.v = value;
+      // @ts-expect-error: _version is private, this is the single instance where
+      // we update it when creating a new ValueCell with a direct value.
+      this._version++;
       if (value instanceof Cell) {
         this.setPointed(value.id);
       } else {
@@ -760,6 +777,9 @@ export class ValueCell<V> extends Cell<V, false, false> {
       cell: this.fullName,
       value
     });
+    // @todo We could accelerate by testing early in that case, but
+    // then we should assume the check is already made.
+    // if (this.sheet.equals(this.v, value)) return;
     this._currentComputationRank += 1;
     const computationRank = this._currentComputationRank;
 
