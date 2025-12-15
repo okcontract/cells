@@ -76,7 +76,7 @@ test("proxy errors", async () => {
   const expectedError: ErrorsList = new Map();
   expectedError.set(evenOrDie.id, oddError);
   expect(store.errors.get()).toEqual(expectedError);
-  expect(not.value).toEqual(new CellError(evenOrDie.id, "Error: odd"));
+  expect(not.value).toEqual(new CellError(evenOrDie.id, oddError));
 
   cell.set(4);
   //@todo this one should not be necessary
@@ -102,7 +102,7 @@ test("sheet's (initial) errors are in the error cell", () => {
   expectedError.set(errorCell.id, error);
   expect(sheet.errors.get()).toEqual(expectedError);
   const errorInDep = errorCell.map((v) => v + 1);
-  expect(errorInDep.value).toEqual(new CellError(errorCell.id, "Error: ouch"));
+  expect(errorInDep.value).toEqual(new CellError(errorCell.id, error));
   expect(sheet.errors.get()).toEqual(expectedError);
 });
 
@@ -125,30 +125,26 @@ test("Proxy's (initial) errors are in the error cell", () => {
   expect(sheet.errors.get()).toEqual(expectedError);
 });
 
-test(
-  "Error cascade without pointers",
-  async () => {
-    const sheet = new Sheet();
-    const proxy = new SheetProxy(sheet);
+test("Error cascade without pointers", { timeout: 1000 }, async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
 
-    const fails = async (): Promise<string> => {
-      throw new Error("a");
-    };
+  const fails = async (): Promise<string> => {
+    throw new Error("a");
+  };
 
-    const a = proxy.new(delayed(1, 15), "a");
-    const b = proxy.new(delayed("foo", 10), "b");
+  const a = proxy.new(delayed(1, 15), "a");
+  const b = proxy.new(delayed("foo", 10), "b");
 
-    const c = proxy.map([a, b], (_a, _b) => fails(), "c");
-    const d = proxy.map([a, c], (a, _c) => a, "d");
+  const c = proxy.map([a, b], (_a, _b) => fails(), "c");
+  const d = proxy.map([a, c], (a, _c) => a, "d");
 
-    //       * (throws)
-    //      ↑
-    // a ─┬─ c ── d
-    // b ─┴
-    await expect(d.get()).resolves.toBeInstanceOf(Error);
-  },
-  { timeout: 1000 }
-);
+  //       * (throws)
+  //      ↑
+  // a ─┬─ c ── d
+  // b ─┴
+  await expect(d.get()).resolves.toBeInstanceOf(Error);
+});
 
 test("Error cascade with pointers", async () => {
   const sheet = new Sheet();

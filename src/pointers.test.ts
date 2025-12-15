@@ -99,7 +99,7 @@ test("cell pointer longer chain", async () => {
   await expect(cellMap.get()).resolves.toEqual(3);
   expect(cellMap.isPointer).toEqual(true);
   await expect(mixed.get()).resolves.toEqual(4);
-  expect(double.get()).resolves.toEqual(8);
+  await expect(double.get()).resolves.toEqual(8);
 
   // writeFileSync("dependencies.dot", sheet.dotGraphWithTitle("first topology"));
   // console.log(sheet.dotGraph);

@@ -13,8 +13,8 @@ test("wrapped mapped", async () => {
   const wrapped = new WrappedCell(cell, local);
 
   const mapped = wrapped.map((v) => v + 1);
-  expect(mapped.get()).resolves.toBe(2);
+  await expect(mapped.get()).resolves.toBe(2);
 
   cell.set(2);
-  expect(mapped.get()).resolves.toBe(3);
+  await expect(mapped.get()).resolves.toBe(3);
 });
