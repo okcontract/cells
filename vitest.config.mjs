@@ -2,7 +2,8 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   test: {
-    environment: "happy-dom",
+    environment: "node",
+    setupFiles: ["./vitest-setup.ts"],
     coverage: {
       exclude: ["src/index.ts", "src/types.ts"],
     },

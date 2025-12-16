@@ -26,13 +26,12 @@
   "devDependencies": {
     "@biomejs/biome": "^1.8.3",
     "@types/node": "^22.5.4",
-    "@vitest/coverage-v8": "^2.0.5",
-    "happy-dom": "^15.7.3",
+    "@vitest/coverage-v8": "^4.0.15",
     "immer": "^10.0.4",
     "terser": "^5.26.0",
     "typescript": "^5.3.3",
-    "vite": "^5.2.11",
-    "vitest": "^2.0.5"
+    "vite": "^7.2.7",
+    "vitest": "^4.0.15"
   },
   "scripts": {
     "build": "npm run format && vite build",
