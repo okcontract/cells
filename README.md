@@ -177,6 +177,25 @@ const patch = (prev) => {
 cell.update((prev) => produce(prev, patch));
 ```
 
+## Development
+
+Building and testing `cells` requires a system installation of
+[`bun`](https://bun.com). Bun is deliberately not included in the project's
+dependencies.
+
+```sh
+bun install --frozen-lockfile
+bun test
+bun run build
+bun run definitions
+```
+
+[`biome`](https://biomejs.dev) is also deliberately not included as a project
+dependency. Install it as a system binary if you want to run `bun run format`
+or `bun run check`. The standard `bun run build` script formats the source
+before bundling, so it also expects `biome` to be available on `PATH`; direct
+use of `bun build` does not require Biome.
+
 # Design & Philosophy
 
 The design and philosophy of `cells` comes from frameworks such as `RxJS`,
