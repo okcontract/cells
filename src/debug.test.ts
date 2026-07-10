@@ -92,7 +92,9 @@ describe("logger", () => {
     const proxy = new SheetProxy(sheet);
     const cell = proxy.new(42, "cell");
 
-    const fn = (v: number) => v * 2;
+    function fn(v: number) {
+      return v * 2;
+    }
 
     logger(cell, fn);
 
