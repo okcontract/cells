@@ -12,22 +12,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
-    strategy:
-      matrix:
-        node-version: [25.x]
-
     steps:
       - name: "Checkout current repository"
         uses: actions/checkout@v6
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ matrix.node-version }}
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+      - name: Set up Biome
+        uses: biomejs/setup-biome@v2
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
       - name: Ensure build ok
-        run: npm run build
+        run: bun run build
       - name: Generate definitions
-        run: npm run definitions
+        run: bun run definitions
       - name: Run all tests
-        run: npm test
+        run: bun test

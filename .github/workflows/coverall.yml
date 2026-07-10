@@ -9,13 +9,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Use Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 25.x
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
       - name: run coverage
-        run: npm run coverage
+        run: bun run coverage
       - name: Coveralls
         uses: coverallsapp/github-action@v2
