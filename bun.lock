@@ -1,0 +1,20 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "@okcontract/cells",
+      "dependencies": {
+        "@okcontract/graph": "^0.1.5",
+      },
+      "devDependencies": {
+        "typescript": "^5.3.3",
+      },
+    },
+  },
+  "packages": {
+    "@okcontract/graph": ["@okcontract/graph@0.1.5", "", {}, "sha512-styBdPq2zqovzRDBkByDgWB+l5poahxESq1KisOaV4FtwYsjD3q3jg7lsEWnhwYoKviHGl5Qa7UffrU7zfYDrg=="],
+
+    "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
+  }
+}

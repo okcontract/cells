@@ -431,15 +431,16 @@ export class Cell<
         this.sheet.debug([this.id], "consolidatedValueWthUndefined", {
           isPointer: this.isPointer
         });
-        // @ts-expect-error Cell<V>
-        return this.v === undefined || this.v === null
-          ? this.v
-          : // isPointer ensures we have a cell here
-            (this.v as Cell<V, boolean, boolean>).consolidatedValueWthUndefined;
+        return (
+          this.v === undefined || this.v === null
+            ? this.v
+            : // isPointer ensures we have a cell here
+              (this.v as Cell<V, boolean, boolean>)
+                .consolidatedValueWthUndefined
+        ) as Pending<V, MaybeError> | CellResult<V, MaybeError>;
       }
 
-      //@ts-expect-error !isPointer ensures we have *not* cell here
-      return this.v;
+      return this.v as CellResult<V, MaybeError>;
     }
 
     const pending: PendingMaybe<V, MaybeError> = this._pending_;

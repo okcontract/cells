@@ -1,0 +1,3 @@
+[test]
+preload = ["./test-setup.ts"]
+coveragePathIgnorePatterns = ["test-setup.ts"]

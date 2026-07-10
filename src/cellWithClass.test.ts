@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import type { AnyCell } from "./cell";
 import { delayed } from "./promise";

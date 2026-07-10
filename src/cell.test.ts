@@ -1,4 +1,4 @@
-import { describe, expect, it, test } from "vitest";
+import { describe, expect, it, test } from "bun:test";
 
 import { isEqual } from "./isEqual.test";
 
@@ -233,7 +233,7 @@ test("allows derived with different types", async () => {
 test("subscribe doesn't return undefined", async () => {
   const sheet = new Sheet();
   const url = sheet.new(undefined);
-  const pat = /breeds\/([a-z\-]+)\//;
+  const pat = /breeds\/([a-z-]+)\//;
   const breed = url.map((s) => pat.exec(s)?.[1]);
   const l: (string | Error)[] = [];
   breed.subscribe((v) => l.push(v));

@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import { isEqual } from "./isEqual.test";
 
@@ -33,6 +33,7 @@ test("count calls", async () => {
   const pointerToB = proxy.new(b, "pointerToB");
 
   let countDepOnPointerToB = 0;
+  // biome-ignore lint/suspicious/useIterableCallbackReturn: Cell.map may intentionally return undefined
   const pointerOnPointerToCanceled = b.map((v) => {
     countDepOnPointerToB++;
   }, "pointerToB");

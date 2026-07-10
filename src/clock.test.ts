@@ -1,17 +1,25 @@
+import { afterEach, expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
-import { expect, test } from "vitest";
 
-import { clock, clockWork } from "./clock";
+import { type Clock, clock, clockWork } from "./clock";
 import { Debugger } from "./debug";
 import { delayed, sleep } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
+
+const clocks: Clock[] = [];
+
+afterEach(() => {
+  for (const clock of clocks) clock.stop();
+  clocks.length = 0;
+});
 
 test("clock", async () => {
   const sheet = new Sheet();
   const proxy = new SheetProxy(sheet);
   const live = proxy.new(true);
   const cl = clock(proxy, live, 10);
+  clocks.push(cl);
   const l = [];
   cl.subscribe((v) => l.push(v));
   expect(l).toEqual([0]);
@@ -34,6 +42,7 @@ test("clockWork", async () => {
   const proxy = new SheetProxy(sheet);
   const live = proxy.new(true);
   const cl = clock(proxy, live, 10);
+  clocks.push(cl);
   const a = proxy.new(100, "a");
   const work = clockWork(proxy, cl, [a], (v: number) => v + 1);
   await expect(work.get()).resolves.toBe(101);
@@ -49,6 +58,7 @@ test("wait list", async () => {
   const proxy = new SheetProxy(sheet);
   const live = proxy.new(true);
   const cl = clock(proxy, live, 10);
+  clocks.push(cl);
   const q = proxy.new([] as string[], "q");
   const m = cl.work(
     [q],
@@ -77,6 +87,7 @@ test("wait list self update fails", async () => {
   const proxy = new SheetProxy(sheet);
   const live = proxy.new(true);
   const cl = clock(proxy, live, 10);
+  clocks.push(cl);
   const q = proxy.new([] as string[], "q");
   const m = cl.work(
     [q],
@@ -108,7 +119,8 @@ test("wait list self update with subscription", async () => {
   const debug = new Debugger(sheet);
   const proxy = new SheetProxy(sheet);
   const live = proxy.new(true, "live");
-  const cl = clock(proxy, live, 10);
+  const cl = clock(proxy, live, 30);
+  clocks.push(cl);
   const q = proxy.new([] as string[], "q");
   const remote = proxy.new(null as string[] | null, "remote");
   remote.subscribe((l) => {
@@ -137,21 +149,21 @@ test("wait list self update with subscription", async () => {
   );
   // debug.w(4);
   writeFileSync("clock.dot", debug.dot("clockWork with remote"));
-  await expect(m.consolidatedValue).resolves.toEqual({});
+  expect(await m.consolidatedValue).toEqual({});
   q.set(["foo", "bar"]);
   expect(m.consolidatedValue).toEqual({});
-  await sleep(15);
-  await expect(m.consolidatedValue).resolves.toEqual({ foo: 3, bar: 3 });
+  await sleep(35);
+  expect(await m.consolidatedValue).toEqual({ foo: 3, bar: 3 });
   q.set(["test"]);
   expect(m.consolidatedValue).toEqual({ foo: 3, bar: 3 });
-  await sleep(10);
-  await expect(m.consolidatedValue).resolves.toEqual({
+  await sleep(35);
+  expect(await m.consolidatedValue).toEqual({
     foo: 3,
     bar: 3,
     test: 4
   });
-  await sleep(10);
-  await expect(m.consolidatedValue).resolves.toEqual({
+  await sleep(35);
+  expect(await m.consolidatedValue).toEqual({
     foo: 3,
     bar: 3,
     test: 4,

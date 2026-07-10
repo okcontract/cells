@@ -1,10 +1,10 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import {
   type Cellified,
-  type Uncellified,
   cellify,
   follow,
+  type Uncellified,
   uncellify
 } from "./cellify";
 import { SheetProxy } from "./proxy";
@@ -91,9 +91,7 @@ test("cellify failOnError", async () => {
   // @ts-expect-error intentional
   const m = v.map((v) => v.toLowerCase());
   // The standard uncellify call throws.
-  await expect(() => uncellify(m)).rejects.toThrow(
-    "toLowerCase is not a function"
-  );
+  await expect(uncellify(m)).rejects.toThrow("toLowerCase is not a function");
   // But we retrieve the error with errorsAsValues.
   await expect(uncellify(m, { errorsAsValues: true })).resolves.toBeInstanceOf(
     Error

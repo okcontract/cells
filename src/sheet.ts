@@ -6,11 +6,11 @@ import {
   Cell,
   CellErrors,
   type CellResult,
+  cancelComputation,
   MapCell,
   type Pending,
   ValueCell,
-  Working,
-  cancelComputation
+  Working
 } from "./cell";
 import { simplifier } from "./printer";
 import { dispatch, dispatchPromiseOrValueArray } from "./promise";

@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import type { MapCell, ValueCell } from "./cell";
 import { delayed, sleep } from "./promise";

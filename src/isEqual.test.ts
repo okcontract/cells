@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 /**
  * isEqual is a deep equality function for JS values.

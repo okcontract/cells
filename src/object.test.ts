@@ -1,5 +1,5 @@
+import { expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
-import { expect, test } from "vitest";
 
 import { cellify, uncellify } from "./cellify";
 import { Debugger } from "./debug";

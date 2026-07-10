@@ -1,4 +1,4 @@
-import { describe, expect, it, test, vi } from "vitest";
+import { describe, expect, it, spyOn, test } from "bun:test";
 
 import { Debugger, getClassNameOrType, logger } from "./debug";
 import { SheetProxy } from "./proxy";
@@ -74,9 +74,7 @@ describe("logger", () => {
   const sheet = new Sheet(); // Create the Sheet once for all tests
 
   it("should log the cell name and value type", () => {
-    const mockConsoleLog = vi
-      .spyOn(console, "log")
-      .mockImplementation(() => {});
+    const mockConsoleLog = spyOn(console, "log").mockImplementation(() => {});
 
     const proxy = new SheetProxy(sheet);
     const cell = proxy.new(42, "cell");
@@ -89,9 +87,7 @@ describe("logger", () => {
   });
 
   it("should log the cell name and processed value when fn is provided", () => {
-    const mockConsoleLog = vi
-      .spyOn(console, "log")
-      .mockImplementation(() => {});
+    const mockConsoleLog = spyOn(console, "log").mockImplementation(() => {});
 
     const proxy = new SheetProxy(sheet);
     const cell = proxy.new(42, "cell");
@@ -106,9 +102,7 @@ describe("logger", () => {
   });
 
   it("should log the cell name and error type when cell is in Error", () => {
-    const mockConsoleLog = vi
-      .spyOn(console, "log")
-      .mockImplementation(() => {});
+    const mockConsoleLog = spyOn(console, "log").mockImplementation(() => {});
 
     const proxy = new SheetProxy(sheet);
     const err = new Error("Test error");
@@ -125,9 +119,7 @@ describe("logger", () => {
   });
 
   it("should log the name and value of a mapped cell", () => {
-    const mockConsoleLog = vi
-      .spyOn(console, "log")
-      .mockImplementation(() => {});
+    const mockConsoleLog = spyOn(console, "log").mockImplementation(() => {});
 
     const proxy = new SheetProxy(sheet);
     const cellA = proxy.new(1);

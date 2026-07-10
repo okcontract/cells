@@ -1,10 +1,10 @@
-import { afterEach, expect, test, vi } from "vitest";
+import { afterEach, expect, spyOn, test } from "bun:test";
 
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 
-const getItemSpy = vi.spyOn(Storage.prototype, "getItem");
-const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
+const getItemSpy = spyOn(Storage.prototype, "getItem");
+const setItemSpy = spyOn(Storage.prototype, "setItem");
 
 afterEach(() => {
   localStorage.clear();

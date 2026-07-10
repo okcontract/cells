@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import type { ErrorsList } from "./cell";
 import { CellError } from "./errors";

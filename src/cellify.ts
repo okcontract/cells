@@ -19,15 +19,16 @@ export type Cellified<T> = T extends object
   : ValueCell<T>;
 
 // Uncellified computes an uncellified type.
-export type Uncellified<T> = T extends AnyCell<infer U>
-  ? U extends object
-    ? U extends Array<infer Elt>
-      ? Array<Uncellified<Elt>>
-      : {
-          [P in keyof U]: Uncellified<U[P]>;
-        }
-    : U
-  : T;
+export type Uncellified<T> =
+  T extends AnyCell<infer U>
+    ? U extends object
+      ? U extends Array<infer Elt>
+        ? Array<Uncellified<Elt>>
+        : {
+            [P in keyof U]: Uncellified<U[P]>;
+          }
+      : U
+    : T;
 
 // isObject returns true if the value is a regular JavaScript Object,
 // but not null neither a custom Class instance.

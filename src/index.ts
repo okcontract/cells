@@ -11,13 +11,13 @@ export {
 // Core
 
 export {
-  Cell,
-  MapCell,
-  ValueCell,
   type AnyCell,
+  Cell,
   type CellErrors,
   type CellResult,
+  MapCell,
   type Pending,
+  ValueCell,
   type Working
 } from "./cell";
 export { collector, reuseOrCreate } from "./gc";
@@ -28,6 +28,7 @@ export type { ComputeFn, Unsubscriber } from "./types";
 // Utilities
 
 export {
+  type CellArray,
   defaultComparator,
   filter,
   filterPredicateCell,
@@ -40,32 +41,31 @@ export {
   mapArrayCell,
   reduce,
   sort,
-  type CellArray,
   type ValueCellArray
 } from "./array";
 export {
+  type Cellified,
   cellify,
   follow,
   isObject,
-  uncellify,
-  type Cellified,
   type Key,
   type Path,
-  type Uncellified
+  type Uncellified,
+  uncellify
 } from "./cellify";
-export { clock, clockWork, type Clock } from "./clock";
+export { type Clock, clock, clockWork } from "./clock";
 export { copy } from "./copy";
-export { debouncer, type Debouncer } from "./debouncer";
+export { type Debouncer, debouncer } from "./debouncer";
 export { Debugger, logger } from "./debug";
 export { initialValue } from "./initial";
 export { jsonStringify } from "./json";
 export { nextSubscriber } from "./next";
 export {
   asyncReduce,
+  type CellObject,
   flattenObject,
   mapObject,
-  reduceObject,
-  type CellObject
+  reduceObject
 } from "./object";
 export { simplifier } from "./printer";
 export { WrappedCell } from "./wrapped";

@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 type ComputeFunction<T extends unknown[], R> = (...args: T) => R;
 
