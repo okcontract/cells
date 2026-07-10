@@ -8,3 +8,4 @@ src/*.png
 README.html
 coverage
 .DS_Store
+.gatejs
