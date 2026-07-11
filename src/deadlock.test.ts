@@ -50,3 +50,25 @@ test("unwrappedCell in a class and wait for value", async () => {
     "data"
   );
 });
+
+test("a canceled dependency does not invalidate a pending value", async () => {
+  const sheet = new Sheet();
+  const proxy = new SheetProxy(sheet);
+  const map = (delay: number, dependencies: AnyCell<number>[]) =>
+    proxy.mapNoPrevious(dependencies, async (...values) =>
+      delayed(
+        values.reduce((sum, value) => sum + value, 0),
+        delay
+      )
+    );
+
+  const slow = proxy.new(delayed(1, 28));
+  const fast = proxy.new(delayed(1, 10));
+  const fromFast = map(66, [fast]);
+  const fromBoth = map(45, [slow, fast]);
+  const result = map(77, [fromFast, fromBoth]);
+
+  await expect(
+    Promise.race([result.get(), delayed("timed out", 500)])
+  ).resolves.toBe(3);
+});

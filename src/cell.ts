@@ -527,16 +527,9 @@ export class Cell<
     );
     if (newValue === undefined) {
       this.sheet.debug([this.id], "newValue undefined", {}, console.trace);
-      // if the value to be set is 'undefined',
-      // the value is ignored.
-      // we should make the cell invalid (ie we don't set valueRank to computationRank),
-      // so that consolidatedValue will block until a new value is set.
-      // meaning no depending cell could be updated.
-      // It also mean that any update triggered on depending cells would be locked.
-      // It would also require to set a pending value that should be resolved later on into this._pending.
-      if (this._currentComputationRank === computationRank) {
-        this._valueRank = computationRank;
-      }
+      // Treat undefined as a canceled update. Advancing the value rank here can
+      // invalidate an older computation that is still able to produce a value,
+      // leaving the cell and its dependents waiting forever.
       return;
     }
 
