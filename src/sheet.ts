@@ -560,9 +560,13 @@ export class Sheet {
     const computations: Computations<V> = [];
     const release = this.working.startNewComputation();
     for (const id of roots) {
-      computations[id] = dispatch(
-        this.get(id).consolidatedValueWthUndefined,
-        (v) => (v === undefined ? cancelComputation : v)
+      const cell = this.get(id);
+      if (!cell) {
+        console.error(`missing cell: ${id}`);
+        continue;
+      }
+      computations[id] = dispatch(cell.consolidatedValueWthUndefined, (v) =>
+        v === undefined ? cancelComputation : v
       );
     }
     return dispatch(
