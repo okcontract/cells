@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 
 import type { ErrorsList } from "./cell";
 import { CellError } from "./errors";
-import { delayed, sleep } from "./promise";
+import { delayed } from "./promise";
 import { SheetProxy } from "./proxy";
 import { Sheet } from "./sheet";
 
@@ -95,7 +95,7 @@ test("sheet's (initial) errors are in the error cell", () => {
   const sheet = new Sheet();
   const cell = sheet.new(2);
   const error = new Error("ouch");
-  const errorCell = cell.map((v) => {
+  const errorCell = cell.map((_v) => {
     throw error;
   });
   const expectedError: ErrorsList = new Map();

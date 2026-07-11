@@ -26,4 +26,4 @@ jobs:
       - name: Generate definitions
         run: bun run definitions
       - name: Run all tests
-        run: bun test
+        run: bun run test

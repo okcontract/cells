@@ -34,12 +34,12 @@ test("count calls", async () => {
 
   let countDepOnPointerToB = 0;
   // biome-ignore lint/suspicious/useIterableCallbackReturn: Cell.map may intentionally return undefined
-  const pointerOnPointerToCanceled = b.map((v) => {
+  const _pointerOnPointerToCanceled = b.map((_v) => {
     countDepOnPointerToB++;
   }, "pointerToB");
 
   let countDepOnTrace = 0;
-  const depOnDep = proxy.map(
+  const _depOnDep = proxy.map(
     [computing, pointerToB],
     (v) => {
       countDepOnTrace++;

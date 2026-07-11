@@ -314,7 +314,7 @@ test("get pointer chain", async () => {
   const p1 = proxy.new(init1);
   const p2 = proxy.new(p1);
   const m = proxy.map([p1, p2], async (a, b) => delayed(a + b, 20));
-  const m2 = m.map((v) => delayed(m, 20));
+  const m2 = m.map((_v) => delayed(m, 20));
   await expect(m2.get()).resolves.toBe(2);
 });
 

@@ -399,16 +399,26 @@ export class Cell<
 
     //@ts-expect-error the value is invalidated only when a promise exists
     const pending: PendingMaybe<V> = this._pending_;
-    return pending.then((v: Pending<V, MaybeError>) =>
-      v instanceof Canceled
-        ? this.consolidatedValue // pending computation aborted, retry to get a value
-        : this.isPointer
-          ? this.v === null
-            ? null
-            : //@ts-expect-error isPointer ensures we have a cell here
-              this.v.consolidatedValue //getting pointed consolidated
-          : v
-    );
+    if (pending === undefined) return this.get();
+    return pending.then((v: Pending<V, MaybeError>) => {
+      if (v instanceof Canceled) {
+        if (this.v !== undefined) {
+          if (this.isPointer)
+            // @ts-expect-error isPointer ensures we have a cell here
+            return this.v === null ? null : this.v.consolidatedValue;
+          return this.v;
+        }
+        return this.get();
+      }
+      if (this.isPointer)
+        return this.v === null
+          ? null
+          : this.v === undefined
+            ? undefined
+            : // @ts-expect-error isPointer ensures we have a cell here
+              this.v.consolidatedValue;
+      return v;
+    });
   }
 
   /** If no ongoing computation, then current value, else a promise of value.
@@ -517,16 +527,9 @@ export class Cell<
     );
     if (newValue === undefined) {
       this.sheet.debug([this.id], "newValue undefined", {}, console.trace);
-      // if the value to be set is 'undefined',
-      // the value is ignored.
-      // we should make the cell invalid (ie we don't set valueRank to computationRank),
-      // so that consolidatedValue will block until a new value is set.
-      // meaning no depending cell could be updated.
-      // It also mean that any update triggered on depending cells would be locked.
-      // It would also require to set a pending value that should be resolved later on into this._pending.
-      if (this._currentComputationRank === computationRank) {
-        this._valueRank = computationRank;
-      }
+      // Treat undefined as a canceled update. Advancing the value rank here can
+      // invalidate an older computation that is still able to produce a value,
+      // leaving the cell and its dependents waiting forever.
       return;
     }
 
@@ -689,7 +692,6 @@ export class Cell<
       ? this.value
       : // @todo handle rejections?
         new Promise<CellResult<V, MaybeError>>((resolve) => {
-          // biome-ignore lint/style/useConst: uns needs to be defined in function
           let uns: Unsubscriber;
           uns = this.subscribe((v) => {
             // console.log({ cell: this.name, notification: Date.now() });

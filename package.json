@@ -1,6 +1,6 @@
 {
   "name": "@okcontract/cells",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Simplified reactive functional programming for the web",
   "private": false,
   "main": "dist/cells.umd.cjs",
@@ -29,10 +29,10 @@
   },
   "scripts": {
     "build": "bun run format && bun build src/index.ts --outfile dist/cells.js --target browser --format esm --minify && bun build src/index.ts --outfile dist/cells.umd.cjs --target browser --format cjs --minify",
-    "test": "bun test",
+    "test": "bun test --parallel",
     "coverage": "bun test --coverage --coverage-reporter=lcov",
     "definitions": "tsc --project tsconfig.build.json",
-    "prepublishOnly": "bun test && bun run build && bun run check && bun run definitions",
+    "prepublishOnly": "bun run test && bun run build && bun run check && bun run definitions",
     "check": "biome check src",
     "format": "biome check src --write"
   },
