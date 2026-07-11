@@ -22,7 +22,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@okcontract/graph": "^0.1.5"
+    "@okcontract/graph": "^0.2.0"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

@@ -5,7 +5,7 @@
     "": {
       "name": "@okcontract/cells",
       "dependencies": {
-        "@okcontract/graph": "^0.1.5",
+        "@okcontract/graph": "^0.2.0",
       },
       "devDependencies": {
         "typescript": "^5.3.3",
@@ -13,7 +13,7 @@
     },
   },
   "packages": {
-    "@okcontract/graph": ["@okcontract/graph@0.1.5", "", {}, "sha512-styBdPq2zqovzRDBkByDgWB+l5poahxESq1KisOaV4FtwYsjD3q3jg7lsEWnhwYoKviHGl5Qa7UffrU7zfYDrg=="],
+    "@okcontract/graph": ["@okcontract/graph@0.2.0", "", {}, "sha512-UCYVIyg6m+z2oveyWmO+YMLWvh9OlpXaBtqN9XZ/v5WinIGQZ5EjczInGiuohWS7iJTBfuxHfVi3G9EDqvpQBA=="],
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
   }
