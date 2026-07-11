@@ -33,3 +33,17 @@ test("jsonStringify order", () => {
 test("jsonStringify undefined", () => {
   expect(jsonStringify({ a: 1, b: undefined })).toBe(jsonStringify({ a: 1 }));
 });
+
+test("jsonStringify serializes class instances with toString", () => {
+  class Token {
+    constructor(readonly value: string) {}
+
+    toString() {
+      return `token:${this.value}`;
+    }
+  }
+
+  const serialized = jsonStringify({ token: new Token("abc") });
+  expect(serialized).toBe('{"token":"token:abc"}');
+  expect(JSON.parse(serialized)).toEqual({ token: "token:abc" });
+});

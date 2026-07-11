@@ -36,7 +36,10 @@ export const jsonStringify = <T>(
           break;
         }
         // use toString for classes
-        if (!isObject(v)) out += JSON.stringify(v.toString());
+        if (!isObject(v)) {
+          out += JSON.stringify(v.toString());
+          break;
+        }
         out += "{";
         let first = true;
         // sort objects alphabetically
