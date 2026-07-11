@@ -689,7 +689,6 @@ export class Cell<
       ? this.value
       : // @todo handle rejections?
         new Promise<CellResult<V, MaybeError>>((resolve) => {
-          // biome-ignore lint/style/useConst: uns needs to be defined in function
           let uns: Unsubscriber;
           uns = this.subscribe((v) => {
             // console.log({ cell: this.name, notification: Date.now() });

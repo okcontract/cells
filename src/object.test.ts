@@ -43,7 +43,6 @@ test("mapObject", async () => {
   // delete a field
   obj.update((rec) => {
     const copy = { ...rec };
-    // biome-ignore lint/performance/noDelete: we don't want an undefined field
     delete copy.a;
     return copy;
   });
@@ -88,7 +87,7 @@ test("reduceObject", { timeout: 1000 }, async () => {
 
 test("flattenObject", async () => {
   const sheet = new Sheet(isEqual);
-  const debug = new Debugger(sheet);
+  const _debug = new Debugger(sheet);
   const proxy = new SheetProxy(sheet);
 
   const obj = cellify(proxy, { a: 1, b: 2, c: 3 });

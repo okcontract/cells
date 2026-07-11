@@ -23,7 +23,6 @@ test("native proxy", () => {
   expect(proxy.value).toBe(10);
   expect(trigger).toBeFalsy();
 
-  // biome-ignore lint/performance/noDelete: deletion *is* required
   delete (proxy as { value: unknown }).value; // Output: "Property has been deleted: value"
   expect(proxy.value).toBeUndefined(); // Output: undefined
   expect(trigger).toBeTruthy();
@@ -98,7 +97,7 @@ test("proxy deletion", async () => {
   const a = proxy.new(delayed(1, 10));
   const b = proxy.new(delayed(2, 15));
   const sub = new SheetProxy(sheet);
-  const c = sub.map([a, b], async (a, b) => a + b);
+  const _c = sub.map([a, b], async (a, b) => a + b);
   expect(sheet.stats).toEqual({ count: 3, size: 3 });
   sub.destroy();
   await proxy.working.wait();
@@ -118,7 +117,7 @@ test("proxy deletion with loop", async () => {
   const b = proxy.new(delayed(2, 15));
   const sub = new SheetProxy(sheet);
   const c = sub.map([a, b], async (a, b) => delayed(a + b, 5));
-  const d = proxy.map([c], async (v) => delayed(v * 2, 15));
+  const _d = proxy.map([c], async (v) => delayed(v * 2, 15));
   expect(sheet.stats).toEqual({ count: 4, size: 4 });
   // Since we now collect the whole subgraph, there is no error.
   sub.destroy();

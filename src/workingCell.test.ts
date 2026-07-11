@@ -22,7 +22,7 @@ test("working in a proxy affected only by proxy's cell", async () => {
   const cell = sheet.new(delayed(1, 200));
   const proxy = new SheetProxy(sheet);
   expect(proxy.working.get()).toBe(false);
-  const cellInProxy = proxy.map([cell], (b) => delayed(1 + 1, 1000));
+  const cellInProxy = proxy.map([cell], (_b) => delayed(1 + 1, 1000));
   expect(proxy.working.get()).toBe(true);
   expect(cellInProxy.value).toBeUndefined;
   await expect(cellInProxy.get()).resolves.toBe(2);

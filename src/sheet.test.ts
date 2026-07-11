@@ -63,10 +63,10 @@ test("direct updates", () => {
 
 test("sheet with circular dependencies throws error", () => {
   const sheet = new Sheet();
-  let a1: MapCell<number, false>;
+  let _a1: MapCell<number, false>;
   let a2: ValueCell<number>;
   expect(() => {
-    a1 = sheet.map([a2], (a2) => a2);
+    _a1 = sheet.map([a2], (a2) => a2);
     // @todo maybe catch with a better error?
   }).toThrow("not a cell: undefined");
 });

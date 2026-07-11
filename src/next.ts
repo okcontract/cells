@@ -12,7 +12,6 @@ export const nextSubscriber = <V>(
   _expectedCount = 2
 ) => {
   if (!cell) return;
-  // biome-ignore lint/style/useConst: need reference
   let uns: Unsubscriber;
   let count = 0;
   uns = cell.subscribe((arg) => {

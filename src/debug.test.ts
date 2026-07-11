@@ -10,7 +10,7 @@ test("Debugger", () => {
   const a = sheet.new(1, undefined, "age");
   const b = sheet.new("foo", undefined, "name");
   const c = sheet.map([a, b], (_a, _b) => _a + _b.length);
-  const d = c.map((_) => {
+  const _d = c.map((_) => {
     throw new Error("no");
   });
   expect(debug.p(1)).toBe("[] ==> {1} ==> [2]");
@@ -109,7 +109,7 @@ describe("logger", () => {
     const proxy = new SheetProxy(sheet);
     const err = new Error("Test error");
     const a = proxy.new("", "a");
-    const b = a.map((v) => {
+    const b = a.map((_v) => {
       throw err;
     }, "b");
     logger(b);
