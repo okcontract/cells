@@ -399,16 +399,26 @@ export class Cell<
 
     //@ts-expect-error the value is invalidated only when a promise exists
     const pending: PendingMaybe<V> = this._pending_;
-    return pending.then((v: Pending<V, MaybeError>) =>
-      v instanceof Canceled
-        ? this.consolidatedValue // pending computation aborted, retry to get a value
-        : this.isPointer
-          ? this.v === null
-            ? null
-            : //@ts-expect-error isPointer ensures we have a cell here
-              this.v.consolidatedValue //getting pointed consolidated
-          : v
-    );
+    if (pending === undefined) return this.get();
+    return pending.then((v: Pending<V, MaybeError>) => {
+      if (v instanceof Canceled) {
+        if (this.v !== undefined) {
+          if (this.isPointer)
+            // @ts-expect-error isPointer ensures we have a cell here
+            return this.v === null ? null : this.v.consolidatedValue;
+          return this.v;
+        }
+        return this.get();
+      }
+      if (this.isPointer)
+        return this.v === null
+          ? null
+          : this.v === undefined
+            ? undefined
+            : // @ts-expect-error isPointer ensures we have a cell here
+              this.v.consolidatedValue;
+      return v;
+    });
   }
 
   /** If no ongoing computation, then current value, else a promise of value.

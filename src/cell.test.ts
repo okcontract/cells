@@ -1,5 +1,6 @@
 import { describe, expect, it, test } from "bun:test";
 
+import { cancelComputation } from "./cell";
 import { isEqual } from "./isEqual.test";
 
 import { Sheet } from "./sheet";
@@ -240,4 +241,41 @@ test("subscribe doesn't return undefined", async () => {
   url.set("");
   url.set("https://images.dog.ceo/breeds/frise-bichon/1.jpg");
   expect(l).toEqual(["frise-bichon"]); // cspell:disable-line
+});
+
+test("a canceled computation returns the last stable value", async () => {
+  const cell = new Sheet().new(7);
+  const state = cell as unknown as {
+    _currentComputationRank: number;
+    _pending_: Promise<unknown>;
+  };
+  let pendingReads = 0;
+
+  state._currentComputationRank += 1;
+  state._pending_ = {
+    // biome-ignore lint/suspicious/noThenProperty: a controlled thenable detects recursive reads
+    then(resolve: (value: unknown) => unknown) {
+      pendingReads++;
+      if (pendingReads > 1) throw new Error("pending computation was retried");
+      return Promise.resolve(resolve(cancelComputation));
+    }
+  } as Promise<unknown>;
+
+  await expect(cell.consolidatedValue).resolves.toBe(7);
+  expect(pendingReads).toBe(1);
+});
+
+test("a missing pending computation waits for the next value", async () => {
+  const cell = new Sheet().new<number>(undefined);
+  const state = cell as unknown as {
+    _currentComputationRank: number;
+    _pending_: undefined;
+  };
+
+  state._currentComputationRank += 1;
+  state._pending_ = undefined;
+  const value = cell.consolidatedValue;
+  cell.set(9);
+
+  await expect(value).resolves.toBe(9);
 });
