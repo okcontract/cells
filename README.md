@@ -185,7 +185,7 @@ dependencies.
 
 ```sh
 bun install --frozen-lockfile
-bun test
+bun run test
 bun run build
 bun run definitions
 ```
